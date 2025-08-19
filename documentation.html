@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - Fakt</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #003580 0%, #0052cc 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .nav {
+            background: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .nav a {
+            color: #003580;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        .nav a:hover {
+            color: #0052cc;
+        }
+        
+        .section {
+            background: white;
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .section h2 {
+            color: #003580;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            border-bottom: 3px solid #0052cc;
+            padding-bottom: 0.5rem;
+        }
+        
+        .section h3 {
+            color: #0052cc;
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.5rem;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .feature-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #0052cc;
+        }
+        
+        .feature-card h4 {
+            color: #003580;
+            margin-bottom: 0.5rem;
+        }
+        
+        .screenshots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .screenshot {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .screenshot img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .code-block {
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        
+        .code-block code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+        }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .footer {
+            background: #003580;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .footer p {
+            opacity: 0.8;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>📱 Fakt</h1>
+            <p>Application mobile de génération de factures pour locations saisonnières</p>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <div class="container">
+            <ul>
+                <li><a href="#overview">Aperçu</a></li>
+                <li><a href="#features">Fonctionnalités</a></li>
+                <li><a href="#installation">Installation</a></li>
+                <li><a href="#usage">Utilisation</a></li>
+                <li><a href="#technical">Technique</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section id="overview" class="section">
+            <h2>Aperçu de l'Application</h2>
+            <p>Fakt est une application mobile développée avec React Native qui permet aux propriétaires de locations saisonnières de générer rapidement et facilement des factures professionnelles pour leurs clients.</p>
+            
+            <div class="info-box">
+                <strong>💡 Idéal pour :</strong> Propriétaires sur Booking.com, Airbnb, ou en direct qui ont besoin d'émettre des factures officielles.
+            </div>
+
+            <h3>Points Forts</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🚀 Rapide & Simple</h4>
+                    <p>Création de factures en moins de 30 secondes avec un formulaire intuitif.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📧 Envoi Direct</h4>
+                    <p>Envoyez les factures par email directement depuis l'application.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>💾 Stockage Local</h4>
+                    <p>Toutes vos factures sont sauvegardées localement sur votre appareil.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🎨 Design Moderne</h4>
+                    <p>Interface inspirée de Booking.com pour une expérience familière.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="section">
+            <h2>Fonctionnalités Détaillées</h2>
+            
+            <h3>1. Création de Factures</h3>
+            <p>Le formulaire de création comprend les champs suivants :</p>
+            <table>
+                <tr>
+                    <th>Champ</th>
+                    <th>Description</th>
+                    <th>Format</th>
+                </tr>
+                <tr>
+                    <td>Prénom</td>
+                    <td>Prénom du client</td>
+                    <td>Texte</td>
+                </tr>
+                <tr>
+                    <td>Nom</td>
+                    <td>Nom de famille du client</td>
+                    <td>Texte</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>Adresse email du client</td>
+                    <td>Email valide</td>
+                </tr>
+                <tr>
+                    <td>Nombre de nuits</td>
+                    <td>Durée du séjour</td>
+                    <td>Nombre entier</td>
+                </tr>
+                <tr>
+                    <td>Prix par nuit</td>
+                    <td>Tarif journalier</td>
+                    <td>Montant en euros (virgule ou point acceptés)</td>
+                </tr>
+                <tr>
+                    <td>Taxe de séjour</td>
+                    <td>Montant de la taxe totale</td>
+                    <td>Montant en euros</td>
+                </tr>
+                <tr>
+                    <td>Date de facture</td>
+                    <td>Date d'émission</td>
+                    <td>Format JJ/MM/AAAA</td>
+                </tr>
+            </table>
+
+            <h3>2. Format des Factures</h3>
+            <p>Les factures sont générées au format PDF avec :</p>
+            <ul>
+                <li>Numérotation automatique : <code>AAAA/MM/JJ Réservation Prénom NOM</code></li>
+                <li>Calcul automatique du montant total</li>
+                <li>Design professionnel avec tableau détaillé</li>
+                <li>Mentions légales incluses</li>
+            </ul>
+
+            <h3>3. Gestion des Factures</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📋 Liste des Factures</h4>
+                    <ul>
+                        <li>Vue d'ensemble avec montant total cumulé</li>
+                        <li>Nombre de factures émises</li>
+                        <li>Affichage par ordre chronologique</li>
+                        <li>Informations visibles : nom client, date, nombre de nuits, montant</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <h4>🔧 Actions Disponibles</h4>
+                    <ul>
+                        <li>Partager la facture (email, WhatsApp, etc.)</li>
+                        <li>Supprimer une facture avec confirmation</li>
+                        <li>Actualiser la liste (pull to refresh)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>4. Navigation</h3>
+            <p>L'application dispose de 2 onglets principaux :</p>
+            <ul>
+                <li><strong>Nouvelle :</strong> Formulaire de création de facture</li>
+                <li><strong>Mes Factures :</strong> Liste et gestion des factures existantes</li>
+            </ul>
+        </section>
+
+        <section id="installation" class="section">
+            <h2>Installation</h2>
+            
+            <h3>Prérequis</h3>
+            <ul>
+                <li>iOS 13.0+ ou Android 6.0+</li>
+                <li>Environ 50 MB d'espace libre</li>
+                <li>Connexion internet pour l'envoi d'emails</li>
+            </ul>
+
+            <h3>Installation pour Développeurs</h3>
+            <div class="code-block">
+                <code>
+# Cloner le repository<br>
+git clone [URL_DU_REPO]<br><br>
+
+# Installer les dépendances<br>
+cd InvoiceGenerator<br>
+npm install<br><br>
+
+# Lancer l'application<br>
+npm start<br><br>
+
+# Pour iOS<br>
+npm run ios<br><br>
+
+# Pour Android<br>
+npm run android
+                </code>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Note :</strong> L'application utilise Expo, donc vous pouvez la tester avec l'app Expo Go sur votre téléphone.
+            </div>
+        </section>
+
+        <section id="usage" class="section">
+            <h2>Guide d'Utilisation</h2>
+            
+            <h3>Créer une Facture</h3>
+            <ol>
+                <li>Ouvrez l'application et restez sur l'onglet "Nouvelle"</li>
+                <li>Remplissez tous les champs du formulaire</li>
+                <li>Vérifiez les informations saisies</li>
+                <li>Cliquez sur "Générer la facture"</li>
+                <li>L'application génère le PDF et ouvre automatiquement l'email</li>
+                <li>Envoyez l'email au client</li>
+            </ol>
+
+            <div class="success-box">
+                <strong>✅ Astuce :</strong> Les virgules et points sont acceptés pour les montants. L'app convertit automatiquement.
+            </div>
+
+            <h3>Gérer les Factures</h3>
+            <ol>
+                <li>Allez dans l'onglet "Mes Factures"</li>
+                <li>Consultez la liste de toutes vos factures</li>
+                <li>Pour partager : cliquez sur l'icône de partage</li>
+                <li>Pour supprimer : cliquez sur la corbeille et confirmez</li>
+            </ol>
+
+            <h3>Validation des Données</h3>
+            <p>L'application vérifie automatiquement :</p>
+            <ul>
+                <li>Format email valide</li>
+                <li>Nombre de nuits minimum : 1</li>
+                <li>Prix positifs uniquement</li>
+                <li>Tous les champs obligatoires remplis</li>
+            </ul>
+        </section>
+
+        <section id="technical" class="section">
+            <h2>Informations Techniques</h2>
+            
+            <h3>Technologies Utilisées</h3>
+            <table>
+                <tr>
+                    <th>Technologie</th>
+                    <th>Version</th>
+                    <th>Utilisation</th>
+                </tr>
+                <tr>
+                    <td>React Native</td>
+                    <td>0.74.5</td>
+                    <td>Framework principal</td>
+                </tr>
+                <tr>
+                    <td>Expo</td>
+                    <td>~51.0.28</td>
+                    <td>Plateforme de développement</td>
+                </tr>
+                <tr>
+                    <td>TypeScript</td>
+                    <td>~5.3.3</td>
+                    <td>Typage statique</td>
+                </tr>
+                <tr>
+                    <td>React Navigation</td>
+                    <td>6.x</td>
+                    <td>Navigation</td>
+                </tr>
+                <tr>
+                    <td>React Hook Form</td>
+                    <td>^7.48.2</td>
+                    <td>Gestion des formulaires</td>
+                </tr>
+                <tr>
+                    <td>Expo Print</td>
+                    <td>~13.0.1</td>
+                    <td>Génération PDF</td>
+                </tr>
+                <tr>
+                    <td>AsyncStorage</td>
+                    <td>1.23.1</td>
+                    <td>Stockage local</td>
+                </tr>
+            </table>
+
+            <h3>Architecture</h3>
+            <div class="code-block">
+                <code>
+src/<br>
+├── features/<br>
+│   ├── invoice/        # Écran de création<br>
+│   ├── invoiceList/    # Liste des factures<br>
+│   ├── pdf/           # Service PDF<br>
+│   └── pdfViewer/     # Visualisation PDF<br>
+├── navigation/        # Configuration navigation<br>
+├── services/          # Services (storage)<br>
+├── types/            # Types TypeScript<br>
+└── utils/            # Utilitaires (template PDF)<br>
+                </code>
+            </div>
+
+            <h3>Stockage des Données</h3>
+            <ul>
+                <li>Les factures sont stockées localement via AsyncStorage</li>
+                <li>Les PDFs sont sauvegardés dans le dossier Documents de l'app</li>
+                <li>Format de stockage : JSON pour les métadonnées</li>
+                <li>Nommage des fichiers : <code>AAAA-MM-JJ_Prenom_NOM_timestamp.pdf</code></li>
+            </ul>
+        </section>
+
+        <section id="faq" class="section">
+            <h2>Questions Fréquentes</h2>
+            
+            <h3>Général</h3>
+            <details>
+                <summary><strong>L'application fonctionne-t-elle hors ligne ?</strong></summary>
+                <p>Oui, vous pouvez créer et consulter vos factures hors ligne. Seul l'envoi par email nécessite une connexion.</p>
+            </details>
+            
+            <details>
+                <summary><strong>Où sont stockées mes factures ?</strong></summary>
+                <p>Les factures sont stockées localement sur votre appareil. Elles ne sont pas envoyées sur un serveur externe.</p>
+            </details>
+            
+            <details>
+                <summary><strong>Puis-je personnaliser le design des factures ?</strong></summary>
+                <p>Actuellement, le template est fixe mais professionnel. Une personnalisation pourrait être ajoutée dans une future version.</p>
+            </details>
+
+            <h3>Problèmes Courants</h3>
+            <details>
+                <summary><strong>Je ne peux pas saisir de virgule sur iOS</strong></summary>
+                <p>Le clavier numérique iOS affiche un point par défaut. L'application accepte les deux formats (point ou virgule).</p>
+            </details>
+            
+            <details>
+                <summary><strong>L'email ne s'ouvre pas</strong></summary>
+                <p>Vérifiez qu'un compte email est configuré sur votre appareil. Sans compte email, l'app ne peut pas ouvrir le composeur.</p>
+            </details>
+            
+            <details>
+                <summary><strong>Je ne vois pas mes anciennes factures</strong></summary>
+                <p>Tirez vers le bas pour actualiser la liste. Si le problème persiste, vérifiez que l'app a les permissions de stockage.</p>
+            </details>
+
+            <h3>Sécurité & Confidentialité</h3>
+            <details>
+                <summary><strong>Mes données sont-elles sécurisées ?</strong></summary>
+                <p>Toutes les données restent sur votre appareil. Aucune information n'est envoyée à des serveurs externes.</p>
+            </details>
+            
+            <details>
+                <summary><strong>Que se passe-t-il si je désinstalle l'app ?</strong></summary>
+                <p>Les données seront perdues car elles sont stockées localement. Pensez à exporter vos factures importantes avant.</p>
+            </details>
+        </section>
+
+        <section class="section">
+            <h2>Évolutions Futures</h2>
+            <p>Voici quelques fonctionnalités envisagées pour les prochaines versions :</p>
+            <ul>
+                <li>🔄 Synchronisation cloud (OneDrive, Google Drive)</li>
+                <li>📊 Statistiques et rapports mensuels/annuels</li>
+                <li>🎨 Templates personnalisables</li>
+                <li>📱 Import automatique depuis emails Booking.com</li>
+                <li>🌍 Support multilingue</li>
+                <li>💼 Gestion multi-propriétés</li>
+                <li>📸 Ajout de logo personnalisé</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2025 Fakt - Documentation officielle</p>
+            <p>Développé avec React Native & Expo</p>
+        </div>
+    </footer>
+</body>
+</html>

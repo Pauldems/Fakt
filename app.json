@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Fakt",
+    "slug": "fakt",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#003580"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tomburger.fakt",
+      "buildNumber": "2",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#003580"
+      },
+      "package": "com.tomburger.fakt",
+      "versionCode": 2,
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "a027a1be-b999-49c1-a293-7b856e32b54f"
+      }
+    },
+    "owner": "jure1367"
+  }
+}
