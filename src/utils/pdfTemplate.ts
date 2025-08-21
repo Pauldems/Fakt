@@ -9,6 +9,18 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
     const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
     if (savedSettings) {
       settings = JSON.parse(savedSettings);
+      
+      // Migration: si ownerName existe mais pas ownerFirstName/ownerLastName
+      if (settings.ownerName && (!settings.ownerFirstName || !settings.ownerLastName)) {
+        const nameParts = settings.ownerName.trim().split(' ');
+        if (nameParts.length >= 2) {
+          settings.ownerFirstName = nameParts[0];
+          settings.ownerLastName = nameParts.slice(1).join(' ');
+        } else {
+          settings.ownerFirstName = '';
+          settings.ownerLastName = settings.ownerName;
+        }
+      }
     }
   } catch (error) {
     console.error('Erreur lors du chargement des paramètres:', error);
@@ -186,7 +198,7 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
       <div class="container">
         <!-- Header avec nom -->
         <div class="header-name">
-          ${settings.ownerName}
+          ${settings.ownerFirstName} ${settings.ownerLastName}
         </div>
         
         <!-- Section entreprise -->

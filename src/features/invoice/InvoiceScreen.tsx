@@ -146,12 +146,17 @@ export const InvoiceScreen: React.FC = () => {
       // Charger les paramètres du propriétaire
       let ownerName = ''; 
       let cityName = ''; // Pas de valeur par défaut
+      let settings: OwnerSettings | null = null;
       try {
         const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
         if (savedSettings) {
-          const settings: OwnerSettings = JSON.parse(savedSettings);
+          settings = JSON.parse(savedSettings);
           if (settings.ownerName) {
             ownerName = settings.ownerName;
+          }
+          // Migration: utiliser prénom + nom si ownerName n'existe pas
+          if (!ownerName && settings.ownerFirstName && settings.ownerLastName) {
+            ownerName = `${settings.ownerFirstName} ${settings.ownerLastName}`;
           }
           // Utiliser directement la ville depuis les paramètres
           if (settings.companyCity) {
@@ -162,8 +167,29 @@ export const InvoiceScreen: React.FC = () => {
         console.error('Erreur lors du chargement des paramètres:', error);
       }
 
-      const subject = `Facture séjour ${cityName.toUpperCase()} - ${invoiceData.lastName.toUpperCase()} ${invoiceData.firstName}`;
-      const message = `Bonjour,\n\nVeuillez trouver ci-joint la facture de votre séjour ${cityName} pour le mois ${monthPrefix}${monthName} ${year}.\n\nEn vous souhaitant bonne réception,\n\n${ownerName}`;
+      let subject: string;
+      let message: string;
+
+      if (settings?.useCustomEmail && settings.customEmailSubject && settings.customEmailBody) {
+        // Utiliser l'email personnalisé avec remplacement des variables
+        subject = settings.customEmailSubject
+          .replace('{VILLE}', cityName.toUpperCase())
+          .replace('{NOM}', invoiceData.lastName.toUpperCase())
+          .replace('{PRENOM}', invoiceData.firstName)
+          .replace('{MOIS}', monthName)
+          .replace('{ANNEE}', year.toString());
+
+        message = settings.customEmailBody
+          .replace('{VILLE}', cityName)
+          .replace('{NOM-PROPRIETAIRE}', settings.ownerLastName || '')
+          .replace('{PRENOM-PROPRIETAIRE}', settings.ownerFirstName || '')
+          .replace('{MOIS}', monthName)
+          .replace('{ANNEE}', year.toString());
+      } else {
+        // Utiliser l'email par défaut
+        subject = `Facture séjour ${cityName.toUpperCase()} - ${invoiceData.lastName.toUpperCase()} ${invoiceData.firstName}`;
+        message = `Bonjour,\n\nVeuillez trouver ci-joint la facture de votre séjour ${cityName} pour le mois ${monthPrefix}${monthName} ${year}.\n\nEn vous souhaitant bonne réception,\n\n${ownerName}`;
+      }
 
       const openWithDefaultMail = async () => {
         try {

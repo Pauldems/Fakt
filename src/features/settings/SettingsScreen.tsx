@@ -17,6 +17,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface OwnerSettings {
   ownerName: string;
+  ownerFirstName: string;
+  ownerLastName: string;
   companyName: string;
   companyAddress: string;
   companyPostalCode: string;
@@ -27,12 +29,17 @@ export interface OwnerSettings {
   email: string;
   enableBcc: boolean;
   bccEmail: string;
+  useCustomEmail: boolean;
+  customEmailSubject: string;
+  customEmailBody: string;
 }
 
 export const SETTINGS_KEY = 'owner_settings';
 
 export const DEFAULT_SETTINGS: OwnerSettings = {
   ownerName: '',
+  ownerFirstName: '',
+  ownerLastName: '',
   companyName: '',
   companyAddress: '',
   companyPostalCode: '',
@@ -43,6 +50,9 @@ export const DEFAULT_SETTINGS: OwnerSettings = {
   email: '',
   enableBcc: false,
   bccEmail: '',
+  useCustomEmail: false,
+  customEmailSubject: '',
+  customEmailBody: '',
 };
 
 export const SettingsScreen: React.FC = () => {
@@ -57,7 +67,21 @@ export const SettingsScreen: React.FC = () => {
     try {
       const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
       if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
+        const parsedSettings = JSON.parse(savedSettings);
+        
+        // Migration: si ownerName existe mais pas ownerFirstName/ownerLastName
+        if (parsedSettings.ownerName && (!parsedSettings.ownerFirstName || !parsedSettings.ownerLastName)) {
+          const nameParts = parsedSettings.ownerName.trim().split(' ');
+          if (nameParts.length >= 2) {
+            parsedSettings.ownerFirstName = nameParts[0];
+            parsedSettings.ownerLastName = nameParts.slice(1).join(' ');
+          } else {
+            parsedSettings.ownerFirstName = '';
+            parsedSettings.ownerLastName = parsedSettings.ownerName;
+          }
+        }
+        
+        setSettings(parsedSettings);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des paramètres:', error);
@@ -117,11 +141,21 @@ export const SettingsScreen: React.FC = () => {
             <Text style={styles.sectionTitle}>Informations propriétaire</Text>
 
             <View style={styles.inputGroup}>
+              <Text style={styles.label}>Prénom du propriétaire</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.ownerFirstName}
+                onChangeText={(text) => setSettings({ ...settings, ownerFirstName: text })}
+                placeholder="Prénom du propriétaire"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
               <Text style={styles.label}>Nom du propriétaire</Text>
               <TextInput
                 style={styles.input}
-                value={settings.ownerName}
-                onChangeText={(text) => setSettings({ ...settings, ownerName: text })}
+                value={settings.ownerLastName}
+                onChangeText={(text) => setSettings({ ...settings, ownerLastName: text })}
                 placeholder="Nom du propriétaire"
               />
             </View>
@@ -259,6 +293,78 @@ export const SettingsScreen: React.FC = () => {
             )}
           </View>
 
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Personnalisation de l'email</Text>
+
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextContainer}>
+                <Text style={styles.label}>Utiliser un email personnalisé</Text>
+                <Text style={styles.switchDescription}>
+                  Personnaliser le sujet et le contenu de l'email envoyé avec la facture
+                </Text>
+              </View>
+              <Switch
+                value={settings.useCustomEmail}
+                onValueChange={(value) => {
+                  if (value && !settings.customEmailSubject && !settings.customEmailBody) {
+                    // Pré-remplir avec les valeurs par défaut
+                    setSettings({ 
+                      ...settings, 
+                      useCustomEmail: value,
+                      customEmailSubject: 'Facture séjour {VILLE} - {NOM} {PRENOM}',
+                      customEmailBody: `Bonjour,
+
+Veuillez trouver ci-joint la facture de votre séjour {VILLE} pour le mois de {MOIS} {ANNEE}.
+
+En vous souhaitant bonne réception,
+
+{PRENOM-PROPRIETAIRE} {NOM-PROPRIETAIRE}`
+                    });
+                  } else {
+                    setSettings({ ...settings, useCustomEmail: value });
+                  }
+                }}
+                trackColor={{ false: '#e7e7e7', true: '#003580' }}
+                thumbColor={settings.useCustomEmail ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+
+            {settings.useCustomEmail && (
+              <>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Sujet de l'email</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={settings.customEmailSubject}
+                    onChangeText={(text) => setSettings({ ...settings, customEmailSubject: text })}
+                    placeholder="Ex: Facture séjour {VILLE} - {NOM} {PRENOM}"
+                  />
+                  <Text style={styles.helpText}>
+                    Variables disponibles: {'{VILLE}'}, {'{NOM}'}, {'{PRENOM}'}, {'{MOIS}'}, {'{ANNEE}'}
+                  </Text>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Contenu de l'email</Text>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    value={settings.customEmailBody}
+                    onChangeText={(text) => setSettings({ ...settings, customEmailBody: text })}
+                    placeholder="Ex: Bonjour,
+
+Veuillez trouver ci-joint la facture..."
+                    multiline={true}
+                    numberOfLines={6}
+                    textAlignVertical="top"
+                  />
+                  <Text style={styles.helpText}>
+                    Variables disponibles: {'{VILLE}'}, {'{NOM-PROPRIETAIRE}'}, {'{PRENOM-PROPRIETAIRE}'}, {'{MOIS}'}, {'{ANNEE}'}
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={[styles.button, styles.saveButton]}
@@ -384,5 +490,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 4,
+  },
+  textArea: {
+    minHeight: 120,
+    textAlignVertical: 'top',
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });
