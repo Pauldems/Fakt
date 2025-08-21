@@ -211,7 +211,7 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
         <!-- Client et numéro facture -->
         <div class="invoice-header">
           <div class="client-section">
-            <h3>Facturer à :</h3>
+            <h3>Facturé à :</h3>
             <p>Monsieur ${data.firstName} ${data.lastName.toUpperCase()}</p>
           </div>
           <div class="invoice-section">

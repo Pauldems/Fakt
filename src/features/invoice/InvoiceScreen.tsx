@@ -163,7 +163,7 @@ export const InvoiceScreen: React.FC = () => {
       }
 
       const subject = `Facture séjour ${cityName.toUpperCase()} - ${invoiceData.lastName.toUpperCase()} ${invoiceData.firstName}`;
-      const message = `Bonjour,\n\nCi-joint votre facture concernant votre séjour à ${cityName} pour le mois ${monthPrefix}${monthName} ${year}.\n\nBonne réception,\n\nCordialement,\n\n${ownerName}`;
+      const message = `Bonjour,\n\nVeuillez trouver ci-joint la facture de votre séjour ${cityName} pour le mois ${monthPrefix}${monthName} ${year}.\n\nEn vous souhaitant bonne réception,\n\n${ownerName}`;
 
       const openWithDefaultMail = async () => {
         try {
