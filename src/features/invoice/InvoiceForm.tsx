@@ -44,11 +44,19 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       isGeniusRate: false,
       isBookingReservation: false,
       bookingNumber: '',
+      isClientInvoice: false,
+      clientInvoiceNumber: '',
+      hasClientAddress: false,
+      clientAddress: '',
+      clientPostalCode: '',
+      clientCity: '',
     },
   });
 
   const [showErrors, setShowErrors] = useState(false);
   const isBookingReservation = watch('isBookingReservation');
+  const isClientInvoice = watch('isClientInvoice');
+  const hasClientAddress = watch('hasClientAddress');
   const arrivalDate = watch('arrivalDate');
   const departureDate = watch('departureDate');
 
@@ -147,6 +155,20 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       }
       if (fieldErrors.bookingNumber && isBookingReservation) {
         errorMessage += '• Numéro de réservation manquant\n';
+      }
+      if (fieldErrors.clientInvoiceNumber && isClientInvoice) {
+        errorMessage += '• Numéro de facture client manquant\n';
+      }
+      if (hasClientAddress) {
+        if (fieldErrors.clientAddress) {
+          errorMessage += '• Adresse client manquante\n';
+        }
+        if (fieldErrors.clientPostalCode) {
+          errorMessage += '• Code postal client manquant\n';
+        }
+        if (fieldErrors.clientCity) {
+          errorMessage += '• Ville client manquante\n';
+        }
       }
       
       Alert.alert('Formulaire incomplet', errorMessage.trim());
@@ -250,6 +272,111 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
               <Text style={styles.error}>{errors.email.message}</Text>
             )}
           </View>
+
+          <View style={styles.switchGroup}>
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>Inclure l'adresse du client</Text>
+              <Controller
+                control={control}
+                name="hasClientAddress"
+                render={({ field: { onChange, value } }) => (
+                  <Switch
+                    value={value}
+                    onValueChange={onChange}
+                    trackColor={{ false: '#e7e7e7', true: '#003580' }}
+                    thumbColor={value ? '#fff' : '#f4f3f4'}
+                  />
+                )}
+              />
+            </View>
+          </View>
+
+          {hasClientAddress && (
+            <>
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Adresse</Text>
+                <Controller
+                  control={control}
+                  name="clientAddress"
+                  rules={{ required: hasClientAddress ? 'Champ obligatoire' : false }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        showErrors && errors.clientAddress && styles.inputError
+                      ]}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      placeholder=""
+                      placeholderTextColor="#999"
+                    />
+                  )}
+                />
+                {showErrors && errors.clientAddress && (
+                  <Text style={styles.error}>{errors.clientAddress.message}</Text>
+                )}
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Code postal</Text>
+                <Controller
+                  control={control}
+                  name="clientPostalCode"
+                  rules={{ 
+                    required: hasClientAddress ? 'Champ obligatoire' : false,
+                    pattern: hasClientAddress ? {
+                      value: /^\d{5}$/,
+                      message: 'Code postal invalide (5 chiffres)'
+                    } : undefined
+                  }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        showErrors && errors.clientPostalCode && styles.inputError
+                      ]}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      placeholder=""
+                      placeholderTextColor="#999"
+                      keyboardType="numeric"
+                      maxLength={5}
+                    />
+                  )}
+                />
+                {showErrors && errors.clientPostalCode && (
+                  <Text style={styles.error}>{errors.clientPostalCode.message}</Text>
+                )}
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Ville</Text>
+                <Controller
+                  control={control}
+                  name="clientCity"
+                  rules={{ required: hasClientAddress ? 'Champ obligatoire' : false }}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      style={[
+                        styles.input,
+                        showErrors && errors.clientCity && styles.inputError
+                      ]}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      placeholder=""
+                      placeholderTextColor="#999"
+                    />
+                  )}
+                />
+                {showErrors && errors.clientCity && (
+                  <Text style={styles.error}>{errors.clientCity.message}</Text>
+                )}
+              </View>
+            </>
+          )}
         </View>
 
         <View style={styles.formSection}>
@@ -690,6 +817,51 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
               />
               {showErrors && errors.bookingNumber && (
                 <Text style={styles.error}>{errors.bookingNumber.message}</Text>
+              )}
+            </View>
+          )}
+
+          <View style={styles.switchGroup}>
+            <View style={styles.switchRow}>
+              <Text style={styles.switchLabel}>Facture client</Text>
+              <Controller
+                control={control}
+                name="isClientInvoice"
+                render={({ field: { onChange, value } }) => (
+                  <Switch
+                    value={value}
+                    onValueChange={onChange}
+                    trackColor={{ false: '#e7e7e7', true: '#003580' }}
+                    thumbColor={value ? '#fff' : '#f4f3f4'}
+                  />
+                )}
+              />
+            </View>
+          </View>
+
+          {isClientInvoice && (
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Numéro de facture client</Text>
+              <Controller
+                control={control}
+                name="clientInvoiceNumber"
+                rules={{ required: isClientInvoice ? 'Champ obligatoire' : false }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={[
+                      styles.input,
+                      showErrors && errors.clientInvoiceNumber && styles.inputError
+                    ]}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    placeholder=""
+                    placeholderTextColor="#999"
+                  />
+                )}
+              />
+              {showErrors && errors.clientInvoiceNumber && (
+                <Text style={styles.error}>{errors.clientInvoiceNumber.message}</Text>
               )}
             </View>
           )}

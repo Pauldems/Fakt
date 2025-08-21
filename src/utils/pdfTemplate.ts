@@ -225,6 +225,10 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
           <div class="client-section">
             <h3>Facturé à :</h3>
             <p>Monsieur ${data.firstName} ${data.lastName.toUpperCase()}</p>
+            ${data.hasClientAddress && data.clientAddress ? `
+              <p>${data.clientAddress}</p>
+              <p>${data.clientPostalCode} ${data.clientCity}</p>
+            ` : ''}
           </div>
           <div class="invoice-section">
             <p>N° Facture : ${invoiceNumber}</p>
@@ -263,6 +267,7 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
               <td style="border-bottom: none; padding-top: 30px;">
                 Durée du séjour : ${numberOfNights} nuits
                 ${data.isBookingReservation && data.bookingNumber ? `<br><br>Réservation tarif via Booking –${data.bookingNumber}` : ''}
+                ${data.isClientInvoice && data.clientInvoiceNumber ? `<br><br>Facture client N° ${data.clientInvoiceNumber}` : ''}
                 <br><br>
                 Règlement effectué directement sur ce site
               </td>

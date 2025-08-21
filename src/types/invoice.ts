@@ -11,6 +11,12 @@ export interface InvoiceData {
   isGeniusRate: boolean;
   isBookingReservation: boolean;
   bookingNumber?: string;
+  isClientInvoice: boolean;
+  clientInvoiceNumber?: string;
+  hasClientAddress: boolean;
+  clientAddress?: string;
+  clientPostalCode?: string;
+  clientCity?: string;
 }
 
 export interface InvoiceFormData {
@@ -27,4 +33,10 @@ export interface InvoiceFormData {
   isGeniusRate: boolean;
   isBookingReservation: boolean;
   bookingNumber?: string;
+  isClientInvoice: boolean;
+  clientInvoiceNumber?: string;
+  hasClientAddress: boolean;
+  clientAddress?: string;
+  clientPostalCode?: string;
+  clientCity?: string;
 }

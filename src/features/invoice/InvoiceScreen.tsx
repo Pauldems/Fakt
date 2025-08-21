@@ -111,6 +111,12 @@ export const InvoiceScreen: React.FC = () => {
         isGeniusRate: formData.isGeniusRate,
         isBookingReservation: formData.isBookingReservation,
         bookingNumber: formData.bookingNumber,
+        isClientInvoice: formData.isClientInvoice,
+        clientInvoiceNumber: formData.clientInvoiceNumber,
+        hasClientAddress: formData.hasClientAddress,
+        clientAddress: formData.clientAddress,
+        clientPostalCode: formData.clientPostalCode,
+        clientCity: formData.clientCity,
       };
       console.log('Données converties finales:', JSON.stringify(invoiceData, null, 2));
 
