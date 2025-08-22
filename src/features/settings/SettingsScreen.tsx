@@ -118,6 +118,27 @@ export const SettingsScreen: React.FC = () => {
     );
   };
 
+  const showVariablesHelp = () => {
+    Alert.alert(
+      'Variables disponibles',
+      `Vous pouvez utiliser ces variables dans vos emails personnalisés :
+
+• {VILLE} - Le nom de votre ville/location
+• {NOM} - Le nom de famille du client (en majuscules)
+• {PRENOM} - Le prénom du client
+• {NOM-PROPRIETAIRE} - Votre nom de famille
+• {PRENOM-PROPRIETAIRE} - Votre prénom
+• {MOIS} - Le mois du séjour (janvier, février...)
+• {ANNEE} - L'année du séjour
+
+Exemple d'utilisation :
+"Bonjour {PRENOM}, voici votre facture pour {VILLE} du mois de {MOIS} {ANNEE}."
+
+Les variables seront automatiquement remplacées par les vraies valeurs lors de l'envoi.`,
+      [{ text: 'Compris', style: 'default' }]
+    );
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -332,7 +353,12 @@ En vous souhaitant bonne réception,
             {settings.useCustomEmail && (
               <>
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Sujet de l'email</Text>
+                  <View style={styles.labelWithHelp}>
+                    <Text style={styles.label}>Sujet de l'email</Text>
+                    <TouchableOpacity onPress={showVariablesHelp} style={styles.helpIcon}>
+                      <Ionicons name="help-circle-outline" size={20} color="#666" />
+                    </TouchableOpacity>
+                  </View>
                   <TextInput
                     style={styles.input}
                     value={settings.customEmailSubject}
@@ -345,7 +371,12 @@ En vous souhaitant bonne réception,
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Contenu de l'email</Text>
+                  <View style={styles.labelWithHelp}>
+                    <Text style={styles.label}>Contenu de l'email</Text>
+                    <TouchableOpacity onPress={showVariablesHelp} style={styles.helpIcon}>
+                      <Ionicons name="help-circle-outline" size={20} color="#666" />
+                    </TouchableOpacity>
+                  </View>
                   <TextInput
                     style={[styles.input, styles.textArea]}
                     value={settings.customEmailBody}
@@ -454,27 +485,35 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   button: {
-    padding: 16,
-    borderRadius: 6,
+    padding: 18,
+    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   saveButton: {
-    backgroundColor: '#0071c2',
+    backgroundColor: '#0056b3',
+    borderWidth: 0,
   },
   saveButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
   resetButton: {
     backgroundColor: '#fff',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#dc3545',
   },
   resetButtonText: {
     color: '#dc3545',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   switchRow: {
     flexDirection: 'row',
@@ -500,5 +539,14 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
     fontStyle: 'italic',
+  },
+  labelWithHelp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  helpIcon: {
+    padding: 6,
   },
 });
