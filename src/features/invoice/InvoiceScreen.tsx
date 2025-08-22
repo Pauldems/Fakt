@@ -187,6 +187,8 @@ export const InvoiceScreen: React.FC = () => {
 
         message = settings.customEmailBody
           .replace('{VILLE}', cityName)
+          .replace('{NOM}', invoiceData.lastName.toUpperCase())
+          .replace('{PRENOM}', invoiceData.firstName)
           .replace('{NOM-PROPRIETAIRE}', settings.ownerLastName || '')
           .replace('{PRENOM-PROPRIETAIRE}', settings.ownerFirstName || '')
           .replace('{MOIS}', monthName)

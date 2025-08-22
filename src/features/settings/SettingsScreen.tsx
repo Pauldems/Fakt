@@ -358,7 +358,7 @@ Veuillez trouver ci-joint la facture..."
                     textAlignVertical="top"
                   />
                   <Text style={styles.helpText}>
-                    Variables disponibles: {'{VILLE}'}, {'{NOM-PROPRIETAIRE}'}, {'{PRENOM-PROPRIETAIRE}'}, {'{MOIS}'}, {'{ANNEE}'}
+                    Variables disponibles: {'{VILLE}'}, {'{NOM}'}, {'{PRENOM}'}, {'{NOM-PROPRIETAIRE}'}, {'{PRENOM-PROPRIETAIRE}'}, {'{MOIS}'}, {'{ANNEE}'}
                   </Text>
                 </View>
               </>

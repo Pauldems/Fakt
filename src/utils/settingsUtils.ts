@@ -8,7 +8,8 @@ export const checkSettingsComplete = async (): Promise<boolean> => {
     
     const settings: OwnerSettings = JSON.parse(savedSettings);
     return !!(
-      settings.ownerName &&
+      settings.ownerFirstName &&
+      settings.ownerLastName &&
       settings.companyName &&
       settings.companyAddress &&
       settings.companyCity &&
