@@ -43,8 +43,8 @@ export class LocalStorageService {
 
       // Calculer le montant total
       const numberOfNights = typeof invoiceData.numberOfNights === 'string' ? parseInt(invoiceData.numberOfNights) : invoiceData.numberOfNights;
-      const pricePerNight = typeof invoiceData.pricePerNight === 'string' ? parseFloat(invoiceData.pricePerNight.replace(',', '.')) : invoiceData.pricePerNight;
-      const taxAmount = typeof invoiceData.taxAmount === 'string' ? parseFloat(invoiceData.taxAmount.replace(',', '.')) : invoiceData.taxAmount;
+      const pricePerNight = typeof invoiceData.pricePerNight === 'string' ? parseFloat((invoiceData.pricePerNight as string).replace(',', '.')) : invoiceData.pricePerNight;
+      const taxAmount = typeof invoiceData.taxAmount === 'string' ? parseFloat((invoiceData.taxAmount as string).replace(',', '.')) : invoiceData.taxAmount;
       const totalAmount = (numberOfNights * pricePerNight) + taxAmount;
 
       console.log('Montant total calculé:', totalAmount);

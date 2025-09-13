@@ -10,10 +10,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ImagePicker from 'expo-image-picker';
 
 export interface OwnerSettings {
   ownerName: string;
@@ -32,6 +34,8 @@ export interface OwnerSettings {
   useCustomEmail: boolean;
   customEmailSubject: string;
   customEmailBody: string;
+  useSignature: boolean;
+  signatureImage: string;
 }
 
 export const SETTINGS_KEY = 'owner_settings';
@@ -53,6 +57,8 @@ export const DEFAULT_SETTINGS: OwnerSettings = {
   useCustomEmail: false,
   customEmailSubject: '',
   customEmailBody: '',
+  useSignature: false,
+  signatureImage: '',
 };
 
 export const SettingsScreen: React.FC = () => {
@@ -79,6 +85,14 @@ export const SettingsScreen: React.FC = () => {
             parsedSettings.ownerFirstName = '';
             parsedSettings.ownerLastName = parsedSettings.ownerName;
           }
+        }
+        
+        // Migration: ajouter les nouvelles propriétés si elles n'existent pas
+        if (parsedSettings.useSignature === undefined) {
+          parsedSettings.useSignature = false;
+        }
+        if (parsedSettings.signatureImage === undefined) {
+          parsedSettings.signatureImage = '';
         }
         
         setSettings(parsedSettings);
@@ -136,6 +150,45 @@ Exemple d'utilisation :
 
 Les variables seront automatiquement remplacées par les vraies valeurs lors de l'envoi.`,
       [{ text: 'Compris', style: 'default' }]
+    );
+  };
+
+  const pickSignatureImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission requise', 'Vous devez autoriser l\'accès à la galerie photo pour sélectionner une signature.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 2],
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0] && result.assets[0].base64) {
+      const base64Image = `data:image/png;base64,${result.assets[0].base64}`;
+      setSettings({ ...settings, signatureImage: base64Image });
+    }
+  };
+
+  const removeSignature = () => {
+    Alert.alert(
+      'Supprimer la signature',
+      'Voulez-vous vraiment supprimer la signature ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: () => {
+            setSettings({ ...settings, signatureImage: '', useSignature: false });
+          },
+        },
+      ]
     );
   };
 
@@ -314,6 +367,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
             )}
           </View>
 
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personnalisation de l'email</Text>
 
@@ -392,6 +446,65 @@ Veuillez trouver ci-joint la facture..."
                     Variables disponibles: {'{VILLE}'}, {'{NOM}'}, {'{PRENOM}'}, {'{NOM-PROPRIETAIRE}'}, {'{PRENOM-PROPRIETAIRE}'}, {'{MOIS}'}, {'{ANNEE}'}
                   </Text>
                 </View>
+              </>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Signature email</Text>
+
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextContainer}>
+                <Text style={styles.label}>Ajouter une signature à l'email</Text>
+                <Text style={styles.switchDescription}>
+                  Ajoute une image de signature à la fin de chaque email envoyé
+                </Text>
+              </View>
+              <Switch
+                value={settings.useSignature}
+                onValueChange={(value) => setSettings({ ...settings, useSignature: value })}
+                trackColor={{ false: '#e7e7e7', true: '#003580' }}
+                thumbColor={settings.useSignature ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+
+            {settings.useSignature && (
+              <>
+                {settings.signatureImage ? (
+                  <View style={styles.signatureContainer}>
+                    <Text style={styles.label}>Signature actuelle</Text>
+                    <Image 
+                      source={{ uri: settings.signatureImage }} 
+                      style={styles.signatureImage}
+                      resizeMode="contain"
+                    />
+                    <View style={styles.signatureButtons}>
+                      <TouchableOpacity
+                        style={[styles.button, styles.changeSignatureButton]}
+                        onPress={pickSignatureImage}
+                      >
+                        <Text style={styles.changeSignatureText}>Changer la signature</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.button, styles.removeSignatureButton]}
+                        onPress={removeSignature}
+                      >
+                        <Text style={styles.removeSignatureText}>Supprimer</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.button, styles.selectSignatureButton]}
+                    onPress={pickSignatureImage}
+                  >
+                    <Ionicons name="image-outline" size={20} color="white" style={{ marginRight: 8 }} />
+                    <Text style={styles.selectSignatureText}>Sélectionner une signature PNG</Text>
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.helpText}>
+                  Recommandé : Image PNG avec fond transparent, dimensions max 600x300px
+                </Text>
               </>
             )}
           </View>
@@ -548,5 +661,54 @@ const styles = StyleSheet.create({
   },
   helpIcon: {
     padding: 6,
+  },
+  signatureContainer: {
+    marginTop: 16,
+  },
+  signatureImage: {
+    width: '100%',
+    height: 100,
+    marginVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e7e7e7',
+    backgroundColor: '#f9f9f9',
+  },
+  signatureButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  selectSignatureButton: {
+    backgroundColor: '#003580',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  selectSignatureText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  changeSignatureButton: {
+    flex: 1,
+    backgroundColor: '#0056b3',
+  },
+  changeSignatureText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  removeSignatureButton: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#dc3545',
+  },
+  removeSignatureText: {
+    color: '#dc3545',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

@@ -1,8 +1,9 @@
 import { InvoiceData } from '../types/invoice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings } from '../features/settings/SettingsScreen';
+import { getInvoiceTranslation } from './invoiceTranslations';
 
-export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: string): Promise<string> => {
+export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: string, language?: 'fr' | 'en' | 'es' | 'de' | 'it'): Promise<string> => {
   // Charger les paramètres
   let settings: OwnerSettings = DEFAULT_SETTINGS;
   try {
@@ -27,25 +28,36 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
   }
   // Convertir les valeurs en nombres si elles sont des strings
   const numberOfNights = typeof data.numberOfNights === 'string' ? parseInt(data.numberOfNights) : data.numberOfNights;
-  const pricePerNight = typeof data.pricePerNight === 'string' ? parseFloat(data.pricePerNight.replace(',', '.')) : data.pricePerNight;
-  const taxAmount = typeof data.taxAmount === 'string' ? parseFloat(data.taxAmount.replace(',', '.')) : data.taxAmount;
+  const pricePerNight = typeof data.pricePerNight === 'string' ? parseFloat((data.pricePerNight as string).replace(',', '.')) : data.pricePerNight;
+  const taxAmount = typeof data.taxAmount === 'string' ? parseFloat((data.taxAmount as string).replace(',', '.')) : data.taxAmount;
   
   const totalNights = numberOfNights * pricePerNight;
   const totalWithTax = totalNights + taxAmount;
-  const formattedDate = new Date(data.invoiceDate).toLocaleDateString('fr-FR', {
+  
+  // Obtenir la langue et les traductions
+  const selectedLanguage = language || 'fr';
+  const translations = getInvoiceTranslation(selectedLanguage);
+  
+  // Formater les dates selon la langue
+  const locale = selectedLanguage === 'en' ? 'en-US' : 
+                 selectedLanguage === 'es' ? 'es-ES' :
+                 selectedLanguage === 'de' ? 'de-DE' :
+                 selectedLanguage === 'it' ? 'it-IT' : 'fr-FR';
+  
+  const formattedDate = new Date(data.invoiceDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   });
 
   // Formater les dates d'arrivée et départ
-  const arrivalDate = data.arrivalDate ? new Date(data.arrivalDate).toLocaleDateString('fr-FR', {
+  const arrivalDate = data.arrivalDate ? new Date(data.arrivalDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   }).replace(/\//g, '/') : '';
   
-  const departureDate = data.departureDate ? new Date(data.departureDate).toLocaleDateString('fr-FR', {
+  const departureDate = data.departureDate ? new Date(data.departureDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
@@ -208,8 +220,8 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
               <p>${settings.companyName}</p>
               <p>${settings.companyAddress}</p>
               <p>${settings.companyPostalCode} ${settings.companyCity}</p>
-              <p>Identifiant Etablissement:${settings.establishmentId}</p>
-              <p>Entité Juridique : ${settings.legalEntityId}</p>
+              <p>${translations.establishmentId}: ${settings.establishmentId}</p>
+              <p>${translations.legalEntity}: ${settings.legalEntityId}</p>
             </div>
             <div class="company-right">
               <p>Tél. : ${settings.phoneNumber}</p>
@@ -223,16 +235,16 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
         <!-- Client et numéro facture -->
         <div class="invoice-header">
           <div class="client-section">
-            <h3>Facturé à :</h3>
-            <p>Monsieur ${data.firstName} ${data.lastName.toUpperCase()}</p>
+            <h3>${translations.billedTo}</h3>
+            <p>${translations.mister} ${data.firstName} ${data.lastName.toUpperCase()}</p>
             ${data.hasClientAddress && data.clientAddress ? `
               <p>${data.clientAddress}</p>
               <p>${data.clientPostalCode} ${data.clientCity}</p>
             ` : ''}
           </div>
           <div class="invoice-section">
-            <p>N° Facture : ${invoiceNumber}</p>
-            <p>Date de facturation : ${formattedDate}</p>
+            <p>${translations.invoiceNumber} ${invoiceNumber}</p>
+            <p>${translations.invoiceDate} ${formattedDate}</p>
           </div>
         </div>
         
@@ -240,16 +252,16 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
         <table>
           <thead>
             <tr>
-              <th>Description</th>
-              <th>Qté</th>
-              <th>Prix unitaire</th>
-              <th>Prix</th>
+              <th>${translations.description}</th>
+              <th>${translations.quantity}</th>
+              <th>${translations.unitPrice}</th>
+              <th>${translations.price}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td style="vertical-align: top;">
-                Hébergement du ${arrivalDate} AU ${departureDate}${data.isGeniusRate ? ' - tarif génius' : ''}
+                ${translations.accommodation} ${arrivalDate} ${translations.to} ${departureDate}${data.isGeniusRate ? ` ${translations.geniusRate}` : ''}
               </td>
               <td style="vertical-align: top;">${numberOfNights.toFixed(2)}</td>
               <td style="vertical-align: top;">${pricePerNight.toFixed(2)} €</td>
@@ -257,7 +269,7 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
             </tr>
             <tr>
               <td style="vertical-align: top; padding-top: 20px;">
-                Taxe de séjour
+                ${translations.stayTax}
               </td>
               <td style="padding-top: 20px;"></td>
               <td style="padding-top: 20px;"></td>
@@ -265,11 +277,11 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
             </tr>
             <tr>
               <td style="border-bottom: none; padding-top: 30px;">
-                Durée du séjour : ${numberOfNights} nuits
-                ${data.isBookingReservation && data.bookingNumber ? `<br><br>Réservation tarif via Booking –${data.bookingNumber}` : ''}
-                ${data.isClientInvoice && data.clientInvoiceNumber ? `<br><br>Facture client N° ${data.clientInvoiceNumber}` : ''}
+                ${translations.stayDuration} ${numberOfNights} ${translations.nights}
+                ${data.isBookingReservation && data.bookingNumber ? `<br><br>${translations.bookingReservation}${data.bookingNumber}` : ''}
+                ${data.isClientInvoice && data.clientInvoiceNumber ? `<br><br>${translations.clientInvoice} ${data.clientInvoiceNumber}` : ''}
                 <br><br>
-                Règlement effectué directement sur ce site
+                ${translations.paymentMade}
               </td>
               <td style="border-bottom: none;"></td>
               <td style="border-bottom: none;"></td>
@@ -281,7 +293,7 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
         <!-- Total -->
         <div class="total-section">
           <div class="total-box">
-            <span class="total-label">TOTAL</span>
+            <span class="total-label">${translations.total}</span>
             <span class="total-amount">${totalWithTax.toFixed(2)} €</span>
           </div>
         </div>

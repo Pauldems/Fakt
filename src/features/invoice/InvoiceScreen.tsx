@@ -23,8 +23,14 @@ import { StorageService } from '../../services/storageService';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings } from '../settings/SettingsScreen';
+import { emailTranslations, getMonthName, getEmailTemplate } from '../../utils/emailTranslations';
+import { translateEmailText } from '../../utils/emailTranslator';
+import { generateInvoiceHTML } from '../../utils/pdfTemplate';
+import * as Print from 'expo-print';
+import * as FileSystem from 'expo-file-system';
 
 const { width } = Dimensions.get('window');
+
 
 export const InvoiceScreen: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -126,28 +132,78 @@ export const InvoiceScreen: React.FC = () => {
       console.log('Facture sauvegardée:', savedInvoice);
       setPdfUri(savedInvoice.pdfUri);
 
-      // Proposer les options de partage
+      // Proposer les options de partage avec sélection de langue
       await shareInvoice(invoiceData, savedInvoice.pdfUri);
     } catch (error) {
       console.error('ERREUR:', error);
-      Alert.alert('Erreur', `Une erreur est survenue: ${error.message || 'Erreur inconnue'}`);
+      Alert.alert('Erreur', `Une erreur est survenue: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const shareInvoice = async (invoiceData: InvoiceData, pdfUri: string) => {
+  const showLanguageSelector = (): Promise<'fr' | 'en' | 'es' | 'de' | 'it'> => {
+    return new Promise((resolve) => {
+      const languages = [
+        { code: 'fr', label: 'Français' },
+        { code: 'en', label: 'English' },
+        { code: 'es', label: 'Español' },
+        { code: 'de', label: 'Deutsch' },
+        { code: 'it', label: 'Italiano' },
+      ];
+
+      const buttons = languages.map(lang => ({
+        text: lang.label,
+        onPress: () => resolve(lang.code as any)
+      }));
+
+      Alert.alert(
+        'Choisir la langue',
+        'Dans quelle langue souhaitez-vous envoyer la facture et l\'email ?',
+        [
+          ...buttons,
+          {
+            text: 'Annuler',
+            style: 'cancel',
+            onPress: () => resolve('fr') // Langue par défaut si annulé
+          }
+        ]
+      );
+    });
+  };
+
+  const regeneratePDFWithLanguage = async (invoiceData: InvoiceData, invoiceNumber: string, language: string): Promise<string> => {
     try {
+      // Régénérer le HTML avec la langue sélectionnée
+      const html = await generateInvoiceHTML(invoiceData, invoiceNumber, language as any);
+      
+      // Générer un nouveau PDF temporaire
+      const { uri: tempPdfUri } = await Print.printToFileAsync({
+        html,
+        base64: false,
+      });
+
+      return tempPdfUri;
+    } catch (error) {
+      console.error('Erreur lors de la régénération du PDF:', error);
+      throw error;
+    }
+  };
+
+  const shareInvoice = async (invoiceData: InvoiceData, originalPdfUri: string) => {
+    // Demander la langue avant d'envoyer
+    const selectedLanguage = await showLanguageSelector();
+    
+    try {
+      // Extraire le numéro de facture du nom du fichier PDF
+      const fileName = originalPdfUri.split('/').pop() || '';
+      const invoiceNumber = fileName.split('_')[0];
+      
+      // Régénérer la facture avec la langue sélectionnée
+      const pdfUri = await regeneratePDFWithLanguage(invoiceData, invoiceNumber, selectedLanguage);
       // Obtenir le mois et l'année de la réservation à partir de la date d'arrivée
       const arrivalDate = new Date(invoiceData.arrivalDate);
-      const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 
-                         'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-      const monthName = monthNames[arrivalDate.getMonth()];
       const year = arrivalDate.getFullYear();
-      
-      // Gérer l'apostrophe pour les mois commençant par une voyelle
-      const vowelMonths = ['avril', 'août', 'octobre'];
-      const monthPrefix = vowelMonths.includes(monthName) ? "d'" : 'de ';
 
       // Charger les paramètres du propriétaire
       let ownerName = ''; 
@@ -157,15 +213,15 @@ export const InvoiceScreen: React.FC = () => {
         const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
         if (savedSettings) {
           settings = JSON.parse(savedSettings);
-          if (settings.ownerName) {
+          if (settings?.ownerName) {
             ownerName = settings.ownerName;
           }
           // Migration: utiliser prénom + nom si ownerName n'existe pas
-          if (!ownerName && settings.ownerFirstName && settings.ownerLastName) {
+          if (!ownerName && settings?.ownerFirstName && settings?.ownerLastName) {
             ownerName = `${settings.ownerFirstName} ${settings.ownerLastName}`;
           }
           // Utiliser directement la ville depuis les paramètres
-          if (settings.companyCity) {
+          if (settings?.companyCity) {
             cityName = settings.companyCity;
           }
         }
@@ -173,19 +229,22 @@ export const InvoiceScreen: React.FC = () => {
         console.error('Erreur lors du chargement des paramètres:', error);
       }
 
+      // Utiliser la langue sélectionnée et le nom du mois traduit
+      const monthName = getMonthName(arrivalDate.getMonth(), selectedLanguage);
+
       let subject: string;
       let message: string;
 
       if (settings?.useCustomEmail && settings.customEmailSubject && settings.customEmailBody) {
         // Utiliser l'email personnalisé avec remplacement des variables
-        subject = settings.customEmailSubject
+        let customSubject = settings.customEmailSubject
           .replace('{VILLE}', cityName.toUpperCase())
           .replace('{NOM}', invoiceData.lastName.toUpperCase())
           .replace('{PRENOM}', invoiceData.firstName)
           .replace('{MOIS}', monthName)
           .replace('{ANNEE}', year.toString());
 
-        message = settings.customEmailBody
+        let customMessage = settings.customEmailBody
           .replace('{VILLE}', cityName)
           .replace('{NOM}', invoiceData.lastName.toUpperCase())
           .replace('{PRENOM}', invoiceData.firstName)
@@ -193,10 +252,56 @@ export const InvoiceScreen: React.FC = () => {
           .replace('{PRENOM-PROPRIETAIRE}', settings.ownerFirstName || '')
           .replace('{MOIS}', monthName)
           .replace('{ANNEE}', year.toString());
+
+        // Traduire le texte de l'email personnalisé (hors variables)
+        subject = translateEmailText(customSubject, 'fr', selectedLanguage);
+        message = translateEmailText(customMessage, 'fr', selectedLanguage);
       } else {
-        // Utiliser l'email par défaut
-        subject = `Facture séjour ${cityName.toUpperCase()} - ${invoiceData.lastName.toUpperCase()} ${invoiceData.firstName}`;
-        message = `Bonjour,\n\nVeuillez trouver ci-joint la facture de votre séjour ${cityName} pour le mois ${monthPrefix}${monthName} ${year}.\n\nEn vous souhaitant bonne réception,\n\n${ownerName}`;
+        // Utiliser le template par défaut dans la langue sélectionnée
+        const template = getEmailTemplate(selectedLanguage);
+        subject = template.subject
+          .replace('{VILLE}', cityName.toUpperCase())
+          .replace('{NOM}', invoiceData.lastName.toUpperCase())
+          .replace('{PRENOM}', invoiceData.firstName);
+
+        message = template.body
+          .replace('{VILLE}', cityName)
+          .replace('{NOM}', invoiceData.lastName.toUpperCase())
+          .replace('{PRENOM}', invoiceData.firstName)
+          .replace('{NOM-PROPRIETAIRE}', settings?.ownerLastName || '')
+          .replace('{PRENOM-PROPRIETAIRE}', settings?.ownerFirstName || '')
+          .replace('{MOIS}', monthName)
+          .replace('{ANNEE}', year.toString());
+      }
+
+      // Charger les paramètres BCC
+      let bccRecipients: string[] = [];
+      try {
+        if (settings?.enableBcc && settings.bccEmail) {
+          bccRecipients = [settings.bccEmail];
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des paramètres BCC:', error);
+      }
+
+      // Préparer le contenu de l'email avec signature si activée
+      let emailBody = message;
+      let isHtml = false;
+      
+      if (settings?.useSignature && settings.signatureImage) {
+        // Créer un email HTML avec la signature intégrée
+        isHtml = true;
+        emailBody = `
+          <html>
+            <body style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6;">
+              <div style="white-space: pre-wrap;">${message.replace(/\n/g, '<br>')}</div>
+              <br>
+              <div style="margin-top: 20px;">
+                <img src="${settings.signatureImage}" style="max-width: 100px; height: auto;" alt="Signature" />
+              </div>
+            </body>
+          </html>
+        `;
       }
 
       const openWithDefaultMail = async () => {
@@ -207,25 +312,14 @@ export const InvoiceScreen: React.FC = () => {
             return;
           }
 
-          // Charger les paramètres pour obtenir les options BCC
-          let bccRecipients: string[] = [];
-          try {
-            const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
-            if (savedSettings) {
-              const settings: OwnerSettings = JSON.parse(savedSettings);
-              if (settings.enableBcc && settings.bccEmail) {
-                bccRecipients = [settings.bccEmail];
-              }
-            }
-          } catch (error) {
-            console.error('Erreur lors du chargement des paramètres BCC:', error);
-          }
+          // Utiliser les paramètres BCC déjà chargés
 
           await MailComposer.composeAsync({
             recipients: [invoiceData.email],
             bccRecipients: bccRecipients,
             subject: subject,
-            body: message,
+            body: emailBody,
+            isHtml: isHtml,
             attachments: [pdfUri],
           });
         } catch (error) {
@@ -236,6 +330,13 @@ export const InvoiceScreen: React.FC = () => {
 
       // Ouvrir directement avec l'app mail par défaut
       await openWithDefaultMail();
+      
+      // Nettoyer le PDF temporaire
+      try {
+        await FileSystem.deleteAsync(pdfUri, { idempotent: true });
+      } catch (error) {
+        console.log('Impossible de supprimer le PDF temporaire:', error);
+      }
       
       Alert.alert(
         'Succès',

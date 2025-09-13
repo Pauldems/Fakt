@@ -22,7 +22,7 @@ const { width, height } = Dimensions.get('window');
 export const PDFViewerScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const invoiceParam = route.params?.invoice as any;
+  const invoiceParam = (route.params as any)?.invoice;
   
   // Reconstruire l'objet invoice avec les dates
   const invoice: StoredInvoice | null = invoiceParam ? {
