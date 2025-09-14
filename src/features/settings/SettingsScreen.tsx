@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,24 @@ import {
   Platform,
   Switch,
   Image,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+
+export interface CustomProperty {
+  id: string;
+  label: string;
+  value: string;
+}
+
+export interface PropertyTemplate {
+  id: string;
+  name: string; // Nom du template (ex: "Location Paris", "Chalet Alpes")
+  properties: CustomProperty[];
+}
 
 export interface OwnerSettings {
   ownerName: string;
@@ -36,6 +49,8 @@ export interface OwnerSettings {
   customEmailBody: string;
   useSignature: boolean;
   signatureImage: string;
+  customProperties: CustomProperty[];
+  propertyTemplates: PropertyTemplate[];
 }
 
 export const SETTINGS_KEY = 'owner_settings';
@@ -59,11 +74,31 @@ export const DEFAULT_SETTINGS: OwnerSettings = {
   customEmailBody: '',
   useSignature: false,
   signatureImage: '',
+  customProperties: [],
+  propertyTemplates: [],
 };
 
 export const SettingsScreen: React.FC = () => {
   const [settings, setSettings] = useState<OwnerSettings>(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<PropertyTemplate | null>(null);
+
+  // Fonction pour sauvegarder automatiquement
+  const autoSaveSettings = useCallback(async (newSettings: OwnerSettings) => {
+    try {
+      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+      console.log('Paramètres sauvegardés automatiquement');
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde automatique:', error);
+    }
+  }, []);
+
+  // Fonction pour mettre à jour les settings avec sauvegarde auto
+  const updateSettings = useCallback((newSettings: OwnerSettings | ((prev: OwnerSettings) => OwnerSettings)) => {
+    const updatedSettings = typeof newSettings === 'function' ? newSettings(settings) : newSettings;
+    setSettings(updatedSettings);
+    autoSaveSettings(updatedSettings);
+  }, [settings, autoSaveSettings]);
 
   useEffect(() => {
     loadSettings();
@@ -93,6 +128,12 @@ export const SettingsScreen: React.FC = () => {
         }
         if (parsedSettings.signatureImage === undefined) {
           parsedSettings.signatureImage = '';
+        }
+        if (parsedSettings.customProperties === undefined) {
+          parsedSettings.customProperties = [];
+        }
+        if (parsedSettings.propertyTemplates === undefined) {
+          parsedSettings.propertyTemplates = [];
         }
         
         setSettings(parsedSettings);
@@ -171,7 +212,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
 
     if (!result.canceled && result.assets[0] && result.assets[0].base64) {
       const base64Image = `data:image/png;base64,${result.assets[0].base64}`;
-      setSettings({ ...settings, signatureImage: base64Image });
+      updateSettings(prev => ({ ...prev, signatureImage: base64Image }));
     }
   };
 
@@ -185,12 +226,143 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
           text: 'Supprimer',
           style: 'destructive',
           onPress: () => {
-            setSettings({ ...settings, signatureImage: '', useSignature: false });
+            updateSettings(prev => ({ ...prev, signatureImage: '', useSignature: false }));
           },
         },
       ]
     );
   };
+
+  const addCustomProperty = () => {
+    const newId = Date.now().toString();
+    const newProperty: CustomProperty = {
+      id: newId,
+      label: '',
+      value: ''
+    };
+    updateSettings(prev => ({
+      ...prev,
+      customProperties: [...prev.customProperties, newProperty]
+    }));
+  };
+
+  const updateCustomProperty = (id: string, field: 'label' | 'value', newValue: string) => {
+    updateSettings(prev => ({
+      ...prev,
+      customProperties: prev.customProperties.map(prop =>
+        prop.id === id ? { ...prop, [field]: newValue } : prop
+      )
+    }));
+  };
+
+  const removeCustomProperty = (id: string) => {
+    updateSettings(prev => ({
+      ...prev,
+      customProperties: prev.customProperties.filter(prop => prop.id !== id)
+    }));
+  };
+
+  // Fonctions pour les templates
+  const addPropertyTemplate = () => {
+    const newTemplate: PropertyTemplate = {
+      id: Date.now().toString(),
+      name: '',
+      properties: [
+        { id: '1', label: 'Adresse', value: '' },
+        { id: '2', label: 'Code postal', value: '' },
+        { id: '3', label: 'Ville', value: '' },
+        { id: '4', label: 'Identifiant établissement', value: '' },
+        { id: '5', label: 'Entité juridique', value: '' },
+      ]
+    };
+    setEditingTemplate(newTemplate);
+  };
+
+  const savePropertyTemplate = async (template: PropertyTemplate) => {
+    if (!template.name.trim()) {
+      Alert.alert('Erreur', 'Veuillez donner un nom au template');
+      return;
+    }
+
+    const existingIndex = settings.propertyTemplates.findIndex(t => t.id === template.id);
+    let updatedTemplates;
+    
+    if (existingIndex >= 0) {
+      updatedTemplates = settings.propertyTemplates.map(t => 
+        t.id === template.id ? template : t
+      );
+    } else {
+      updatedTemplates = [...settings.propertyTemplates, template];
+    }
+
+    const updatedSettings = {
+      ...settings,
+      propertyTemplates: updatedTemplates
+    };
+
+    updateSettings(updatedSettings);
+    
+    setEditingTemplate(null);
+  };
+
+  const editPropertyTemplate = (template: PropertyTemplate) => {
+    // S'assurer que toutes les propriétés requises sont présentes
+    const requiredProperties = [
+      'Adresse', 'Code postal', 'Ville', 'Identifiant établissement', 'Entité juridique'
+    ];
+    
+    const updatedProperties = [...template.properties];
+    
+    requiredProperties.forEach((label, index) => {
+      const existing = updatedProperties.find(p => p.label === label);
+      if (!existing) {
+        updatedProperties.push({
+          id: (index + 1).toString(),
+          label,
+          value: ''
+        });
+      }
+    });
+    
+    setEditingTemplate({ 
+      ...template, 
+      properties: updatedProperties 
+    });
+  };
+
+  const updatePropertyField = (label: string, value: string) => {
+    if (!editingTemplate) return;
+    
+    setEditingTemplate({
+      ...editingTemplate,
+      properties: editingTemplate.properties.map(prop =>
+        prop.label === label ? { ...prop, value } : prop
+      )
+    });
+  };
+
+  const deletePropertyTemplate = (id: string) => {
+    Alert.alert(
+      'Supprimer le template',
+      'Voulez-vous vraiment supprimer ce template ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: async () => {
+            const updatedSettings = {
+              ...settings,
+              propertyTemplates: settings.propertyTemplates.filter(t => t.id !== id)
+            };
+            
+            updateSettings(updatedSettings);
+          },
+        },
+      ]
+    );
+  };
+
 
   return (
     <View style={styles.container}>
@@ -219,7 +391,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
               <TextInput
                 style={styles.input}
                 value={settings.ownerFirstName}
-                onChangeText={(text) => setSettings({ ...settings, ownerFirstName: text })}
+                onChangeText={(text) => updateSettings(prev => ({ ...prev, ownerFirstName: text }))}
                 placeholder="Prénom du propriétaire"
               />
             </View>
@@ -229,83 +401,54 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
               <TextInput
                 style={styles.input}
                 value={settings.ownerLastName}
-                onChangeText={(text) => setSettings({ ...settings, ownerLastName: text })}
+                onChangeText={(text) => updateSettings(prev => ({ ...prev, ownerLastName: text }))}
                 placeholder="Nom du propriétaire"
               />
             </View>
           </View>
 
+          {/* Section Templates de propriétés */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informations de la location</Text>
+            <Text style={styles.sectionTitle}>Gestion des propriétés</Text>
+            
+            <Text style={styles.sectionDescription}>
+              Créez des templates pour vos différentes propriétés (nom, adresse, identifiants, etc.)
+            </Text>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nom de la maison</Text>
-              <TextInput
-                style={styles.input}
-                value={settings.companyName}
-                onChangeText={(text) => setSettings({ ...settings, companyName: text })}
-                placeholder="Nom de la maison"
-              />
-            </View>
+            <TouchableOpacity
+              style={[styles.button, styles.addTemplateButton]}
+              onPress={addPropertyTemplate}
+            >
+              <Ionicons name="add" size={20} color="white" style={{ marginRight: 8 }} />
+              <Text style={styles.addTemplateText}>Ajouter une propriété</Text>
+            </TouchableOpacity>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Adresse</Text>
-              <TextInput
-                style={styles.input}
-                value={settings.companyAddress}
-                onChangeText={(text) => setSettings({ ...settings, companyAddress: text })}
-                placeholder="Adresse"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Code postal</Text>
-              <TextInput
-                style={styles.input}
-                value={settings.companyPostalCode}
-                onChangeText={(text) => setSettings({ ...settings, companyPostalCode: text })}
-                placeholder="Code postal"
-                keyboardType="numeric"
-                maxLength={5}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Ville</Text>
-              <TextInput
-                style={styles.input}
-                value={settings.companyCity}
-                onChangeText={(text) => setSettings({ ...settings, companyCity: text })}
-                placeholder="Ville"
-              />
-            </View>
+            {settings.propertyTemplates.map((template) => (
+              <View key={template.id} style={styles.templateItem}>
+                <View style={styles.templateHeader}>
+                  <Text style={styles.templateName}>{template.name || 'Nouveau template'}</Text>
+                  <View style={styles.templateActions}>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => editPropertyTemplate(template)}
+                    >
+                      <Ionicons name="pencil" size={16} color="#0071c2" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => deletePropertyTemplate(template.id)}
+                    >
+                      <Ionicons name="trash" size={16} color="#d32f2f" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <Text style={styles.templateInfo}>
+                  {template.properties.find(p => p.label === 'Adresse')?.value || 'Adresse non renseignée'} • {template.properties.find(p => p.label === 'Ville')?.value || 'Ville non renseignée'}
+                </Text>
+              </View>
+            ))}
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Identifiants légaux</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Identifiant établissement</Text>
-              <TextInput
-                style={styles.input}
-                value={settings.establishmentId}
-                onChangeText={(text) => setSettings({ ...settings, establishmentId: text })}
-                placeholder="Identifiant établissement"
-                keyboardType="numeric"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Entité juridique</Text>
-              <TextInput
-                style={styles.input}
-                value={settings.legalEntityId}
-                onChangeText={(text) => setSettings({ ...settings, legalEntityId: text })}
-                placeholder="Entité juridique"
-                keyboardType="numeric"
-              />
-            </View>
-          </View>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Coordonnées</Text>
@@ -315,7 +458,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
               <TextInput
                 style={styles.input}
                 value={settings.phoneNumber}
-                onChangeText={(text) => setSettings({ ...settings, phoneNumber: text })}
+                onChangeText={(text) => updateSettings(prev => ({ ...prev, phoneNumber: text }))}
                 placeholder="Téléphone"
                 keyboardType="phone-pad"
               />
@@ -326,7 +469,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
               <TextInput
                 style={styles.input}
                 value={settings.email}
-                onChangeText={(text) => setSettings({ ...settings, email: text })}
+                onChangeText={(text) => updateSettings(prev => ({ ...prev, email: text }))}
                 placeholder="Email"
                 keyboardType="email-address"
                 autoCapitalize="none"
@@ -346,7 +489,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
               </View>
               <Switch
                 value={settings.enableBcc}
-                onValueChange={(value) => setSettings({ ...settings, enableBcc: value })}
+                onValueChange={(value) => updateSettings(prev => ({ ...prev, enableBcc: value }))}
                 trackColor={{ false: '#e7e7e7', true: '#003580' }}
                 thumbColor={settings.enableBcc ? '#fff' : '#f4f3f4'}
               />
@@ -358,7 +501,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
                 <TextInput
                   style={styles.input}
                   value={settings.bccEmail}
-                  onChangeText={(text) => setSettings({ ...settings, bccEmail: text })}
+                  onChangeText={(text) => updateSettings(prev => ({ ...prev, bccEmail: text }))}
                   placeholder="Email pour la copie cachée"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -383,8 +526,8 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
                 onValueChange={(value) => {
                   if (value && !settings.customEmailSubject && !settings.customEmailBody) {
                     // Pré-remplir avec les valeurs par défaut
-                    setSettings({ 
-                      ...settings, 
+                    updateSettings(prev => ({ 
+                      ...prev, 
                       useCustomEmail: value,
                       customEmailSubject: 'Facture séjour {VILLE} - {NOM} {PRENOM}',
                       customEmailBody: `Bonjour,
@@ -394,9 +537,9 @@ Veuillez trouver ci-joint la facture de votre séjour {VILLE} pour le mois de {M
 En vous souhaitant bonne réception,
 
 {PRENOM-PROPRIETAIRE} {NOM-PROPRIETAIRE}`
-                    });
+                    }));
                   } else {
-                    setSettings({ ...settings, useCustomEmail: value });
+                    updateSettings(prev => ({ ...prev, useCustomEmail: value }));
                   }
                 }}
                 trackColor={{ false: '#e7e7e7', true: '#003580' }}
@@ -416,7 +559,7 @@ En vous souhaitant bonne réception,
                   <TextInput
                     style={styles.input}
                     value={settings.customEmailSubject}
-                    onChangeText={(text) => setSettings({ ...settings, customEmailSubject: text })}
+                    onChangeText={(text) => updateSettings(prev => ({ ...prev, customEmailSubject: text }))}
                     placeholder="Ex: Facture séjour {VILLE} - {NOM} {PRENOM}"
                   />
                   <Text style={styles.helpText}>
@@ -434,7 +577,7 @@ En vous souhaitant bonne réception,
                   <TextInput
                     style={[styles.input, styles.textArea]}
                     value={settings.customEmailBody}
-                    onChangeText={(text) => setSettings({ ...settings, customEmailBody: text })}
+                    onChangeText={(text) => updateSettings(prev => ({ ...prev, customEmailBody: text }))}
                     placeholder="Ex: Bonjour,
 
 Veuillez trouver ci-joint la facture..."
@@ -462,7 +605,7 @@ Veuillez trouver ci-joint la facture..."
               </View>
               <Switch
                 value={settings.useSignature}
-                onValueChange={(value) => setSettings({ ...settings, useSignature: value })}
+                onValueChange={(value) => updateSettings(prev => ({ ...prev, useSignature: value }))}
                 trackColor={{ false: '#e7e7e7', true: '#003580' }}
                 thumbColor={settings.useSignature ? '#fff' : '#f4f3f4'}
               />
@@ -509,26 +652,124 @@ Veuillez trouver ci-joint la facture..."
             )}
           </View>
 
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.saveButton]}
-              onPress={saveSettings}
-              disabled={isSaving}
-            >
-              <Text style={styles.saveButtonText}>
-                {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
-              </Text>
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.button, styles.resetButton]}
-              onPress={resetToDefault}
-            >
-              <Text style={styles.resetButtonText}>Réinitialiser</Text>
-            </TouchableOpacity>
+          <View style={styles.autoSaveInfo}>
+            <Text style={styles.autoSaveText}>
+              💾 Toutes les modifications sont sauvegardées automatiquement
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      {/* Interface d'édition de template */}
+      <Modal
+        visible={editingTemplate !== null}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setEditingTemplate(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {editingTemplate && settings.propertyTemplates.find(t => t.id === editingTemplate.id) ? 'Modifier' : 'Créer'} une propriété
+              </Text>
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setEditingTemplate(null)}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalBody}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Nom de la propriété</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editingTemplate?.name || ''}
+                  onChangeText={(text) => editingTemplate && setEditingTemplate({
+                    ...editingTemplate,
+                    name: text
+                  })}
+                  placeholder="Ex: Appartement Paris, Chalet Courchevel..."
+                />
+              </View>
+
+              <Text style={styles.sectionSubtitle}>Informations de la propriété</Text>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Adresse</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editingTemplate?.properties.find(p => p.label === 'Adresse')?.value || ''}
+                  onChangeText={(text) => editingTemplate && updatePropertyField('Adresse', text)}
+                  placeholder="Adresse"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Code postal</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editingTemplate?.properties.find(p => p.label === 'Code postal')?.value || ''}
+                  onChangeText={(text) => editingTemplate && updatePropertyField('Code postal', text)}
+                  placeholder="Code postal"
+                  keyboardType="numeric"
+                  maxLength={5}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Ville</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editingTemplate?.properties.find(p => p.label === 'Ville')?.value || ''}
+                  onChangeText={(text) => editingTemplate && updatePropertyField('Ville', text)}
+                  placeholder="Ville"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Identifiant établissement</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editingTemplate?.properties.find(p => p.label === 'Identifiant établissement')?.value || ''}
+                  onChangeText={(text) => editingTemplate && updatePropertyField('Identifiant établissement', text)}
+                  placeholder="Identifiant établissement"
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Entité juridique</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editingTemplate?.properties.find(p => p.label === 'Entité juridique')?.value || ''}
+                  onChangeText={(text) => editingTemplate && updatePropertyField('Entité juridique', text)}
+                  placeholder="Entité juridique"
+                  keyboardType="numeric"
+                />
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setEditingTemplate(null)}
+              >
+                <Text style={styles.cancelButtonText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.saveTemplateButton]}
+                onPress={() => editingTemplate && savePropertyTemplate(editingTemplate)}
+              >
+                <Text style={styles.saveTemplateButtonText}>Sauvegarder</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -572,6 +813,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1a1a1a',
     marginBottom: 16,
+  },
+  subSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 8,
+    marginTop: 24,
   },
   inputGroup: {
     marginBottom: 16,
@@ -710,5 +958,217 @@ const styles = StyleSheet.create({
     color: '#dc3545',
     fontSize: 14,
     fontWeight: '600',
+  },
+  customPropertyContainer: {
+    marginBottom: 12,
+  },
+  customPropertyRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  customPropertyInputs: {
+    flex: 1,
+    gap: 8,
+  },
+  customPropertyLabelInput: {
+    marginBottom: 0,
+  },
+  customPropertyValueInput: {
+    marginBottom: 0,
+  },
+  addPropertyText: {
+    color: '#003580',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  sectionDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  addTemplateButton: {
+    backgroundColor: '#003580',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  addTemplateText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  templateItem: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  templateHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  templateName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    flex: 1,
+  },
+  templateActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  editButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: '#e3f2fd',
+  },
+  deleteButton: {
+    padding: 8,
+    borderRadius: 6,
+    backgroundColor: '#ffebee',
+  },
+  templateInfo: {
+    fontSize: 14,
+    color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    maxHeight: '85%',
+    width: '100%',
+    maxWidth: 500,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1a1a1a',
+    flex: 1,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    padding: 20,
+    maxHeight: 400,
+  },
+  sectionSubtitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  propertyEditItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+  },
+  propertyInputs: {
+    flex: 1,
+    gap: 8,
+  },
+  propertyInputGroup: {
+    flex: 1,
+  },
+  propertyInputLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  propertyInput: {
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 6,
+    padding: 8,
+    fontSize: 14,
+    backgroundColor: 'white',
+  },
+  removePropertyButton: {
+    padding: 8,
+    marginLeft: 8,
+    borderRadius: 6,
+    backgroundColor: '#ffebee',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addPropertyButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#0071c2',
+    borderStyle: 'dashed',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+    padding: 12,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#666',
+  },
+  cancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  saveTemplateButton: {
+    flex: 1,
+    backgroundColor: '#003580',
+  },
+  saveTemplateButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  autoSaveInfo: {
+    backgroundColor: '#f0f9ff',
+    borderLeftWidth: 4,
+    borderLeftColor: '#0ea5e9',
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 20,
+    borderRadius: 8,
+  },
+  autoSaveText: {
+    fontSize: 14,
+    color: '#0369a1',
+    textAlign: 'center',
+    fontWeight: '500',
   },
 });

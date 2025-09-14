@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle, useState, useRef, useEffect } from 'react';
+import React, { forwardRef, useImperativeHandle, useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,11 @@ import {
   Switch,
 } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
+import { Ionicons } from '@expo/vector-icons';
 import { InvoiceFormData } from '../../types/invoice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings, PropertyTemplate } from '../settings/SettingsScreen';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 interface InvoiceFormProps {
   onSubmit: (data: InvoiceFormData) => void;
@@ -50,15 +54,61 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       clientAddress: '',
       clientPostalCode: '',
       clientCity: '',
+      selectedPropertyId: '',
     },
   });
 
   const [showErrors, setShowErrors] = useState(false);
+  const [propertyTemplates, setPropertyTemplates] = useState<PropertyTemplate[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<PropertyTemplate | null>(null);
+  const navigation = useNavigation<any>();
   const isBookingReservation = watch('isBookingReservation');
   const isClientInvoice = watch('isClientInvoice');
   const hasClientAddress = watch('hasClientAddress');
   const arrivalDate = watch('arrivalDate');
   const departureDate = watch('departureDate');
+
+  // Charger les templates de propriétés
+  const loadPropertyTemplates = useCallback(async () => {
+    try {
+      console.log('Chargement des templates de propriétés...');
+      const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
+      console.log('Settings récupérés:', savedSettings);
+      
+      if (savedSettings) {
+        const settings: OwnerSettings = JSON.parse(savedSettings);
+        console.log('PropertyTemplates trouvés:', settings.propertyTemplates);
+        
+        if (settings.propertyTemplates) {
+          setPropertyTemplates(settings.propertyTemplates);
+          // Sélectionner automatiquement le premier template si disponible
+          if (settings.propertyTemplates.length > 0) {
+            setSelectedProperty(settings.propertyTemplates[0]);
+            setValue('selectedPropertyId', settings.propertyTemplates[0].id);
+          }
+        } else {
+          console.log('Aucun propertyTemplates trouvé');
+          setPropertyTemplates([]);
+        }
+      } else {
+        console.log('Aucun settings sauvegardé');
+        setPropertyTemplates([]);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des templates de propriétés:', error);
+    }
+  }, [setValue]);
+
+  useEffect(() => {
+    loadPropertyTemplates();
+  }, [loadPropertyTemplates]);
+
+  // Recharger les propriétés quand on revient sur l'écran
+  useFocusEffect(
+    useCallback(() => {
+      loadPropertyTemplates();
+    }, [loadPropertyTemplates])
+  );
 
   // Calculer automatiquement le nombre de nuits
   useEffect(() => {
@@ -95,6 +145,30 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
 
   const onSubmitWithValidation = handleSubmit(
     (data) => {
+      // Vérifier qu'une propriété est sélectionnée
+      if (propertyTemplates.length === 0) {
+        Alert.alert(
+          'Aucune propriété',
+          'Vous devez d\'abord créer une propriété dans les paramètres.',
+          [
+            {
+              text: 'Aller aux paramètres',
+              onPress: () => navigation.navigate('Settings')
+            },
+            {
+              text: 'Annuler',
+              style: 'cancel'
+            }
+          ]
+        );
+        return;
+      }
+
+      if (!selectedProperty) {
+        Alert.alert('Erreur', 'Veuillez sélectionner une propriété');
+        return;
+      }
+
       // Si on arrive ici, toutes les validations sont OK
       onSubmit(data);
     },
@@ -187,6 +261,58 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
+        {/* Sélection de propriété */}
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Sélection de propriété</Text>
+          
+          {propertyTemplates.length === 0 ? (
+            <View style={styles.noPropertyContainer}>
+              <Text style={styles.noPropertyText}>
+                Aucune propriété configurée
+              </Text>
+              <Text style={styles.noPropertySubtext}>
+                Vous devez créer au moins une propriété avant de pouvoir générer une facture
+              </Text>
+              <TouchableOpacity
+                style={styles.goToSettingsButton}
+                onPress={() => navigation.navigate('Settings')}
+              >
+                <Ionicons name="settings-outline" size={16} color="white" style={{ marginRight: 8 }} />
+                <Text style={styles.goToSettingsText}>Créer une propriété</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.label}>Propriété :</Text>
+              <View style={styles.propertyList}>
+                {propertyTemplates.map((template) => (
+                  <TouchableOpacity
+                    key={template.id}
+                    style={[
+                      styles.propertyItem,
+                      selectedProperty?.id === template.id && styles.propertyItemSelected
+                    ]}
+                    onPress={() => {
+                      setSelectedProperty(template);
+                      setValue('selectedPropertyId', template.id);
+                    }}
+                  >
+                    <View style={styles.propertyRadio}>
+                      {selectedProperty?.id === template.id && <View style={styles.propertyRadioSelected} />}
+                    </View>
+                    <Text style={[
+                      styles.propertyText,
+                      selectedProperty?.id === template.id && styles.propertyTextSelected
+                    ]}>
+                      {template.name}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
+          )}
+        </View>
+
         <View style={styles.formSection}>
           <Text style={styles.sectionTitle}>Informations client</Text>
           
@@ -973,5 +1099,80 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
+  },
+  noPropertyContainer: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  noPropertyText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  noPropertySubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  goToSettingsButton: {
+    backgroundColor: '#0071c2',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  goToSettingsText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  propertyList: {
+    marginTop: 8,
+  },
+  propertyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  propertyItemSelected: {
+    backgroundColor: '#e3f2fd',
+    borderColor: '#0071c2',
+  },
+  propertyRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  propertyRadioSelected: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#0071c2',
+  },
+  propertyText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  propertyTextSelected: {
+    color: '#0071c2',
+    fontWeight: '600',
   },
 });

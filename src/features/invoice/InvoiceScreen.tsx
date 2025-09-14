@@ -123,6 +123,7 @@ export const InvoiceScreen: React.FC = () => {
         clientAddress: formData.clientAddress,
         clientPostalCode: formData.clientPostalCode,
         clientCity: formData.clientCity,
+        selectedPropertyId: formData.selectedPropertyId,
       };
       console.log('Données converties finales:', JSON.stringify(invoiceData, null, 2));
 

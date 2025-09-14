@@ -17,6 +17,7 @@ export interface InvoiceData {
   clientAddress?: string;
   clientPostalCode?: string;
   clientCity?: string;
+  selectedPropertyId?: string;
 }
 
 export interface InvoiceFormData {
@@ -39,4 +40,5 @@ export interface InvoiceFormData {
   clientAddress?: string;
   clientPostalCode?: string;
   clientCity?: string;
+  selectedPropertyId?: string;
 }

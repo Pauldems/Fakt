@@ -6,6 +6,8 @@ import { getInvoiceTranslation } from './invoiceTranslations';
 export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: string, language?: 'fr' | 'en' | 'es' | 'de' | 'it'): Promise<string> => {
   // Charger les paramètres
   let settings: OwnerSettings = DEFAULT_SETTINGS;
+  let selectedPropertyTemplate = null;
+  
   try {
     const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
     if (savedSettings) {
@@ -21,6 +23,13 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
           settings.ownerFirstName = '';
           settings.ownerLastName = settings.ownerName;
         }
+      }
+
+      // Trouver la propriété sélectionnée
+      if (data.selectedPropertyId && settings.propertyTemplates) {
+        selectedPropertyTemplate = settings.propertyTemplates.find(
+          template => template.id === data.selectedPropertyId
+        );
       }
     }
   } catch (error) {
@@ -217,11 +226,12 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
         <div class="company-section">
           <div class="company-row">
             <div class="company-left">
-              <p>${settings.companyName}</p>
-              <p>${settings.companyAddress}</p>
-              <p>${settings.companyPostalCode} ${settings.companyCity}</p>
-              <p>${translations.establishmentId}: ${settings.establishmentId}</p>
-              <p>${translations.legalEntity}: ${settings.legalEntityId}</p>
+              <p>${selectedPropertyTemplate ? selectedPropertyTemplate.name || settings.companyName : settings.companyName}</p>
+              <p>${selectedPropertyTemplate ? selectedPropertyTemplate.properties.find(p => p.label === 'Adresse')?.value || settings.companyAddress : settings.companyAddress}</p>
+              <p>${selectedPropertyTemplate ? `${selectedPropertyTemplate.properties.find(p => p.label === 'Code postal')?.value || settings.companyPostalCode} ${selectedPropertyTemplate.properties.find(p => p.label === 'Ville')?.value || settings.companyCity}` : `${settings.companyPostalCode} ${settings.companyCity}`}</p>
+              <p>${translations.establishmentId}: ${selectedPropertyTemplate ? selectedPropertyTemplate.properties.find(p => p.label === 'Identifiant établissement')?.value || settings.establishmentId : settings.establishmentId}</p>
+              <p>${translations.legalEntity}: ${selectedPropertyTemplate ? selectedPropertyTemplate.properties.find(p => p.label === 'Entité juridique')?.value || settings.legalEntityId : settings.legalEntityId}</p>
+              ${selectedPropertyTemplate ? selectedPropertyTemplate.properties.filter(prop => prop.label && prop.value && !['Adresse', 'Code postal', 'Ville', 'Identifiant établissement', 'Entité juridique'].includes(prop.label)).map(prop => `<p>${prop.label}: ${prop.value}</p>`).join('') : (settings.customProperties ? settings.customProperties.filter(prop => prop.label && prop.value).map(prop => `<p>${prop.label}: ${prop.value}</p>`).join('') : '')}
             </div>
             <div class="company-right">
               <p>Tél. : ${settings.phoneNumber}</p>
