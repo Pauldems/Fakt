@@ -114,6 +114,7 @@ export const InvoiceScreen: React.FC = () => {
         numberOfNights: numberOfNights,
         pricePerNight: pricePerNight,
         taxAmount: taxAmount,
+        isPlatformCollectingTax: formData.isPlatformCollectingTax,
         invoiceDate: parseDate(formData.invoiceDate),
         isGeniusRate: formData.isGeniusRate,
         isBookingReservation: formData.isBookingReservation,

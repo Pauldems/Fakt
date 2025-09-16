@@ -45,6 +45,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       numberOfNights: '',
       pricePerNight: '',
       taxAmount: '',
+      isPlatformCollectingTax: false,
       invoiceDate: '',
       invoiceNumber: '',
       isGeniusRate: false,
@@ -67,6 +68,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
   const isBookingReservation = watch('isBookingReservation');
   const isClientInvoice = watch('isClientInvoice');
   const hasClientAddress = watch('hasClientAddress');
+  const isPlatformCollectingTax = watch('isPlatformCollectingTax');
   const arrivalDate = watch('arrivalDate');
   const departureDate = watch('departureDate');
 
@@ -239,7 +241,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
         }
         if (!fieldErrors.firstName && !fieldErrors.lastName && !fieldErrors.email && !fieldErrors.numberOfNights) scrollViewRef.current?.scrollTo({ y: 320, animated: true });
       }
-      if (fieldErrors.taxAmount) {
+      if (fieldErrors.taxAmount && !isPlatformCollectingTax) {
         if (fieldErrors.taxAmount.message === 'Champ obligatoire') {
           errorMessage += '• Taxe de séjour manquante\n';
         } else {
@@ -769,38 +771,70 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Taxe de séjour (€)</Text>
-            <Controller
-              control={control}
-              name="taxAmount"
-              rules={{
-                required: 'Champ obligatoire',
-                validate: value => {
-                  if (!value && value !== 0 && value !== '0') return 'Champ obligatoire';
-                  const num = parseFloat(value.toString().replace(',', '.'));
-                  if (isNaN(num)) return 'Valeur invalide';
-                  return num >= 0 || 'Ne peut pas être négatif';
-                }
-              }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    showErrors && errors.taxAmount && styles.inputError
-                  ]}
-                  onBlur={onBlur}
-                  onChangeText={onChange}
-                  value={value?.toString() || ''}
-                  placeholder=""
-                  placeholderTextColor="#999"
-                  keyboardType="decimal-pad"
-                />
-              )}
-            />
-            {showErrors && errors.taxAmount && (
-              <Text style={styles.error}>{errors.taxAmount.message}</Text>
+            <View style={styles.switchContainer}>
+              <Text style={styles.switchLabel}>La plateforme collecte la taxe de séjour</Text>
+              <Controller
+                control={control}
+                name="isPlatformCollectingTax"
+                render={({ field: { onChange, value } }) => (
+                  <Switch
+                    value={value}
+                    onValueChange={(newValue) => {
+                      onChange(newValue);
+                      // Si la plateforme collecte la taxe, mettre la taxe à 0
+                      if (newValue) {
+                        setValue('taxAmount', '0');
+                      }
+                    }}
+                    trackColor={{ false: '#767577', true: '#007AFF' }}
+                    thumbColor={value ? '#ffffff' : '#f4f3f4'}
+                  />
+                )}
+              />
+            </View>
+            {isPlatformCollectingTax && (
+              <Text style={styles.switchHelperText}>
+                La taxe de séjour ne sera pas incluse dans le total de la facture
+              </Text>
             )}
           </View>
+
+          {!isPlatformCollectingTax && (
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Taxe de séjour (€)</Text>
+              <Controller
+                control={control}
+                name="taxAmount"
+                rules={{
+                  required: !isPlatformCollectingTax ? 'Champ obligatoire' : false,
+                  validate: value => {
+                    if (isPlatformCollectingTax) return true; // Pas de validation si la plateforme collecte
+                    if (!value && value !== 0 && value !== '0') return 'Champ obligatoire';
+                    const num = parseFloat(value.toString().replace(',', '.'));
+                    if (isNaN(num)) return 'Valeur invalide';
+                    return num >= 0 || 'Ne peut pas être négatif';
+                  }
+                }}
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={[
+                      styles.input,
+                      showErrors && errors.taxAmount && styles.inputError
+                    ]}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value?.toString() || ''}
+                    placeholder=""
+                    placeholderTextColor="#999"
+                    keyboardType="decimal-pad"
+                  />
+                )}
+              />
+              {showErrors && errors.taxAmount && (
+                <Text style={styles.error}>{errors.taxAmount.message}</Text>
+              )}
+            </View>
+          )}
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Date de la facture</Text>
@@ -1206,5 +1240,24 @@ const styles = StyleSheet.create({
   propertyTextSelected: {
     color: '#0071c2',
     fontWeight: '600',
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  switchLabel: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+    marginRight: 12,
+  },
+  switchHelperText: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+    marginTop: 8,
+    paddingLeft: 4,
   },
 });

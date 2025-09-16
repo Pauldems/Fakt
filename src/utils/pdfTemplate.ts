@@ -41,7 +41,9 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
   const taxAmount = typeof data.taxAmount === 'string' ? parseFloat((data.taxAmount as string).replace(',', '.')) : data.taxAmount;
   
   const totalNights = numberOfNights * pricePerNight;
-  const totalWithTax = totalNights + taxAmount;
+  // Inclure la taxe dans le total seulement si la plateforme ne la collecte pas
+  const finalTaxAmount = data.isPlatformCollectingTax ? 0 : taxAmount;
+  const totalWithTax = totalNights + finalTaxAmount;
   
   // Obtenir la langue et les traductions
   const selectedLanguage = language || 'fr';
@@ -280,10 +282,16 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
             <tr>
               <td style="vertical-align: top; padding-top: 20px;">
                 ${translations.stayTax}
+                ${data.isPlatformCollectingTax ? `<br><small style="color: #666; font-style: italic;">(${translations.collectedByPlatform || 'Collectée par la plateforme'})</small>` : ''}
               </td>
               <td style="padding-top: 20px;"></td>
               <td style="padding-top: 20px;"></td>
-              <td style="vertical-align: top; padding-top: 20px;">${taxAmount.toFixed(2)} €</td>
+              <td style="vertical-align: top; padding-top: 20px;">
+                ${data.isPlatformCollectingTax ? 
+                  `<span style="text-decoration: line-through; color: #666;">${taxAmount.toFixed(2)} €</span><br><small style="color: #666;">0,00 €</small>` : 
+                  `${taxAmount.toFixed(2)} €`
+                }
+              </td>
             </tr>
             <tr>
               <td style="border-bottom: none; padding-top: 30px;">

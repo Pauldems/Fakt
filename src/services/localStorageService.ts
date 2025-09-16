@@ -45,7 +45,9 @@ export class LocalStorageService {
       const numberOfNights = typeof invoiceData.numberOfNights === 'string' ? parseInt(invoiceData.numberOfNights) : invoiceData.numberOfNights;
       const pricePerNight = typeof invoiceData.pricePerNight === 'string' ? parseFloat((invoiceData.pricePerNight as string).replace(',', '.')) : invoiceData.pricePerNight;
       const taxAmount = typeof invoiceData.taxAmount === 'string' ? parseFloat((invoiceData.taxAmount as string).replace(',', '.')) : invoiceData.taxAmount;
-      const totalAmount = (numberOfNights * pricePerNight) + taxAmount;
+      
+      // Inclure la taxe seulement si la plateforme ne la collecte pas
+      const totalAmount = (numberOfNights * pricePerNight) + (invoiceData.isPlatformCollectingTax ? 0 : taxAmount);
 
       console.log('Montant total calculé:', totalAmount);
 
@@ -133,7 +135,9 @@ export class LocalStorageService {
           const nights = inv.data.numberOfNights || 0;
           const price = inv.data.pricePerNight || 0;
           const tax = inv.data.taxAmount || 0;
-          totalAmount = (nights * price) + tax;
+          // Inclure la taxe seulement si la plateforme ne la collecte pas
+          const isPlatformCollectingTax = inv.data.isPlatformCollectingTax || false;
+          totalAmount = (nights * price) + (isPlatformCollectingTax ? 0 : tax);
         }
         
         return {

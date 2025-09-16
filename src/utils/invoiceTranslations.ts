@@ -22,6 +22,7 @@ interface InvoiceTranslations {
   mister: string;
   establishmentId: string;
   legalEntity: string;
+  collectedByPlatform: string;
 }
 
 export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
@@ -46,7 +47,8 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     total: 'TOTAL',
     mister: 'Monsieur',
     establishmentId: 'Identifiant Etablissement',
-    legalEntity: 'Entité Juridique'
+    legalEntity: 'Entité Juridique',
+    collectedByPlatform: 'Collectée par la plateforme'
   },
   en: {
     billedTo: 'Billed to:',
@@ -69,7 +71,8 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     total: 'TOTAL',
     mister: 'Mr.',
     establishmentId: 'Establishment ID',
-    legalEntity: 'Legal Entity'
+    legalEntity: 'Legal Entity',
+    collectedByPlatform: 'Collected by platform'
   },
   es: {
     billedTo: 'Facturado a:',
@@ -92,7 +95,8 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     total: 'TOTAL',
     mister: 'Sr.',
     establishmentId: 'ID Establecimiento',
-    legalEntity: 'Entidad Legal'
+    legalEntity: 'Entidad Legal',
+    collectedByPlatform: 'Recaudado por la plataforma'
   },
   de: {
     billedTo: 'Rechnungsempfänger:',
@@ -115,7 +119,8 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     total: 'GESAMT',
     mister: 'Herr',
     establishmentId: 'Betriebskennung',
-    legalEntity: 'Juristische Person'
+    legalEntity: 'Juristische Person',
+    collectedByPlatform: 'Von der Plattform erhoben'
   },
   it: {
     billedTo: 'Fatturato a:',
@@ -138,7 +143,8 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     total: 'TOTALE',
     mister: 'Sig.',
     establishmentId: 'ID Struttura',
-    legalEntity: 'Entità Legale'
+    legalEntity: 'Entità Legale',
+    collectedByPlatform: 'Riscossa dalla piattaforma'
   }
 };
 

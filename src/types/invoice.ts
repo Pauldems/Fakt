@@ -7,6 +7,7 @@ export interface InvoiceData {
   numberOfNights: number;
   pricePerNight: number;
   taxAmount: number;
+  isPlatformCollectingTax: boolean;
   invoiceDate: Date;
   isGeniusRate: boolean;
   isBookingReservation: boolean;
@@ -29,6 +30,7 @@ export interface InvoiceFormData {
   numberOfNights: string | number;
   pricePerNight: string | number;
   taxAmount: string | number;
+  isPlatformCollectingTax: boolean;
   invoiceDate: string;
   invoiceNumber: string;
   isGeniusRate: boolean;
