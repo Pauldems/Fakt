@@ -28,6 +28,7 @@ import { translateEmailText } from '../../utils/emailTranslator';
 import { generateInvoiceHTML } from '../../utils/pdfTemplate';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system';
+import clientService from '../../services/clientService';
 
 const { width } = Dimensions.get('window');
 
@@ -126,6 +127,25 @@ export const InvoiceScreen: React.FC = () => {
         selectedPropertyId: formData.selectedPropertyId,
       };
       console.log('Données converties finales:', JSON.stringify(invoiceData, null, 2));
+
+      // Sauvegarder immédiatement les informations du client dans le carnet
+      console.log('Sauvegarde du client dans le carnet...');
+      let clientAddress: string | undefined = undefined;
+      if (formData.hasClientAddress && formData.clientAddress) {
+        // Construire l'adresse complète si elle existe
+        clientAddress = formData.clientAddress;
+        if (formData.clientPostalCode && formData.clientCity) {
+          clientAddress += `, ${formData.clientPostalCode} ${formData.clientCity}`;
+        }
+      }
+      
+      await clientService.saveClient({
+        name: formData.lastName,
+        firstName: formData.firstName,
+        email: formData.email,
+        address: clientAddress
+      });
+      console.log('Client sauvegardé dans le carnet');
 
       // Sauvegarder la facture et générer le PDF final
       console.log('Sauvegarde de la facture...');

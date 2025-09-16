@@ -17,6 +17,8 @@ import { InvoiceFormData } from '../../types/invoice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings, PropertyTemplate } from '../settings/SettingsScreen';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import ClientSelector from '../../components/ClientSelector';
+import { Client } from '../../services/clientService';
 
 interface InvoiceFormProps {
   onSubmit: (data: InvoiceFormData) => void;
@@ -109,6 +111,34 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       loadPropertyTemplates();
     }, [loadPropertyTemplates])
   );
+
+  // Fonction pour gérer la sélection d'un client
+  const handleSelectClient = (client: Client) => {
+    setValue('firstName', client.firstName);
+    setValue('lastName', client.name);
+    setValue('email', client.email);
+    if (client.address) {
+      // L'adresse stockée est au format "rue, code postal ville"
+      const addressParts = client.address.split(',');
+      if (addressParts.length >= 2) {
+        // Première partie = adresse de rue
+        setValue('clientAddress', addressParts[0].trim());
+        setValue('hasClientAddress', true);  // Utiliser setValue au lieu de setHasClientAddress
+        
+        // Deuxième partie = code postal et ville
+        const lastPart = addressParts[addressParts.length - 1].trim();
+        const postalMatch = lastPart.match(/(\d{5})\s+(.*)/);
+        if (postalMatch) {
+          setValue('clientPostalCode', postalMatch[1]);
+          setValue('clientCity', postalMatch[2]);
+        }
+      } else {
+        // Si l'adresse n'est pas dans le format attendu, la mettre dans le champ adresse
+        setValue('clientAddress', client.address);
+        setValue('hasClientAddress', true);  // Utiliser setValue au lieu de setHasClientAddress
+      }
+    }
+  };
 
   // Calculer automatiquement le nombre de nuits
   useEffect(() => {
@@ -315,6 +345,8 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
 
         <View style={styles.formSection}>
           <Text style={styles.sectionTitle}>Informations client</Text>
+          
+          <ClientSelector onSelectClient={handleSelectClient} />
           
           <View style={styles.formGroup}>
             <Text style={styles.label}>Prénom</Text>

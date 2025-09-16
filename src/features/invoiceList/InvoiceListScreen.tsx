@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,34 +13,116 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
+import * as FileSystem from 'expo-file-system';
 import { StorageService, StoredInvoice } from '../../services/storageService';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import InvoiceFilters, { FilterOptions } from '../../components/InvoiceFilters';
+import SimpleInvoiceFilters from '../../components/SimpleInvoiceFilters';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SETTINGS_KEY, PropertyTemplate } from '../settings/SettingsScreen';
+import { generateInvoiceHTML } from '../../utils/pdfTemplate';
+import * as Print from 'expo-print';
 
 const { width } = Dimensions.get('window');
 
 export const InvoiceListScreen: React.FC = () => {
-  const [invoices, setInvoices] = useState<StoredInvoice[]>([]);
+  const [allInvoices, setAllInvoices] = useState<StoredInvoice[]>([]);
+  const [filteredInvoices, setFilteredInvoices] = useState<StoredInvoice[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [filters, setFilters] = useState<FilterOptions>({
+    searchQuery: '',
+    startDate: null,
+    endDate: null,
+    selectedPropertyId: null,
+    dateFilter: 'all',
+  });
+  const [properties, setProperties] = useState<PropertyTemplate[]>([]);
   const navigation = useNavigation<any>();
 
   // Recharger les factures quand l'écran est focalisé
   useFocusEffect(
     useCallback(() => {
       loadInvoices();
+      loadProperties();
     }, [])
   );
+
+  // Appliquer les filtres quand ils changent
+  useEffect(() => {
+    applyFilters();
+  }, [filters, allInvoices]);
 
   const loadInvoices = async () => {
     try {
       console.log('Chargement des factures...');
       const loadedInvoices = await StorageService.getInvoices();
       console.log('Factures chargées:', loadedInvoices.length);
-      console.log('Détails:', loadedInvoices);
-      setInvoices(loadedInvoices);
+      setAllInvoices(loadedInvoices);
     } catch (error) {
       console.error('Erreur lors du chargement des factures:', error);
     }
+  };
+
+  const loadProperties = async () => {
+    try {
+      const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        if (settings.propertyTemplates) {
+          setProperties(settings.propertyTemplates);
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des propriétés:', error);
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...allInvoices];
+    console.log('Filtrage - Factures initiales:', allInvoices.length);
+
+    // Filtre par recherche de client
+    if (filters.searchQuery) {
+      const query = filters.searchQuery.toLowerCase();
+      filtered = filtered.filter(invoice => 
+        invoice.data.firstName.toLowerCase().includes(query) ||
+        invoice.data.lastName.toLowerCase().includes(query) ||
+        invoice.data.email.toLowerCase().includes(query) ||
+        invoice.invoiceNumber.toLowerCase().includes(query)
+      );
+      console.log('Après filtre recherche:', filtered.length);
+    }
+
+    // Filtre par dates
+    if (filters.startDate) {
+      filtered = filtered.filter(invoice => 
+        new Date(invoice.data.invoiceDate) >= filters.startDate!
+      );
+      console.log('Après filtre date début:', filtered.length);
+    }
+    if (filters.endDate) {
+      const endDate = new Date(filters.endDate);
+      endDate.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(invoice => 
+        new Date(invoice.data.invoiceDate) <= endDate
+      );
+      console.log('Après filtre date fin:', filtered.length);
+    }
+
+    // Filtre par propriété
+    if (filters.selectedPropertyId) {
+      filtered = filtered.filter(invoice => 
+        invoice.data.selectedPropertyId === filters.selectedPropertyId
+      );
+      console.log('Après filtre propriété:', filtered.length);
+    }
+
+    console.log('Factures filtrées finales:', filtered.length);
+    if (filtered.length > 0) {
+      console.log('Première facture filtrée - pdfUri:', filtered[0].pdfUri);
+    }
+
+    setFilteredInvoices(filtered);
   };
 
   const onRefresh = async () => {
@@ -49,11 +131,64 @@ export const InvoiceListScreen: React.FC = () => {
     setRefreshing(false);
   };
 
+  const handleFiltersChange = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+  };
+
   const handleShare = async (invoice: StoredInvoice) => {
     try {
+      console.log('Tentative de partage pour la facture:', invoice.invoiceNumber);
+      console.log('URI du PDF:', invoice.pdfUri);
+      
+      if (!invoice.pdfUri) {
+        throw new Error('URI du PDF manquant');
+      }
+
+      // Vérifier si le fichier existe
+      const fileInfo = await FileSystem.getInfoAsync(invoice.pdfUri);
+      console.log('Info du fichier:', fileInfo);
+      
+      if (!fileInfo.exists) {
+        console.log('Le fichier PDF n\'existe pas, régénération en cours...');
+        
+        // Régénérer le PDF
+        const html = await generateInvoiceHTML(invoice.data, invoice.invoiceNumber);
+        const { uri: tempPdfUri } = await Print.printToFileAsync({
+          html,
+          base64: false,
+        });
+        
+        console.log('PDF régénéré temporairement:', tempPdfUri);
+        
+        // Partager le PDF temporaire
+        await Sharing.shareAsync(tempPdfUri);
+        
+        // Nettoyer le fichier temporaire après partage
+        setTimeout(async () => {
+          try {
+            await FileSystem.deleteAsync(tempPdfUri, { idempotent: true });
+          } catch (e) {
+            console.log('Erreur lors du nettoyage du fichier temporaire:', e);
+          }
+        }, 5000);
+        
+        console.log('Partage réussi avec PDF régénéré');
+        return;
+      }
+
+      // Vérifier si le fichier est lisible
+      if (!fileInfo.isDirectory && fileInfo.size === 0) {
+        throw new Error('Le fichier PDF est vide.');
+      }
+      
       await Sharing.shareAsync(invoice.pdfUri);
+      console.log('Partage réussi');
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de partager la facture');
+      console.error('Erreur lors du partage:', error);
+      Alert.alert(
+        'Erreur de partage', 
+        `Impossible de partager la facture: ${error instanceof Error ? error.message : 'Erreur inconnue'}\n\nEssayez de régénérer la facture si le problème persiste.`
+      );
     }
   };
 
@@ -166,24 +301,29 @@ export const InvoiceListScreen: React.FC = () => {
           <Text style={styles.title}>Mes Factures</Text>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>{invoices.length}</Text>
-              <Text style={styles.statLabel}>Factures</Text>
+              <Text style={styles.statValue}>{allInvoices.length}</Text>
+              <Text style={styles.statLabel}>Total</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
               <Text style={styles.statValue}>
-                {invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0).toFixed(0)}€
+                {filteredInvoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0).toFixed(0)}€
               </Text>
-              <Text style={styles.statLabel}>Total</Text>
+              <Text style={styles.statLabel}>Visibles</Text>
             </View>
           </View>
         </View>
       </LinearGradient>
 
-      {/* Contenu scrollable */}
+      {/* Contenu scrollable avec filtres intégrés */}
       <View style={styles.scrollContent}>
+        {/* Filtres */}
+        <InvoiceFilters 
+          onFiltersChange={handleFiltersChange} 
+          invoiceCount={filteredInvoices.length}
+        />
         <FlatList
-          data={invoices}
+          data={filteredInvoices}
           renderItem={renderInvoice}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
