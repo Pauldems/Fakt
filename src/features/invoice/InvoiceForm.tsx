@@ -19,6 +19,7 @@ import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings, PropertyTemplate } from 
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ClientSelector from '../../components/ClientSelector';
 import { Client } from '../../services/clientService';
+import invoiceCounterService from '../../services/invoiceCounterService';
 
 interface InvoiceFormProps {
   onSubmit: (data: InvoiceFormData) => void;
@@ -71,6 +72,31 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
   const isPlatformCollectingTax = watch('isPlatformCollectingTax');
   const arrivalDate = watch('arrivalDate');
   const departureDate = watch('departureDate');
+
+  // Charger le prochain numéro de facture au montage du composant
+  useEffect(() => {
+    const loadNextInvoiceNumber = async () => {
+      try {
+        const nextNumber = await invoiceCounterService.getNextInvoiceNumber();
+        setValue('invoiceNumber', nextNumber);
+        console.log('Prochain numéro de facture proposé:', nextNumber);
+      } catch (error) {
+        console.error('Erreur lors du chargement du prochain numéro:', error);
+      }
+    };
+    loadNextInvoiceNumber();
+  }, [setValue]);
+
+  // Fonction pour auto-incrémenter le numéro lors de la génération
+  const handleAutoIncrement = useCallback(async () => {
+    try {
+      const nextNumber = await invoiceCounterService.getNextInvoiceNumber();
+      setValue('invoiceNumber', nextNumber);
+      console.log('Numéro auto-incrémenté:', nextNumber);
+    } catch (error) {
+      console.error('Erreur lors de l\'auto-incrémentation:', error);
+    }
+  }, [setValue]);
 
   // Charger les templates de propriétés
   const loadPropertyTemplates = useCallback(async () => {
@@ -176,7 +202,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
   }, [arrivalDate, departureDate, setValue]);
 
   const onSubmitWithValidation = handleSubmit(
-    (data) => {
+    async (data) => {
       // Vérifier qu'une propriété est sélectionnée
       if (propertyTemplates.length === 0) {
         Alert.alert(
@@ -199,6 +225,20 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       if (!selectedProperty) {
         Alert.alert('Erreur', 'Veuillez sélectionner une propriété');
         return;
+      }
+
+      // Auto-incrémenter le numéro si le champ est vide
+      if (!data.invoiceNumber || data.invoiceNumber.trim() === '') {
+        const nextNumber = await invoiceCounterService.getNextInvoiceNumber();
+        data.invoiceNumber = nextNumber;
+        setValue('invoiceNumber', nextNumber);
+      }
+
+      // Convertir et enregistrer le client dans le carnet
+      try {
+        await clientService.saveClientFromInvoice(data);
+      } catch (error) {
+        console.error('Erreur lors de la sauvegarde du client:', error);
       }
 
       // Si on arrive ici, toutes les validations sont OK
@@ -256,7 +296,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
         if (fieldErrors.invoiceNumber.type === 'required') {
           errorMessage += '• Numéro de facture manquant\n';
         } else {
-          errorMessage += '• Numéro de facture invalide (3 chiffres requis)\n';
+          errorMessage += '• Numéro de facture invalide (seuls les chiffres)\n';
         }
       }
       if (fieldErrors.bookingNumber && isBookingReservation) {
@@ -281,8 +321,60 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
     }
   );
 
+  // Fonction exposée pour recharger le prochain numéro
+  const loadNextInvoiceNumber = useCallback(async () => {
+    try {
+      const nextNumber = await invoiceCounterService.getNextInvoiceNumber();
+      setValue('invoiceNumber', nextNumber);
+      console.log('Prochain numéro chargé:', nextNumber);
+    } catch (error) {
+      console.error('Erreur lors du rechargement du numéro:', error);
+    }
+  }, [setValue]);
+
+  // Fonction pour vider tous les champs sauf le numéro de facture
+  const resetFormFields = useCallback(() => {
+    // Sauvegarder le numéro de facture actuel
+    const currentInvoiceNumber = watch('invoiceNumber');
+    
+    // Réinitialiser tous les champs aux valeurs par défaut
+    setValue('firstName', '');
+    setValue('lastName', '');
+    setValue('email', '');
+    setValue('arrivalDate', '');
+    setValue('departureDate', '');
+    setValue('numberOfNights', '');
+    setValue('pricePerNight', '');
+    setValue('taxAmount', '');
+    setValue('isPlatformCollectingTax', false);
+    setValue('invoiceDate', '');
+    setValue('isGeniusRate', false);
+    setValue('isBookingReservation', false);
+    setValue('bookingNumber', '');
+    setValue('isClientInvoice', false);
+    setValue('clientInvoiceNumber', '');
+    setValue('hasClientAddress', false);
+    setValue('clientAddress', '');
+    setValue('clientPostalCode', '');
+    setValue('clientCity', '');
+    setValue('selectedPropertyId', '');
+    
+    // Remettre le numéro de facture (déjà mis à jour)
+    setValue('invoiceNumber', currentInvoiceNumber);
+    
+    // Réinitialiser l'état des erreurs
+    setShowErrors(false);
+    
+    // Remettre selectedProperty à null
+    setSelectedProperty(null);
+    
+    console.log('Formulaire réinitialisé, numéro conservé:', currentInvoiceNumber);
+  }, [setValue, watch, setShowErrors, setSelectedProperty]);
+
   useImperativeHandle(ref, () => ({
     submit: onSubmitWithValidation,
+    loadNextInvoiceNumber,
+    resetFormFields,
   }));
 
   return (
@@ -918,15 +1010,15 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Numéro de facture (ex: 005)</Text>
+            <Text style={styles.label}>Numéro de facture</Text>
             <Controller
               control={control}
               name="invoiceNumber"
               rules={{ 
-                required: 'Champ obligatoire',
+                required: false, // Plus obligatoire car auto-généré
                 pattern: {
-                  value: /^\d{3}$/,
-                  message: 'Le numéro doit contenir exactement 3 chiffres'
+                  value: /^\d{1,}$/,
+                  message: 'Seuls les chiffres sont autorisés'
                 }
               }}
               render={({ field: { onChange, onBlur, value } }) => (
@@ -936,18 +1028,27 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
                     showErrors && errors.invoiceNumber && styles.inputError
                   ]}
                   onBlur={onBlur}
-                  onChangeText={onChange}
+                  onChangeText={(text) => {
+                    // Ne garder que les chiffres
+                    const numbersOnly = text.replace(/\D/g, '');
+                    onChange(numbersOnly);
+                  }}
                   value={value}
                   placeholder="001"
                   placeholderTextColor="#999"
-                  keyboardType="number-pad"
-                  maxLength={3}
+                  keyboardType="numeric"
                 />
               )}
             />
             {showErrors && errors.invoiceNumber && (
               <Text style={styles.error}>{errors.invoiceNumber.message}</Text>
             )}
+            <Text style={styles.helperText}>
+              Saisissez seulement le numéro (ex: 001, 032)
+            </Text>
+            <Text style={styles.helperTextExample}>
+              Le format final sera généré automatiquement avec la date : FACT09-2025-032
+            </Text>
           </View>
 
           <View style={styles.switchGroup}>
@@ -1259,5 +1360,18 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 8,
     paddingLeft: 4,
+  },
+  helperText: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 6,
+    paddingLeft: 2,
+  },
+  helperTextExample: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+    paddingLeft: 2,
+    fontStyle: 'italic',
   },
 });

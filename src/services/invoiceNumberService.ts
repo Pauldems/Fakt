@@ -1,13 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const INVOICE_NUMBER_KEY = 'last_invoice_number';
-const INVOICE_PREFIX = 'BO';
+const INVOICE_PREFIX = 'FACT';
 
 export class InvoiceNumberService {
-  static async formatInvoiceNumber(invoiceNumber: string, invoiceYear: number): Promise<string> {
+  static async formatInvoiceNumber(sequentialNumber: string, invoiceDate: Date): Promise<string> {
     try {
-      // Formater le numéro de facture avec l'année de la facture
-      const formattedNumber = `${INVOICE_PREFIX}${invoiceYear}${invoiceNumber}`;
+      // Extraire mois et année de la date de facture
+      const month = String(invoiceDate.getMonth() + 1).padStart(2, '0');
+      const year = invoiceDate.getFullYear();
+      
+      // Formater le numéro de facture : BO + MM-YYYY-NNN
+      const formattedNumber = `${INVOICE_PREFIX}${month}-${year}-${sequentialNumber}`;
       
       // Sauvegarder le numéro pour référence
       await AsyncStorage.setItem(INVOICE_NUMBER_KEY, formattedNumber);
@@ -15,7 +19,10 @@ export class InvoiceNumberService {
       return formattedNumber;
     } catch (error) {
       console.error('Erreur lors du formatage du numéro de facture:', error);
-      return `${INVOICE_PREFIX}${invoiceYear}${invoiceNumber}`;
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const year = now.getFullYear();
+      return `${INVOICE_PREFIX}${month}-${year}-${sequentialNumber}`;
     }
   }
   

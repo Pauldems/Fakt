@@ -22,6 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, PropertyTemplate } from '../settings/SettingsScreen';
 import { generateInvoiceHTML } from '../../utils/pdfTemplate';
 import * as Print from 'expo-print';
+import { CSVExportService } from '../../services/csvExportService';
 
 const { width } = Dimensions.get('window');
 
@@ -215,6 +216,42 @@ export const InvoiceListScreen: React.FC = () => {
     );
   };
 
+  const handleExportCSV = async () => {
+    try {
+      if (filteredInvoices.length === 0) {
+        Alert.alert('Aucune facture', 'Il n\'y a aucune facture à exporter');
+        return;
+      }
+
+      // Afficher un message de confirmation avec le nombre de factures
+      Alert.alert(
+        'Export CSV',
+        `Exporter ${filteredInvoices.length} facture${filteredInvoices.length > 1 ? 's' : ''} au format CSV ?`,
+        [
+          { text: 'Annuler', style: 'cancel' },
+          {
+            text: 'Exporter',
+            onPress: async () => {
+              try {
+                await CSVExportService.exportToCSV(filteredInvoices);
+                // Le service gère le partage, pas besoin de message de succès
+              } catch (error) {
+                Alert.alert(
+                  'Erreur', 
+                  'Impossible d\'exporter les factures:\n' + 
+                  (error instanceof Error ? error.message : 'Erreur inconnue')
+                );
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Erreur lors de l\'export CSV:', error);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de l\'export');
+    }
+  };
+
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('fr-FR', {
       day: 'numeric',
@@ -312,6 +349,15 @@ export const InvoiceListScreen: React.FC = () => {
               <Text style={styles.statLabel}>Visibles</Text>
             </View>
           </View>
+          
+          {/* Bouton Export CSV */}
+          <TouchableOpacity 
+            style={styles.exportButton}
+            onPress={handleExportCSV}
+          >
+            <Ionicons name="download-outline" size={18} color="#003580" />
+            <Text style={styles.exportButtonText}>Export CSV</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -359,7 +405,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flex: 1,
-    marginTop: 190, // Augmentation de la marge pour descendre encore les factures
+    marginTop: 230, // Augmenté pour faire de la place au bouton export
   },
   headerContent: {
     alignItems: 'center',
@@ -488,5 +534,25 @@ const styles = StyleSheet.create({
     marginTop: 8,
     textAlign: 'center',
     paddingHorizontal: 20,
+  },
+  exportButton: {
+    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginTop: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  exportButtonText: {
+    color: '#003580',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
   },
 });

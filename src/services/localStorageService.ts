@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { InvoiceData } from '../types/invoice';
 import * as FileSystem from 'expo-file-system';
 import { InvoiceNumberService } from './invoiceNumberService';
+import invoiceCounterService from './invoiceCounterService';
 
 export interface StoredInvoice {
   id: string;
@@ -24,7 +25,7 @@ export class LocalStorageService {
     }
   }
 
-  static async saveInvoice(invoiceData: InvoiceData, invoiceNumberInput: string): Promise<StoredInvoice> {
+  static async saveInvoice(invoiceData: InvoiceData, invoiceNumberInput?: string): Promise<StoredInvoice> {
     try {
       console.log('LocalStorageService.saveInvoice - Début');
       console.log('invoiceData:', JSON.stringify(invoiceData, null, 2));
@@ -34,10 +35,22 @@ export class LocalStorageService {
         throw new Error('invoiceData est undefined');
       }
 
-      // Générer un ID unique et formater le numéro de facture
+      // Générer un ID unique
       const id = Date.now().toString();
-      const invoiceYear = new Date(invoiceData.invoiceDate).getFullYear();
-      const invoiceNumber = await InvoiceNumberService.formatInvoiceNumber(invoiceNumberInput, invoiceYear);
+      const invoiceDate = new Date(invoiceData.invoiceDate);
+      
+      // Si aucun numéro n'est fourni, générer automatiquement le prochain
+      let sequentialNumber: string;
+      if (!invoiceNumberInput || invoiceNumberInput.trim() === '') {
+        sequentialNumber = await invoiceCounterService.getNextInvoiceNumber();
+        console.log('Numéro auto-généré:', sequentialNumber);
+      } else {
+        sequentialNumber = invoiceNumberInput;
+        console.log('Numéro fourni:', sequentialNumber);
+      }
+      
+      // Formater le numéro de facture complet
+      const invoiceNumber = await InvoiceNumberService.formatInvoiceNumber(sequentialNumber, invoiceDate);
       
       console.log('Numéro de facture formaté:', invoiceNumber);
 
@@ -113,6 +126,11 @@ export class LocalStorageService {
       
       // Sauvegarder
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+      
+      // Mettre à jour le compteur de numéros de facture avec le numéro séquentiel
+      const usedSequentialNumber = parseInt(sequentialNumber);
+      await invoiceCounterService.saveLastInvoiceNumber(usedSequentialNumber);
+      console.log('Compteur de factures mis à jour avec le numéro séquentiel:', usedSequentialNumber);
 
       return storedInvoice;
     } catch (error) {

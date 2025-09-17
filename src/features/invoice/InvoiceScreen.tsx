@@ -154,6 +154,16 @@ export const InvoiceScreen: React.FC = () => {
       console.log('Facture sauvegardée:', savedInvoice);
       setPdfUri(savedInvoice.pdfUri);
 
+      // Mettre à jour le formulaire avec le prochain numéro pour la prochaine facture
+      if (formRef.current?.loadNextInvoiceNumber) {
+        await formRef.current.loadNextInvoiceNumber();
+      }
+
+      // Vider tous les champs sauf le numéro de facture
+      if (formRef.current?.resetFormFields) {
+        formRef.current.resetFormFields();
+      }
+
       // Proposer les options de partage avec sélection de langue
       await shareInvoice(invoiceData, savedInvoice.pdfUri);
     } catch (error) {
