@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Dimensions,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,9 +23,16 @@ const { width, height } = Dimensions.get('window');
 export const PDFViewerScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const invoiceParam = (route.params as any)?.invoice;
+  const params = route.params as any;
   
-  // Reconstruire l'objet invoice avec les dates
+  // Support pour les aperçus directs (avec pdfUri), les images de template (avec templateImage) et les factures complètes (avec invoice)
+  const invoiceParam = params?.invoice;
+  const directPdfUri = params?.pdfUri;
+  const templateImage = params?.templateImage;
+  const invoiceNumber = params?.invoiceNumber || 'Facture';
+  const isPreview = params?.isPreview || false;
+  
+  // Reconstruire l'objet invoice avec les dates si c'est une vraie facture
   const invoice: StoredInvoice | null = invoiceParam ? {
     ...invoiceParam,
     createdAt: new Date(invoiceParam.createdAt),
@@ -34,29 +42,45 @@ export const PDFViewerScreen: React.FC = () => {
     }
   } : null;
 
-  if (!invoice) {
+  // Déterminer l'URI du PDF à afficher
+  const pdfUri = directPdfUri || invoice?.pdfUri;
+  
+  // Nettoyer les fichiers temporaires de prévisualisation quand on quitte l'écran
+  useEffect(() => {
+    return () => {
+      // Quand on quitte l'écran et que c'est un aperçu avec un fichier temporaire
+      if (isPreview && directPdfUri && directPdfUri.includes('Print/')) {
+        // Supprimer le fichier temporaire
+        FileSystem.deleteAsync(directPdfUri, { idempotent: true })
+          .then(() => console.log('Fichier temporaire de prévisualisation supprimé'))
+          .catch(error => console.log('Erreur lors de la suppression du fichier temporaire:', error));
+      }
+    };
+  }, [isPreview, directPdfUri]);
+  
+  if (!pdfUri && !templateImage) {
     return (
       <View style={styles.errorContainer}>
-        <Text>Erreur: Facture non trouvée</Text>
+        <Text>Erreur: Fichier non trouvé</Text>
       </View>
     );
   }
 
   const handleShare = async () => {
-    if (!invoice || !invoice.pdfUri) {
-      Alert.alert('Erreur', 'Facture non trouvée');
+    if (!pdfUri || templateImage) {
+      Alert.alert('Information', 'Ceci est un aperçu. Vous ne pouvez pas partager ce fichier.');
       return;
     }
     
     try {
       // Vérifier que le fichier existe
-      const fileInfo = await FileSystem.getInfoAsync(invoice.pdfUri);
+      const fileInfo = await FileSystem.getInfoAsync(pdfUri);
       if (!fileInfo.exists) {
         Alert.alert('Erreur', 'Le fichier PDF n\'existe plus');
         return;
       }
       
-      await Sharing.shareAsync(invoice.pdfUri);
+      await Sharing.shareAsync(pdfUri);
     } catch (error) {
       console.error('Erreur partage:', error);
       Alert.alert('Erreur', 'Impossible de partager la facture');
@@ -64,25 +88,25 @@ export const PDFViewerScreen: React.FC = () => {
   };
 
   const handleView = async () => {
-    if (!invoice || !invoice.pdfUri) {
-      Alert.alert('Erreur', 'Facture non trouvée');
+    if (!pdfUri || templateImage) {
+      Alert.alert('Information', 'Ceci est un aperçu d\'image. Utilisez les boutons pour sélectionner ce template.');
       return;
     }
     
     try {
       // Vérifier que le fichier existe
-      const fileInfo = await FileSystem.getInfoAsync(invoice.pdfUri);
+      const fileInfo = await FileSystem.getInfoAsync(pdfUri);
       if (!fileInfo.exists) {
         Alert.alert('Erreur', 'Le fichier PDF n\'existe plus');
         return;
       }
       
       // Sur iOS, obtenir une URI de contenu pour le partage
-      let shareUri = invoice.pdfUri;
+      let shareUri = pdfUri;
       
       if (Platform.OS === 'ios') {
         try {
-          shareUri = await FileSystem.getContentUriAsync(invoice.pdfUri);
+          shareUri = await FileSystem.getContentUriAsync(pdfUri);
         } catch (e) {
           // Si ça échoue, utiliser l'URI originale
           console.log('getContentUriAsync failed, using original URI');
@@ -109,47 +133,89 @@ export const PDFViewerScreen: React.FC = () => {
         
         <View style={styles.headerInfo}>
           <Text style={styles.invoiceNumber} numberOfLines={1} ellipsizeMode="middle">
-            {invoice.invoiceNumber}
+            {invoice?.invoiceNumber || invoiceNumber}
           </Text>
+          {isPreview && (
+            <Text style={styles.previewBadge}>Aperçu</Text>
+          )}
         </View>
 
-        <TouchableOpacity 
-          style={styles.shareButton}
-          onPress={handleShare}
-        >
-          <Ionicons name="share-outline" size={24} color="#003580" />
-        </TouchableOpacity>
+        {!isPreview && (
+          <TouchableOpacity 
+            style={styles.shareButton}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-outline" size={24} color="#003580" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.content}>
-        <View style={styles.infoCard}>
-          <Ionicons name="document-text" size={80} color="#003580" />
-          <Text style={styles.invoiceTitle}>{invoice.invoiceNumber}</Text>
-          <Text style={styles.clientText}>
-            {invoice.data.firstName} {invoice.data.lastName}
-          </Text>
-          <Text style={styles.amountText}>
-            Total: {invoice.totalAmount.toFixed(2)}€
-          </Text>
-          <Text style={styles.dateText}>
-            Créée le {new Date(invoice.createdAt).toLocaleDateString('fr-FR')}
-          </Text>
-        </View>
+        {templateImage ? (
+          <View style={styles.imageContainer}>
+            <Image 
+              source={templateImage} 
+              style={styles.templateImage}
+              resizeMode="contain"
+            />
+          </View>
+        ) : (
+          <View style={styles.infoCard}>
+            <Ionicons name="document-text" size={80} color="#003580" />
+            {isPreview ? (
+              <>
+                <Text style={styles.invoiceTitle}>Aperçu du template</Text>
+                <Text style={styles.clientText}>
+                  Prévisualisation avec données de démonstration
+                </Text>
+                <Text style={styles.previewText}>
+                  Ceci est un aperçu du style de facture sélectionné
+                </Text>
+              </>
+            ) : invoice ? (
+              <>
+                <Text style={styles.invoiceTitle}>{invoice.invoiceNumber}</Text>
+                <Text style={styles.clientText}>
+                  {invoice.data.firstName} {invoice.data.lastName}
+                </Text>
+                <Text style={styles.amountText}>
+                  Total: {invoice.totalAmount.toFixed(2)}€
+                </Text>
+                <Text style={styles.dateText}>
+                  Créée le {new Date(invoice.createdAt).toLocaleDateString('fr-FR')}
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.invoiceTitle}>{invoiceNumber}</Text>
+                <Text style={styles.clientText}>
+                  Document PDF
+                </Text>
+              </>
+            )}
+          </View>
+        )}
 
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleView}>
-            <Ionicons name="eye-outline" size={24} color="#fff" />
-            <Text style={styles.actionButtonText}>Voir la facture</Text>
-          </TouchableOpacity>
+        {!templateImage && (
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleView}>
+              <Ionicons name="eye-outline" size={24} color="#fff" />
+              <Text style={styles.actionButtonText}>
+                {isPreview ? 'Voir l\'aperçu' : 'Voir la facture'}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.shareActionButton]} 
-            onPress={handleShare}
-          >
-            <Ionicons name="share-social-outline" size={24} color="#003580" />
-            <Text style={[styles.actionButtonText, styles.shareButtonText]}>Partager</Text>
-          </TouchableOpacity>
-        </View>
+            {!isPreview && (
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.shareActionButton]} 
+                onPress={handleShare}
+              >
+                <Ionicons name="share-social-outline" size={24} color="#003580" />
+                <Text style={[styles.actionButtonText, styles.shareButtonText]}>Partager</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -252,9 +318,37 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 8,
   },
+  previewBadge: {
+    fontSize: 12,
+    color: '#ff6b6b',
+    backgroundColor: '#ffe0e0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  previewText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  imageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  templateImage: {
+    width: '100%',
+    height: '100%',
+    maxHeight: height * 0.8,
   },
 });

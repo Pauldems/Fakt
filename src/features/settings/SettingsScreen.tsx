@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { TemplateSelector, TemplateType } from '../../components/TemplateSelector';
 
 export interface CustomProperty {
   id: string;
@@ -51,6 +52,7 @@ export interface OwnerSettings {
   signatureImage: string;
   customProperties: CustomProperty[];
   propertyTemplates: PropertyTemplate[];
+  invoiceTemplate?: 'modern' | 'classic' | 'minimal' | 'original';
 }
 
 export const SETTINGS_KEY = 'owner_settings';
@@ -76,6 +78,7 @@ export const DEFAULT_SETTINGS: OwnerSettings = {
   signatureImage: '',
   customProperties: [],
   propertyTemplates: [],
+  invoiceTemplate: 'original',
 };
 
 export const SettingsScreen: React.FC = () => {
@@ -383,6 +386,12 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Section Template de facture - EN PREMIER */}
+          <TemplateSelector
+            selectedTemplate={(settings.invoiceTemplate || 'original') as TemplateType}
+            onSelectTemplate={(template) => updateSettings(prev => ({ ...prev, invoiceTemplate: template }))}
+          />
+          
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Informations propriétaire</Text>
 

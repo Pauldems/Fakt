@@ -32,6 +32,27 @@ const InvoiceListStack = () => {
   );
 };
 
+const SettingsStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="SettingsMain" 
+        component={SettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen 
+        name="PDFViewer" 
+        component={PDFViewerScreen}
+        options={{ 
+          headerShown: false,
+          presentation: 'modal',
+          animation: 'slide_from_bottom'
+        }}
+      />
+    </Stack.Navigator>
+  );
+};
+
 export const TabNavigator = () => {
   return (
     <Tab.Navigator
@@ -91,7 +112,7 @@ export const TabNavigator = () => {
       />
       <Tab.Screen
         name="Settings"
-        component={SettingsScreen}
+        component={SettingsStack}
         options={{
           tabBarLabel: 'Paramètres',
           tabBarIcon: ({ color, size, focused }) => (

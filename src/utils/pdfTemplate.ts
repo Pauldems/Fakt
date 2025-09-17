@@ -2,16 +2,28 @@ import { InvoiceData } from '../types/invoice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings } from '../features/settings/SettingsScreen';
 import { getInvoiceTranslation } from './invoiceTranslations';
+import { generateModernTemplate } from './templates/modernTemplate';
+import { generateClassicTemplate } from './templates/classicTemplate';
+import { generateMinimalTemplate } from './templates/minimalTemplate';
+
+export type InvoiceTemplateType = 'modern' | 'classic' | 'minimal' | 'original';
 
 export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: string, language?: 'fr' | 'en' | 'es' | 'de' | 'it'): Promise<string> => {
   // Charger les paramètres
   let settings: OwnerSettings = DEFAULT_SETTINGS;
   let selectedPropertyTemplate = null;
   
+  let selectedTemplate: InvoiceTemplateType = 'original'; // Par défaut
+  
   try {
     const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
     if (savedSettings) {
       settings = JSON.parse(savedSettings);
+      
+      // Récupérer le template sélectionné
+      if (settings.invoiceTemplate) {
+        selectedTemplate = settings.invoiceTemplate as InvoiceTemplateType;
+      }
       
       // Migration: si ownerName existe mais pas ownerFirstName/ownerLastName
       if (settings.ownerName && (!settings.ownerFirstName || !settings.ownerLastName)) {
@@ -35,6 +47,21 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
   } catch (error) {
     console.error('Erreur lors du chargement des paramètres:', error);
   }
+  
+  // Utiliser le bon template
+  const selectedLanguage = language || 'fr';
+  
+  switch(selectedTemplate) {
+    case 'modern':
+      return generateModernTemplate(data, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
+    case 'classic':
+      return generateClassicTemplate(data, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
+    case 'minimal':
+      return generateMinimalTemplate(data, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
+    default:
+      // Continuer avec le template original ci-dessous
+      break;
+  }
   // Convertir les valeurs en nombres si elles sont des strings
   const numberOfNights = typeof data.numberOfNights === 'string' ? parseInt(data.numberOfNights) : data.numberOfNights;
   const pricePerNight = typeof data.pricePerNight === 'string' ? parseFloat((data.pricePerNight as string).replace(',', '.')) : data.pricePerNight;
@@ -45,8 +72,7 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
   const finalTaxAmount = data.isPlatformCollectingTax ? 0 : taxAmount;
   const totalWithTax = totalNights + finalTaxAmount;
   
-  // Obtenir la langue et les traductions
-  const selectedLanguage = language || 'fr';
+  // Obtenir la langue et les traductions (déjà défini plus haut)
   const translations = getInvoiceTranslation(selectedLanguage);
   
   // Formater les dates selon la langue

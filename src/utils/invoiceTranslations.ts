@@ -23,6 +23,21 @@ interface InvoiceTranslations {
   establishmentId: string;
   legalEntity: string;
   collectedByPlatform: string;
+  // Nouvelles traductions pour les templates
+  invoice: string;
+  issuer: string;
+  contact: string;
+  identifiers: string;
+  details: string;
+  client: string;
+  date: string;
+  amount: string;
+  subtotal: string;
+  tax: string;
+  totalTtc: string;
+  thankYou: string;
+  phone: string;
+  email: string;
 }
 
 export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
@@ -48,7 +63,22 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     mister: 'Monsieur',
     establishmentId: 'Identifiant Etablissement',
     legalEntity: 'Entité Juridique',
-    collectedByPlatform: 'Collectée par la plateforme'
+    collectedByPlatform: 'Collectée par la plateforme',
+    // Nouvelles traductions
+    invoice: 'FACTURE',
+    issuer: 'Émetteur',
+    contact: 'Contact',
+    identifiers: 'Identifiants',
+    details: 'Détails de la facture',
+    client: 'CLIENT',
+    date: 'Date',
+    amount: 'MONTANT',
+    subtotal: 'Sous-total HT',
+    tax: 'Taxe',
+    totalTtc: 'TOTAL TTC',
+    thankYou: 'Merci de votre confiance',
+    phone: 'Tél',
+    email: 'E-mail'
   },
   en: {
     billedTo: 'Billed to:',
@@ -72,7 +102,22 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     mister: 'Mr.',
     establishmentId: 'Establishment ID',
     legalEntity: 'Legal Entity',
-    collectedByPlatform: 'Collected by platform'
+    collectedByPlatform: 'Collected by platform',
+    // Nouvelles traductions
+    invoice: 'INVOICE',
+    issuer: 'Issuer',
+    contact: 'Contact',
+    identifiers: 'Identifiers',
+    details: 'Invoice details',
+    client: 'CLIENT',
+    date: 'Date',
+    amount: 'AMOUNT',
+    subtotal: 'Subtotal',
+    tax: 'Tax',
+    totalTtc: 'TOTAL',
+    thankYou: 'Thank you for your trust',
+    phone: 'Tel',
+    email: 'Email'
   },
   es: {
     billedTo: 'Facturado a:',
@@ -96,7 +141,22 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     mister: 'Sr.',
     establishmentId: 'ID Establecimiento',
     legalEntity: 'Entidad Legal',
-    collectedByPlatform: 'Recaudado por la plataforma'
+    collectedByPlatform: 'Recaudado por la plataforma',
+    // Nouvelles traductions
+    invoice: 'FACTURA',
+    issuer: 'Emisor',
+    contact: 'Contacto',
+    identifiers: 'Identificadores',
+    details: 'Detalles de la factura',
+    client: 'CLIENTE',
+    date: 'Fecha',
+    amount: 'IMPORTE',
+    subtotal: 'Subtotal',
+    tax: 'Impuesto',
+    totalTtc: 'TOTAL',
+    thankYou: 'Gracias por su confianza',
+    phone: 'Tel',
+    email: 'Email'
   },
   de: {
     billedTo: 'Rechnungsempfänger:',
@@ -120,7 +180,22 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     mister: 'Herr',
     establishmentId: 'Betriebskennung',
     legalEntity: 'Juristische Person',
-    collectedByPlatform: 'Von der Plattform erhoben'
+    collectedByPlatform: 'Von der Plattform erhoben',
+    // Nouvelles traductions
+    invoice: 'RECHNUNG',
+    issuer: 'Aussteller',
+    contact: 'Kontakt',
+    identifiers: 'Kennungen',
+    details: 'Rechnungsdetails',
+    client: 'KUNDE',
+    date: 'Datum',
+    amount: 'BETRAG',
+    subtotal: 'Zwischensumme',
+    tax: 'Steuer',
+    totalTtc: 'GESAMT',
+    thankYou: 'Vielen Dank für Ihr Vertrauen',
+    phone: 'Tel',
+    email: 'E-Mail'
   },
   it: {
     billedTo: 'Fatturato a:',
@@ -144,7 +219,22 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     mister: 'Sig.',
     establishmentId: 'ID Struttura',
     legalEntity: 'Entità Legale',
-    collectedByPlatform: 'Riscossa dalla piattaforma'
+    collectedByPlatform: 'Riscossa dalla piattaforma',
+    // Nouvelles traductions
+    invoice: 'FATTURA',
+    issuer: 'Emittente',
+    contact: 'Contatto',
+    identifiers: 'Identificatori',
+    details: 'Dettagli fattura',
+    client: 'CLIENTE',
+    date: 'Data',
+    amount: 'IMPORTO',
+    subtotal: 'Subtotale',
+    tax: 'Tassa',
+    totalTtc: 'TOTALE',
+    thankYou: 'Grazie per la fiducia',
+    phone: 'Tel',
+    email: 'Email'
   }
 };
 
