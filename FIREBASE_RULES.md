@@ -18,13 +18,25 @@ service firebase.storage {
 
 Cliquez sur **Publier**.
 
-### 2. Firestore Database Rules
+### 2. Firestore Database Rules pour le système d'activation
 Allez dans **Firebase Console** → **Firestore Database** → **Rules** et collez :
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Codes d'activation : lecture pour tous, écriture admin seulement
+    match /activationCodes/{code} {
+      allow read: true;
+      allow write: if false; // Admin seulement via script
+    }
+    
+    // Utilisateurs : accès à ses propres données seulement
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Règle temporaire pour les autres documents
     match /{document=**} {
       allow read, write: if true;
     }

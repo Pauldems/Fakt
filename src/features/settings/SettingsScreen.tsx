@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { TemplateSelector, TemplateType } from '../../components/TemplateSelector';
+import { SubscriptionSection } from './SubscriptionSection';
 
 export interface CustomProperty {
   id: string;
@@ -386,7 +387,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Section Template de facture - EN PREMIER */}
+          {/* Section Template de facture */}
           <TemplateSelector
             selectedTemplate={(settings.invoiceTemplate || 'original') as TemplateType}
             onSelectTemplate={(template) => updateSettings(prev => ({ ...prev, invoiceTemplate: template }))}
@@ -667,6 +668,9 @@ Veuillez trouver ci-joint la facture..."
               💾 Toutes les modifications sont sauvegardées automatiquement
             </Text>
           </View>
+
+          {/* Section Abonnement - EN DERNIER */}
+          <SubscriptionSection />
         </ScrollView>
       </KeyboardAvoidingView>
       

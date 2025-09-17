@@ -11,7 +11,8 @@
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
     "@expo/vector-icons": "^14.1.0",
-    "@react-native-async-storage/async-storage": "2.1.2",
+    "@react-native-async-storage/async-storage": "^2.1.2",
+    "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/bottom-tabs": "^7.4.3",
     "@react-navigation/native": "^7.1.15",
     "@react-navigation/native-stack": "^7.3.22",
@@ -26,7 +27,8 @@
     "expo-print": "~14.1.4",
     "expo-sharing": "^13.1.5",
     "expo-status-bar": "~2.2.3",
-    "firebase": "^12.0.0",
+    "firebase": "^12.2.1",
+    "firebase-admin": "^13.5.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-hook-form": "^7.61.1",
@@ -38,8 +40,7 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-web": "^0.20.0",
-    "react-native-webview": "13.13.5",
-    "@react-native-community/datetimepicker": "8.4.4"
+    "react-native-webview": "13.13.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
