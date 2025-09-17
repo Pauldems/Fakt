@@ -20,7 +20,7 @@ interface ActivationScreenProps {
 }
 
 export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivationSuccess }) => {
-  const { refreshActivation } = useAuth();
+  const { refreshActivation, pausePeriodicCheck, resumePeriodicCheck } = useAuth();
   const [step, setStep] = useState<'code' | 'info'>('code');
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -58,6 +58,8 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
       const result = await activationService.validateCodeOnly(cleanCode);
       
       if (result.success) {
+        // Pauser les vérifications périodiques pendant la saisie des infos
+        pausePeriodicCheck();
         setStep('info');
       } else {
         Alert.alert('Erreur', result.message);
@@ -100,6 +102,8 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
           { 
             text: 'OK', 
             onPress: async () => {
+              // Reprendre les vérifications périodiques après activation
+              resumePeriodicCheck();
               // Forcer le rechargement du contexte Auth
               console.log('🔄 Rechargement du contexte d\'activation...');
               await refreshActivation();
@@ -110,10 +114,14 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
         ]);
       } else {
         console.log('❌ Activation échouée:', result.message);
+        // Reprendre les vérifications périodiques en cas d'échec
+        resumePeriodicCheck();
         Alert.alert('Erreur', result.message);
       }
     } catch (error) {
       console.log('💥 Erreur activation:', error);
+      // Reprendre les vérifications périodiques en cas d'erreur
+      resumePeriodicCheck();
       Alert.alert('Erreur', 'Erreur de connexion. Vérifiez votre internet.');
     } finally {
       setIsLoading(false);
@@ -131,7 +139,11 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
             <View style={styles.header}>
               <TouchableOpacity 
                 style={styles.backButton}
-                onPress={() => setStep('code')}
+                onPress={() => {
+                  // Reprendre les vérifications périodiques si on revient en arrière
+                  resumePeriodicCheck();
+                  setStep('code');
+                }}
               >
                 <Ionicons name="arrow-back" size={24} color="#003580" />
               </TouchableOpacity>
