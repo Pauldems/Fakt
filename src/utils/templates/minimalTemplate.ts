@@ -1,6 +1,7 @@
 import { InvoiceData } from '../../types/invoice';
 import { OwnerSettings } from '../../features/settings/SettingsScreen';
 import { getInvoiceTranslation } from '../invoiceTranslations';
+import { translateExtras } from '../extrasTranslator';
 
 export const generateMinimalTemplate = (
   data: InvoiceData,
@@ -10,33 +11,35 @@ export const generateMinimalTemplate = (
   language: 'fr' | 'en' | 'es' | 'de' | 'it' = 'fr'
 ): string => {
   const translations = getInvoiceTranslation(language);
+  const translatedData = { ...data, extras: data.extras ? translateExtras(data.extras, language) : undefined };
   
-  const numberOfNights = typeof data.numberOfNights === 'string' ? parseInt(data.numberOfNights) : data.numberOfNights;
-  const pricePerNight = typeof data.pricePerNight === 'string' ? parseFloat((data.pricePerNight as string).replace(',', '.')) : data.pricePerNight;
-  const taxAmount = typeof data.taxAmount === 'string' ? parseFloat((data.taxAmount as string).replace(',', '.')) : data.taxAmount;
+  const numberOfNights = typeof translatedData.numberOfNights === 'string' ? parseInt(translatedData.numberOfNights) : translatedData.numberOfNights;
+  const pricePerNight = typeof translatedData.pricePerNight === 'string' ? parseFloat((translatedData.pricePerNight as string).replace(',', '.')) : translatedData.pricePerNight;
+  const taxAmount = typeof translatedData.taxAmount === 'string' ? parseFloat((translatedData.taxAmount as string).replace(',', '.')) : translatedData.taxAmount;
   
   const totalNights = numberOfNights * pricePerNight;
-  const finalTaxAmount = data.isPlatformCollectingTax ? 0 : taxAmount;
-  const totalWithTax = totalNights + finalTaxAmount;
+  const totalExtras = translatedData.extras ? translatedData.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0) : 0;
+  const finalTaxAmount = translatedData.isPlatformCollectingTax ? 0 : taxAmount;
+  const totalWithTax = totalNights + totalExtras + finalTaxAmount;
   
   const locale = language === 'en' ? 'en-US' : 
                 language === 'es' ? 'es-ES' :
                 language === 'de' ? 'de-DE' :
                 language === 'it' ? 'it-IT' : 'fr-FR';
   
-  const formattedDate = new Date(data.invoiceDate).toLocaleDateString(locale, {
+  const formattedDate = new Date(translatedData.invoiceDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   });
 
-  const arrivalDate = data.arrivalDate ? new Date(data.arrivalDate).toLocaleDateString(locale, {
+  const arrivalDate = translatedData.arrivalDate ? new Date(translatedData.arrivalDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   }) : '';
   
-  const departureDate = data.departureDate ? new Date(data.departureDate).toLocaleDateString(locale, {
+  const departureDate = translatedData.departureDate ? new Date(translatedData.departureDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
@@ -220,9 +223,9 @@ export const generateMinimalTemplate = (
         <div class="client-section">
           <div class="client-label">${translations.billedTo}</div>
           <div class="client-info">
-            ${data.firstName} ${data.lastName}<br>
-            ${data.email}
-            ${data.hasClientAddress ? `<br>${data.clientAddress}<br>${data.clientPostalCode} ${data.clientCity}` : ''}
+            ${translatedData.firstName} ${translatedData.lastName}<br>
+            ${translatedData.email}
+            ${translatedData.hasClientAddress ? `<br>${translatedData.clientAddress}<br>${translatedData.clientPostalCode} ${translatedData.clientCity}` : ''}
           </div>
         </div>
         
@@ -233,8 +236,8 @@ export const generateMinimalTemplate = (
               ${translations.accommodation}
               <div class="item-subtitle">
                 ${arrivalDate} → ${departureDate} • ${numberOfNights} ${translations.nights}
-                ${data.isGeniusRate ? ` • ${translations.geniusRate}` : ''}
-                ${data.isBookingReservation ? ` • Booking ${data.bookingNumber || ''}` : ''}
+                ${translatedData.isGeniusRate ? ` • ${translations.geniusRate}` : ''}
+                ${translatedData.isBookingReservation ? ` • Booking ${translatedData.bookingNumber || ''}` : ''}
               </div>
             </div>
             <div class="item-details">
@@ -242,13 +245,27 @@ export const generateMinimalTemplate = (
             </div>
           </div>
           
+          ${translatedData.extras && translatedData.extras.length > 0 ? translatedData.extras.map(extra => `
+            <div class="item-row">
+              <div class="item-description">
+                ${extra.name}
+                <div class="item-subtitle">
+                  ${extra.quantity} x ${extra.price.toFixed(2)} €
+                </div>
+              </div>
+              <div class="item-details">
+                ${(extra.price * extra.quantity).toFixed(2)} €
+              </div>
+            </div>
+          `).join('') : ''}
+          
           ${taxAmount > 0 ? `
             <div class="item-row">
-              <div class="item-description ${data.isPlatformCollectingTax ? 'strikethrough' : ''}">
+              <div class="item-description ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">
                 ${translations.stayTax}
-                ${data.isPlatformCollectingTax ? `<div class="item-subtitle">${translations.collectedByPlatform}</div>` : ''}
+                ${translatedData.isPlatformCollectingTax ? `<div class="item-subtitle">${translations.collectedByPlatform}</div>` : ''}
               </div>
-              <div class="item-details ${data.isPlatformCollectingTax ? 'strikethrough' : ''}">
+              <div class="item-details ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">
                 ${taxAmount.toFixed(2)} €
               </div>
             </div>
@@ -259,7 +276,7 @@ export const generateMinimalTemplate = (
         <div class="total-section">
           ${finalTaxAmount > 0 ? `
             <div class="subtotal-row">
-              Sous-total: ${totalNights.toFixed(2)} €
+              Sous-total: ${(totalNights + totalExtras).toFixed(2)} €
             </div>
             <div class="subtotal-row">
               Taxe: ${finalTaxAmount.toFixed(2)} €
@@ -270,10 +287,10 @@ export const generateMinimalTemplate = (
           </div>
         </div>
         
-        ${data.isClientInvoice ? `
+        ${translatedData.isClientInvoice ? `
         <!-- Footer -->
         <div class="footer">
-          ${translations.clientInvoice} ${data.clientInvoiceNumber}
+          ${translations.clientInvoice} ${translatedData.clientInvoiceNumber}
         </div>
         ` : ''}
       </div>

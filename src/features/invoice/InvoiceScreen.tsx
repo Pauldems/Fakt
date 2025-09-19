@@ -27,7 +27,7 @@ import { emailTranslations, getMonthName, getEmailTemplate } from '../../utils/e
 import { translateEmailText } from '../../utils/emailTranslator';
 import { generateInvoiceHTML } from '../../utils/pdfTemplate';
 import * as Print from 'expo-print';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import clientService from '../../services/clientService';
 
 const { width } = Dimensions.get('window');
@@ -126,6 +126,7 @@ export const InvoiceScreen: React.FC = () => {
         clientPostalCode: formData.clientPostalCode,
         clientCity: formData.clientCity,
         selectedPropertyId: formData.selectedPropertyId,
+        extras: formData.extras,
       };
       console.log('Données converties finales:', JSON.stringify(invoiceData, null, 2));
 

@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { InvoiceData } from '../types/invoice';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { InvoiceNumberService } from './invoiceNumberService';
 import invoiceCounterService from './invoiceCounterService';
 
@@ -59,10 +59,14 @@ export class LocalStorageService {
       const pricePerNight = typeof invoiceData.pricePerNight === 'string' ? parseFloat((invoiceData.pricePerNight as string).replace(',', '.')) : invoiceData.pricePerNight;
       const taxAmount = typeof invoiceData.taxAmount === 'string' ? parseFloat((invoiceData.taxAmount as string).replace(',', '.')) : invoiceData.taxAmount;
       
+      // Calculer le total des extras
+      const totalExtras = invoiceData.extras ? invoiceData.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0) : 0;
+      
       // Inclure la taxe seulement si la plateforme ne la collecte pas
-      const totalAmount = (numberOfNights * pricePerNight) + (invoiceData.isPlatformCollectingTax ? 0 : taxAmount);
+      const totalAmount = (numberOfNights * pricePerNight) + totalExtras + (invoiceData.isPlatformCollectingTax ? 0 : taxAmount);
 
       console.log('Montant total calculé:', totalAmount);
+      console.log('Extras inclus dans la facture:', JSON.stringify(invoiceData.extras, null, 2));
 
       // Importer les services nécessaires
       const { generateInvoiceHTML } = require('../utils/pdfTemplate');

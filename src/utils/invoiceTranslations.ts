@@ -38,6 +38,20 @@ interface InvoiceTranslations {
   thankYou: string;
   phone: string;
   email: string;
+  // Traductions pour les extras
+  extrasTitle: string;
+  cleaning: string;
+  breakfast: string;
+  linens: string;
+  parking: string;
+  airportTransfer: string;
+  addCustomExtra: string;
+  extrasTotal: string;
+  extrasHelp: string;
+  extrasHelpText: string;
+  extraNamePlaceholder: string;
+  extraPricePlaceholder: string;
+  extraQuantityPlaceholder: string;
 }
 
 export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
@@ -78,7 +92,20 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     totalTtc: 'TOTAL TTC',
     thankYou: 'Merci de votre confiance',
     phone: 'Tél',
-    email: 'E-mail'
+    email: 'E-mail',
+    extrasTitle: 'Suppléments / Extras',
+    cleaning: 'Ménage',
+    breakfast: 'Petit déjeuner',
+    linens: 'Linge de maison',
+    parking: 'Parking',
+    airportTransfer: 'Transfert aéroport',
+    addCustomExtra: 'Appuyer pour ajouter un extra personnalisé',
+    extrasTotal: 'Total',
+    extrasHelp: 'Aide - Extras',
+    extrasHelpText: 'Vous pouvez :\n\n• Sélectionner un extra prédéfini en appuyant sur une icône\n• Modifier le nom, le prix et la quantité de chaque extra ajouté\n• Ajouter un extra personnalisé en appuyant sur le bouton en bas\n• Supprimer un extra avec l\'icône poubelle',
+    extraNamePlaceholder: 'Nom de l\'extra',
+    extraPricePlaceholder: 'Prix',
+    extraQuantityPlaceholder: 'Qt'
   },
   en: {
     billedTo: 'Billed to:',
@@ -117,7 +144,20 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     totalTtc: 'TOTAL',
     thankYou: 'Thank you for your trust',
     phone: 'Tel',
-    email: 'Email'
+    email: 'Email',
+    extrasTitle: 'Supplements / Extras',
+    cleaning: 'Cleaning',
+    breakfast: 'Breakfast',
+    linens: 'Linens',
+    parking: 'Parking',
+    airportTransfer: 'Airport transfer',
+    addCustomExtra: 'Tap to add a custom extra',
+    extrasTotal: 'Total',
+    extrasHelp: 'Help - Extras',
+    extrasHelpText: 'You can:\n\n• Select a predefined extra by tapping an icon\n• Modify the name, price and quantity of each added extra\n• Add a custom extra by tapping the button below\n• Remove an extra with the trash icon',
+    extraNamePlaceholder: 'Extra name',
+    extraPricePlaceholder: 'Price',
+    extraQuantityPlaceholder: 'Qty'
   },
   es: {
     billedTo: 'Facturado a:',
@@ -156,7 +196,20 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     totalTtc: 'TOTAL',
     thankYou: 'Gracias por su confianza',
     phone: 'Tel',
-    email: 'Email'
+    email: 'Email',
+    extrasTitle: 'Suplementos / Extras',
+    cleaning: 'Limpieza',
+    breakfast: 'Desayuno',
+    linens: 'Ropa de cama',
+    parking: 'Parking',
+    airportTransfer: 'Traslado al aeropuerto',
+    addCustomExtra: 'Pulsa para añadir un extra personalizado',
+    extrasTotal: 'Total',
+    extrasHelp: 'Ayuda - Extras',
+    extrasHelpText: 'Puedes:\n\n• Seleccionar un extra predefinido tocando un icono\n• Modificar el nombre, precio y cantidad de cada extra añadido\n• Añadir un extra personalizado tocando el botón de abajo\n• Eliminar un extra con el icono de papelera',
+    extraNamePlaceholder: 'Nombre del extra',
+    extraPricePlaceholder: 'Precio',
+    extraQuantityPlaceholder: 'Cant'
   },
   de: {
     billedTo: 'Rechnungsempfänger:',
@@ -195,7 +248,20 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     totalTtc: 'GESAMT',
     thankYou: 'Vielen Dank für Ihr Vertrauen',
     phone: 'Tel',
-    email: 'E-Mail'
+    email: 'E-Mail',
+    extrasTitle: 'Zusatzleistungen / Extras',
+    cleaning: 'Reinigung',
+    breakfast: 'Frühstück',
+    linens: 'Bettwäsche',
+    parking: 'Parkplatz',
+    airportTransfer: 'Flughafentransfer',
+    addCustomExtra: 'Tippen um ein benutzerdefiniertes Extra hinzuzufügen',
+    extrasTotal: 'Gesamt',
+    extrasHelp: 'Hilfe - Extras',
+    extrasHelpText: 'Du kannst:\n\n• Ein vordefiniertes Extra auswählen, indem du auf ein Symbol tippst\n• Namen, Preis und Menge jedes hinzugefügten Extras ändern\n• Ein benutzerdefiniertes Extra hinzufügen, indem du auf die Schaltfläche unten tippst\n• Ein Extra mit dem Papierkorbsymbol entfernen',
+    extraNamePlaceholder: 'Extra Name',
+    extraPricePlaceholder: 'Preis',
+    extraQuantityPlaceholder: 'Anz'
   },
   it: {
     billedTo: 'Fatturato a:',
@@ -234,7 +300,20 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     totalTtc: 'TOTALE',
     thankYou: 'Grazie per la fiducia',
     phone: 'Tel',
-    email: 'Email'
+    email: 'Email',
+    extrasTitle: 'Supplementi / Extra',
+    cleaning: 'Pulizia',
+    breakfast: 'Colazione',
+    linens: 'Biancheria',
+    parking: 'Parcheggio',
+    airportTransfer: 'Trasferimento aeroporto',
+    addCustomExtra: 'Tocca per aggiungere un extra personalizzato',
+    extrasTotal: 'Totale',
+    extrasHelp: 'Aiuto - Extra',
+    extrasHelpText: 'Puoi:\n\n• Selezionare un extra predefinito toccando un\'icona\n• Modificare nome, prezzo e quantità di ogni extra aggiunto\n• Aggiungere un extra personalizzato toccando il pulsante in basso\n• Rimuovere un extra con l\'icona del cestino',
+    extraNamePlaceholder: 'Nome extra',
+    extraPricePlaceholder: 'Prezzo',
+    extraQuantityPlaceholder: 'Qt'
   }
 };
 

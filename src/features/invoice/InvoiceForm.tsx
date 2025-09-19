@@ -13,13 +13,14 @@ import {
 } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
-import { InvoiceFormData } from '../../types/invoice';
+import { InvoiceFormData, Extra } from '../../types/invoice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings, PropertyTemplate } from '../settings/SettingsScreen';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ClientSelector from '../../components/ClientSelector';
-import { Client } from '../../services/clientService';
+import clientService, { Client } from '../../services/clientService';
 import invoiceCounterService from '../../services/invoiceCounterService';
+import { ExtrasManager, validateExtras } from '../../components/ExtrasManager';
 
 interface InvoiceFormProps {
   onSubmit: (data: InvoiceFormData) => void;
@@ -59,10 +60,12 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       clientPostalCode: '',
       clientCity: '',
       selectedPropertyId: '',
+      extras: [],
     },
   });
 
   const [showErrors, setShowErrors] = useState(false);
+  const [extras, setExtras] = useState<Extra[]>([]);
   const [propertyTemplates, setPropertyTemplates] = useState<PropertyTemplate[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<PropertyTemplate | null>(null);
   const navigation = useNavigation<any>();
@@ -240,6 +243,19 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       } catch (error) {
         console.error('Erreur lors de la sauvegarde du client:', error);
       }
+
+      // Valider les extras
+      if (extras.length > 0 && !validateExtras(extras)) {
+        setShowErrors(true);
+        Alert.alert(
+          'Erreur dans les extras',
+          'Veuillez corriger les erreurs dans les extras :\n\n• Nom obligatoire\n• Prix valide (≥ 0)\n• Quantité valide (≥ 1)'
+        );
+        return;
+      }
+
+      // Ajouter les extras à la soumission
+      data.extras = extras;
 
       // Si on arrive ici, toutes les validations sont OK
       onSubmit(data);
@@ -630,6 +646,13 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
             </>
           )}
         </View>
+
+        {/* Section Extras/Suppléments */}
+        <ExtrasManager 
+          extras={extras}
+          onChange={setExtras}
+          showErrors={showErrors}
+        />
 
         <View style={styles.formSection}>
           <Text style={styles.sectionTitle}>Détails de la réservation</Text>

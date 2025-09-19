@@ -13,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { StorageService, StoredInvoice } from '../../services/storageService';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import InvoiceFilters, { FilterOptions } from '../../components/InvoiceFilters';

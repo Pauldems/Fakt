@@ -1,6 +1,7 @@
 import { InvoiceData } from '../../types/invoice';
 import { OwnerSettings } from '../../features/settings/SettingsScreen';
 import { getInvoiceTranslation } from '../invoiceTranslations';
+import { translateExtras } from '../extrasTranslator';
 
 export const generateClassicTemplate = (
   data: InvoiceData,
@@ -10,33 +11,35 @@ export const generateClassicTemplate = (
   language: 'fr' | 'en' | 'es' | 'de' | 'it' = 'fr'
 ): string => {
   const translations = getInvoiceTranslation(language);
+  const translatedData = { ...data, extras: data.extras ? translateExtras(data.extras, language) : undefined };
   
-  const numberOfNights = typeof data.numberOfNights === 'string' ? parseInt(data.numberOfNights) : data.numberOfNights;
-  const pricePerNight = typeof data.pricePerNight === 'string' ? parseFloat((data.pricePerNight as string).replace(',', '.')) : data.pricePerNight;
-  const taxAmount = typeof data.taxAmount === 'string' ? parseFloat((data.taxAmount as string).replace(',', '.')) : data.taxAmount;
+  const numberOfNights = typeof translatedData.numberOfNights === 'string' ? parseInt(translatedData.numberOfNights) : translatedData.numberOfNights;
+  const pricePerNight = typeof translatedData.pricePerNight === 'string' ? parseFloat((translatedData.pricePerNight as string).replace(',', '.')) : translatedData.pricePerNight;
+  const taxAmount = typeof translatedData.taxAmount === 'string' ? parseFloat((translatedData.taxAmount as string).replace(',', '.')) : translatedData.taxAmount;
   
   const totalNights = numberOfNights * pricePerNight;
-  const finalTaxAmount = data.isPlatformCollectingTax ? 0 : taxAmount;
-  const totalWithTax = totalNights + finalTaxAmount;
+  const totalExtras = translatedData.extras ? translatedData.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0) : 0;
+  const finalTaxAmount = translatedData.isPlatformCollectingTax ? 0 : taxAmount;
+  const totalWithTax = totalNights + totalExtras + finalTaxAmount;
   
   const locale = language === 'en' ? 'en-US' : 
                 language === 'es' ? 'es-ES' :
                 language === 'de' ? 'de-DE' :
                 language === 'it' ? 'it-IT' : 'fr-FR';
   
-  const formattedDate = new Date(data.invoiceDate).toLocaleDateString(locale, {
+  const formattedDate = new Date(translatedData.invoiceDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   });
 
-  const arrivalDate = data.arrivalDate ? new Date(data.arrivalDate).toLocaleDateString(locale, {
+  const arrivalDate = translatedData.arrivalDate ? new Date(translatedData.arrivalDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   }) : '';
   
-  const departureDate = data.departureDate ? new Date(data.departureDate).toLocaleDateString(locale, {
+  const departureDate = translatedData.departureDate ? new Date(translatedData.departureDate).toLocaleDateString(locale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
@@ -226,9 +229,9 @@ export const generateClassicTemplate = (
             <div class="info-block">
               <div class="info-label">${translations.billedTo}</div>
               <div class="info-content">
-                ${data.firstName} ${data.lastName}<br>
-                ${data.email}
-                ${data.hasClientAddress ? `<br>${data.clientAddress}<br>${data.clientPostalCode} ${data.clientCity}` : ''}
+                ${translatedData.firstName} ${translatedData.lastName}<br>
+                ${translatedData.email}
+                ${translatedData.hasClientAddress ? `<br>${translatedData.clientAddress}<br>${translatedData.clientPostalCode} ${translatedData.clientCity}` : ''}
               </div>
             </div>
           </div>
@@ -257,22 +260,30 @@ export const generateClassicTemplate = (
               <td>
                 ${translations.accommodation}<br>
                 Du ${arrivalDate} au ${departureDate}
-                ${data.isGeniusRate ? `<br><small>✓ ${translations.geniusRate}</small>` : ''}
-                ${data.isBookingReservation ? `<br><small>${translations.bookingReservation} ${data.bookingNumber || ''}</small>` : ''}
+                ${translatedData.isGeniusRate ? `<br><small>✓ ${translations.geniusRate}</small>` : ''}
+                ${translatedData.isBookingReservation ? `<br><small>${translations.bookingReservation} ${translatedData.bookingNumber || ''}</small>` : ''}
               </td>
               <td class="text-center">${numberOfNights}</td>
               <td class="text-right">${pricePerNight.toFixed(2)} €</td>
               <td class="text-right">${totalNights.toFixed(2)} €</td>
             </tr>
+            ${translatedData.extras && translatedData.extras.length > 0 ? translatedData.extras.map(extra => `
+              <tr>
+                <td>${extra.name}</td>
+                <td class="text-center">${extra.quantity}</td>
+                <td class="text-right">${extra.price.toFixed(2)} €</td>
+                <td class="text-right">${(extra.price * extra.quantity).toFixed(2)} €</td>
+              </tr>
+            `).join('') : ''}
             ${taxAmount > 0 ? `
               <tr>
-                <td class="${data.isPlatformCollectingTax ? 'strikethrough' : ''}">
+                <td class="${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">
                   ${translations.stayTax}
-                  ${data.isPlatformCollectingTax ? `<br><small>${translations.collectedByPlatform}</small>` : ''}
+                  ${translatedData.isPlatformCollectingTax ? `<br><small>${translations.collectedByPlatform}</small>` : ''}
                 </td>
-                <td class="text-center ${data.isPlatformCollectingTax ? 'strikethrough' : ''}">1</td>
-                <td class="text-right ${data.isPlatformCollectingTax ? 'strikethrough' : ''}">${taxAmount.toFixed(2)} €</td>
-                <td class="text-right ${data.isPlatformCollectingTax ? 'strikethrough' : ''}">${taxAmount.toFixed(2)} €</td>
+                <td class="text-center ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">1</td>
+                <td class="text-right ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">${taxAmount.toFixed(2)} €</td>
+                <td class="text-right ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">${taxAmount.toFixed(2)} €</td>
               </tr>
             ` : ''}
           </tbody>
@@ -282,7 +293,7 @@ export const generateClassicTemplate = (
         <div class="totals-section">
           <div class="total-row">
             <span class="total-label">Sous-total HT:</span>
-            <span class="total-value">${totalNights.toFixed(2)} €</span>
+            <span class="total-value">${(totalNights + totalExtras).toFixed(2)} €</span>
           </div>
           ${finalTaxAmount > 0 ? `
             <div class="total-row">
@@ -302,10 +313,10 @@ export const generateClassicTemplate = (
           | ${translations.legalEntity}: ${selectedPropertyTemplate ? selectedPropertyTemplate.properties.find(p => p.label === 'Entité juridique')?.value || settings.legalEntityId : settings.legalEntityId}
         </div>
         
-        ${data.isClientInvoice ? `
+        ${translatedData.isClientInvoice ? `
         <!-- Pied de page -->
         <div class="footer">
-          ${translations.clientInvoice} ${data.clientInvoiceNumber}
+          ${translations.clientInvoice} ${translatedData.clientInvoiceNumber}
         </div>
         ` : ''}
       </div>

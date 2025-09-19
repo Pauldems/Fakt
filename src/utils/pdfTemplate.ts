@@ -5,6 +5,7 @@ import { getInvoiceTranslation } from './invoiceTranslations';
 import { generateModernTemplate } from './templates/modernTemplate';
 import { generateClassicTemplate } from './templates/classicTemplate';
 import { generateMinimalTemplate } from './templates/minimalTemplate';
+import { translateExtras } from './extrasTranslator';
 
 export type InvoiceTemplateType = 'modern' | 'classic' | 'minimal' | 'original';
 
@@ -51,15 +52,22 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
   // Utiliser le bon template
   const selectedLanguage = language || 'fr';
   
+  // Traduire les extras selon la langue sélectionnée
+  const translatedData = {
+    ...data,
+    extras: data.extras ? translateExtras(data.extras, selectedLanguage) : undefined
+  };
+  
   switch(selectedTemplate) {
     case 'modern':
-      return generateModernTemplate(data, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
+      return generateModernTemplate(translatedData, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
     case 'classic':
-      return generateClassicTemplate(data, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
+      return generateClassicTemplate(translatedData, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
     case 'minimal':
-      return generateMinimalTemplate(data, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
+      return generateMinimalTemplate(translatedData, invoiceNumber, settings, selectedPropertyTemplate, selectedLanguage);
     default:
-      // Continuer avec le template original ci-dessous
+      // Continuer avec le template original ci-dessous avec les données traduites
+      data = translatedData;
       break;
   }
   // Convertir les valeurs en nombres si elles sont des strings
@@ -68,9 +76,13 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
   const taxAmount = typeof data.taxAmount === 'string' ? parseFloat((data.taxAmount as string).replace(',', '.')) : data.taxAmount;
   
   const totalNights = numberOfNights * pricePerNight;
+  
+  // Calculer le total des extras
+  const totalExtras = data.extras ? data.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0) : 0;
+  
   // Inclure la taxe dans le total seulement si la plateforme ne la collecte pas
   const finalTaxAmount = data.isPlatformCollectingTax ? 0 : taxAmount;
-  const totalWithTax = totalNights + finalTaxAmount;
+  const totalWithTax = totalNights + totalExtras + finalTaxAmount;
   
   // Obtenir la langue et les traductions (déjà défini plus haut)
   const translations = getInvoiceTranslation(selectedLanguage);
@@ -305,6 +317,16 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
               <td style="vertical-align: top;">${pricePerNight.toFixed(2)} €</td>
               <td style="vertical-align: top;">${totalNights.toFixed(2)} €</td>
             </tr>
+            ${data.extras && data.extras.length > 0 ? data.extras.map(extra => `
+            <tr>
+              <td style="vertical-align: top; padding-top: 10px;">
+                ${extra.name}${extra.quantity > 1 ? ` (x${extra.quantity})` : ''}
+              </td>
+              <td style="padding-top: 10px;">${extra.quantity}</td>
+              <td style="padding-top: 10px;">${extra.price.toFixed(2)} €</td>
+              <td style="vertical-align: top; padding-top: 10px;">${(extra.price * extra.quantity).toFixed(2)} €</td>
+            </tr>
+            `).join('') : ''}
             <tr>
               <td style="vertical-align: top; padding-top: 20px;">
                 ${translations.stayTax}

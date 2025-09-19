@@ -1,3 +1,10 @@
+export interface Extra {
+  name: string;
+  price: number;
+  quantity: number;
+  translationKey?: string; // Clé pour traduire les extras prédéfinis
+}
+
 export interface InvoiceData {
   firstName: string;
   lastName: string;
@@ -19,6 +26,7 @@ export interface InvoiceData {
   clientPostalCode?: string;
   clientCity?: string;
   selectedPropertyId?: string;
+  extras?: Extra[];
 }
 
 export interface InvoiceFormData {
@@ -43,4 +51,5 @@ export interface InvoiceFormData {
   clientPostalCode?: string;
   clientCity?: string;
   selectedPropertyId?: string;
+  extras?: Extra[];
 }

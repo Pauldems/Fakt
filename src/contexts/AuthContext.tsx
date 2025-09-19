@@ -7,8 +7,6 @@ interface AuthContextType {
   isActivated: boolean;
   resetApp: () => Promise<void>;
   refreshActivation: () => Promise<void>;
-  pausePeriodicCheck: () => void;
-  resumePeriodicCheck: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -16,34 +14,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activationData, setActivationData] = useState<ActivationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | null>(null);
-  const isPausedRef = useRef(false);
 
   useEffect(() => {
     checkActivationStatus();
-    startPeriodicCheck();
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
+    // Plus de vérification périodique
   }, []);
-
-  const startPeriodicCheck = () => {
-    // Vérification périodique toutes les 30 secondes (pour contrôle à distance)
-    const interval = setInterval(() => {
-      console.log('⏰ Timer périodique - isPaused:', isPausedRef.current);
-      if (!isPausedRef.current) {
-        console.log('🔄 Vérification périodique de l\'activation...');
-        checkActivationStatus();
-      } else {
-        console.log('⏸️ Vérification périodique en pause');
-      }
-    }, 30000); // 30 secondes
-
-    setIntervalId(interval);
-  };
 
   const checkActivationStatus = async () => {
     console.log('🔍 Vérification du statut d\'activation...');
@@ -57,11 +32,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setActivationData(data);
       } else {
         console.log('❌ Aucune activation trouvée');
-        setActivationData(null);
+        // Ne réinitialise l'activation que si elle était déjà nulle
+        // Pour éviter de déconnecter l'utilisateur en cas d'erreur temporaire
+        if (activationData === null) {
+          setActivationData(null);
+        }
       }
     } catch (error) {
       console.error('💥 Erreur lors de la vérification d\'activation:', error);
-      setActivationData(null);
+      // En cas d'erreur, ne pas réinitialiser si déjà activé
+      // Garde l'état actuel pour éviter les déconnexions intempestives
+      if (activationData === null) {
+        setActivationData(null);
+      }
     } finally {
       setIsLoading(false);
       console.log('✅ Vérification terminée, isLoading = false');
@@ -80,17 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await checkActivationStatus();
   };
 
-  const pausePeriodicCheck = () => {
-    console.log('⏸️ APPEL pausePeriodicCheck() - Pause des vérifications périodiques');
-    isPausedRef.current = true;
-    console.log('⏸️ isPaused maintenant:', isPausedRef.current);
-  };
-
-  const resumePeriodicCheck = () => {
-    console.log('▶️ APPEL resumePeriodicCheck() - Reprise des vérifications périodiques');
-    isPausedRef.current = false;
-    console.log('▶️ isPaused maintenant:', isPausedRef.current);
-  };
 
   return (
     <AuthContext.Provider
@@ -100,8 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isActivated,
         resetApp,
         refreshActivation,
-        pausePeriodicCheck,
-        resumePeriodicCheck,
       }}
     >
       {children}

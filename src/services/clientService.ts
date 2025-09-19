@@ -82,6 +82,32 @@ class ClientService {
     }
   }
 
+  async saveClientFromInvoice(invoiceData: any): Promise<void> {
+    try {
+      console.log('ClientService.saveClientFromInvoice - Conversion des données de facture en client');
+      
+      let clientAddress: string | undefined = undefined;
+      if (invoiceData.hasClientAddress && invoiceData.clientAddress) {
+        clientAddress = invoiceData.clientAddress;
+        if (invoiceData.clientPostalCode && invoiceData.clientCity) {
+          clientAddress += `, ${invoiceData.clientPostalCode} ${invoiceData.clientCity}`;
+        }
+      }
+      
+      await this.saveClient({
+        name: invoiceData.lastName,
+        firstName: invoiceData.firstName,
+        email: invoiceData.email,
+        address: clientAddress
+      });
+      
+      console.log('ClientService.saveClientFromInvoice - Client sauvegardé');
+    } catch (error) {
+      console.error('ClientService.saveClientFromInvoice - Erreur:', error);
+      throw error;
+    }
+  }
+
   async deleteClient(clientId: string): Promise<void> {
     try {
       const clients = await this.getClients();
