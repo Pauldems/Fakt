@@ -8,6 +8,10 @@ interface EmailTerms {
   month: string;
   year: string;
   regards: string;
+  invoiceOfYourStay: string;
+  invoice: string;
+  yourStay: string;
+  for: string;
 }
 
 const emailTerms: Record<Language, EmailTerms> = {
@@ -18,7 +22,11 @@ const emailTerms: Record<Language, EmailTerms> = {
     stay: 'séjour',
     month: 'mois',
     year: 'année',
-    regards: 'Cordialement'
+    regards: 'Cordialement',
+    invoiceOfYourStay: 'la facture de votre séjour',
+    invoice: 'facture',
+    yourStay: 'votre séjour',
+    for: 'pour'
   },
   en: {
     greeting: 'Hello',
@@ -27,7 +35,11 @@ const emailTerms: Record<Language, EmailTerms> = {
     stay: 'stay',
     month: 'month',
     year: 'year',
-    regards: 'Kind regards'
+    regards: 'Kind regards',
+    invoiceOfYourStay: 'the invoice for your stay',
+    invoice: 'invoice',
+    yourStay: 'your stay',
+    for: 'for'
   },
   es: {
     greeting: 'Hola',
@@ -36,7 +48,11 @@ const emailTerms: Record<Language, EmailTerms> = {
     stay: 'estancia',
     month: 'mes',
     year: 'año',
-    regards: 'Atentamente'
+    regards: 'Atentamente',
+    invoiceOfYourStay: 'la factura de su estancia',
+    invoice: 'factura',
+    yourStay: 'su estancia',
+    for: 'para'
   },
   de: {
     greeting: 'Guten Tag',
@@ -45,7 +61,11 @@ const emailTerms: Record<Language, EmailTerms> = {
     stay: 'Aufenthalt',
     month: 'Monat',
     year: 'Jahr',
-    regards: 'Freundliche Grüße'
+    regards: 'Freundliche Grüße',
+    invoiceOfYourStay: 'die Rechnung für Ihren Aufenthalt',
+    invoice: 'Rechnung',
+    yourStay: 'Ihren Aufenthalt',
+    for: 'für'
   },
   it: {
     greeting: 'Buongiorno',
@@ -54,7 +74,11 @@ const emailTerms: Record<Language, EmailTerms> = {
     stay: 'soggiorno',
     month: 'mese',
     year: 'anno',
-    regards: 'Distinti saluti'
+    regards: 'Distinti saluti',
+    invoiceOfYourStay: 'la fattura del suo soggiorno',
+    invoice: 'fattura',
+    yourStay: 'il suo soggiorno',
+    for: 'per'
   }
 };
 
@@ -65,21 +89,53 @@ export function translateEmailText(text: string, fromLanguage: Language, toLangu
   const fromTerms = emailTerms[fromLanguage];
   const toTerms = emailTerms[toLanguage];
   
-  // Remplacer les termes français par leur équivalent dans la langue cible
-  Object.keys(fromTerms).forEach(key => {
+  // Ordre de priorité pour traiter les expressions longues en premier
+  const termsOrder = [
+    'invoiceOfYourStay',
+    'yourStay', 
+    'greeting',
+    'closing',
+    'attachment',
+    'stay',
+    'month',
+    'year',
+    'regards',
+    'invoice',
+    'for'
+  ];
+  
+  // Remplacer les termes par ordre de priorité
+  termsOrder.forEach(key => {
     const fromTerm = fromTerms[key as keyof EmailTerms];
     const toTerm = toTerms[key as keyof EmailTerms];
     
-    // Remplacer en respectant la casse
-    const regex = new RegExp(`\\b${fromTerm}\\b`, 'gi');
+    // Échapper les caractères spéciaux pour la regex
+    const escapedFromTerm = fromTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
+    // Pour le mot "pour", être plus spécifique pour éviter les mauvaises traductions
+    let regex;
+    if (key === 'for') {
+      // Traduire "pour" seulement quand il est suivi de "le mois", "l'année", etc.
+      regex = new RegExp(`\\b${escapedFromTerm}\\s+(le\\s+mois|l'année|\\{MOIS\\}|\\{ANNEE\\})`, 'gi');
+    } else {
+      regex = new RegExp(`${escapedFromTerm}`, 'gi');
+    }
+    
     translatedText = translatedText.replace(regex, (match) => {
-      // Préserver la casse du texte original
-      if (match === fromTerm.toUpperCase()) return toTerm.toUpperCase();
-      if (match === fromTerm.toLowerCase()) return toTerm.toLowerCase();
-      if (match[0] === match[0].toUpperCase()) {
-        return toTerm.charAt(0).toUpperCase() + toTerm.slice(1).toLowerCase();
+      if (key === 'for') {
+        // Pour "pour le mois" -> "for {MOIS}" ou "para {MOIS}", etc.
+        const parts = match.split(/\s+/);
+        parts[0] = toTerm;
+        return parts.join(' ');
+      } else {
+        // Préserver la casse du texte original
+        if (match === fromTerm.toUpperCase()) return toTerm.toUpperCase();
+        if (match === fromTerm.toLowerCase()) return toTerm.toLowerCase();
+        if (match[0] === match[0].toUpperCase()) {
+          return toTerm.charAt(0).toUpperCase() + toTerm.slice(1).toLowerCase();
+        }
+        return toTerm.toLowerCase();
       }
-      return toTerm.toLowerCase();
     });
   });
   
