@@ -171,6 +171,13 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
     }
   };
 
+  // Auto-remplir le prix quand une propriété avec un prix par défaut est sélectionnée
+  useEffect(() => {
+    if (selectedProperty && selectedProperty.defaultPrice !== undefined) {
+      setValue('pricePerNight', selectedProperty.defaultPrice.toString());
+    }
+  }, [selectedProperty, setValue]);
+
   // Calculer automatiquement le nombre de nuits
   useEffect(() => {
     if (arrivalDate && departureDate) {

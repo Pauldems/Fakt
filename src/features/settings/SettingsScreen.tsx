@@ -30,6 +30,7 @@ export interface PropertyTemplate {
   id: string;
   name: string; // Nom du template (ex: "Location Paris", "Chalet Alpes")
   properties: CustomProperty[];
+  defaultPrice?: number; // Prix par défaut pour cette propriété (optionnel)
 }
 
 export interface OwnerSettings {
@@ -763,6 +764,23 @@ Veuillez trouver ci-joint la facture..."
                   placeholder="Entité juridique"
                   keyboardType="numeric"
                 />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Prix par défaut (€) - Optionnel</Text>
+                <TextInput
+                  style={styles.input}
+                  value={editingTemplate?.defaultPrice?.toString() || ''}
+                  onChangeText={(text) => editingTemplate && setEditingTemplate({
+                    ...editingTemplate,
+                    defaultPrice: text ? parseFloat(text) || 0 : undefined
+                  })}
+                  placeholder="Ex: 120"
+                  keyboardType="decimal-pad"
+                />
+                <Text style={styles.helpText}>
+                  Ce prix sera pré-rempli automatiquement lors de la création d'une facture
+                </Text>
               </View>
             </ScrollView>
 
