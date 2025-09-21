@@ -52,4 +52,6 @@ export interface InvoiceFormData {
   clientCity?: string;
   selectedPropertyId?: string;
   extras?: Extra[];
+  invoiceLanguage?: 'fr' | 'en' | 'es' | 'de' | 'it';
+  emailLanguage?: 'fr' | 'en' | 'es' | 'de' | 'it';
 }

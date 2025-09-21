@@ -20,6 +20,7 @@ import { PDFService } from '../pdf/pdfService';
 import { InvoiceFormData, InvoiceData } from '../../types/invoice';
 import { Ionicons } from '@expo/vector-icons';
 import { StorageService } from '../../services/storageService';
+import hybridInvoiceService from '../../services/hybridInvoiceService';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings } from '../settings/SettingsScreen';
@@ -38,6 +39,7 @@ export const InvoiceScreen: React.FC = () => {
   const [pdfUri, setPdfUri] = useState<string | null>(null);
   const formRef = useRef<any>(null);
   const navigation = useNavigation<any>();
+
 
   const handleFormSubmit = async (formData: InvoiceFormData) => {
     console.log('=== Début génération facture ===');
@@ -128,6 +130,11 @@ export const InvoiceScreen: React.FC = () => {
         selectedPropertyId: formData.selectedPropertyId,
         extras: formData.extras,
       };
+      
+      // Récupérer les langues sélectionnées
+      const invoiceLanguage = formData.invoiceLanguage || 'fr';
+      const emailLanguage = formData.emailLanguage || 'fr';
+      console.log('Langues sélectionnées - Facture:', invoiceLanguage, 'Email:', emailLanguage);
       console.log('Données converties finales:', JSON.stringify(invoiceData, null, 2));
 
       // Sauvegarder immédiatement les informations du client dans le carnet
@@ -149,9 +156,9 @@ export const InvoiceScreen: React.FC = () => {
       });
       console.log('Client sauvegardé dans le carnet');
 
-      // Sauvegarder la facture et générer le PDF final
-      console.log('Sauvegarde de la facture...');
-      const savedInvoice = await StorageService.saveInvoice(invoiceData, formData.invoiceNumber);
+      // Sauvegarder la facture et générer le PDF final avec la langue sélectionnée
+      console.log('Sauvegarde de la facture avec langue:', invoiceLanguage);
+      const savedInvoice = await hybridInvoiceService.saveInvoice(invoiceData, formData.invoiceNumber, invoiceLanguage);
       console.log('Facture sauvegardée:', savedInvoice);
       setPdfUri(savedInvoice.pdfUri);
 
@@ -165,8 +172,8 @@ export const InvoiceScreen: React.FC = () => {
         formRef.current.resetFormFields();
       }
 
-      // Proposer les options de partage avec sélection de langue
-      await shareInvoice(invoiceData, savedInvoice.pdfUri);
+      // Proposer les options de partage avec la langue sélectionnée
+      await shareInvoice(invoiceData, savedInvoice.pdfUri, emailLanguage);
     } catch (error) {
       console.error('ERREUR:', error);
       Alert.alert('Erreur', `Une erreur est survenue: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
@@ -175,65 +182,11 @@ export const InvoiceScreen: React.FC = () => {
     }
   };
 
-  const showLanguageSelector = (): Promise<'fr' | 'en' | 'es' | 'de' | 'it'> => {
-    return new Promise((resolve) => {
-      const languages = [
-        { code: 'fr', label: 'Français' },
-        { code: 'en', label: 'English' },
-        { code: 'es', label: 'Español' },
-        { code: 'de', label: 'Deutsch' },
-        { code: 'it', label: 'Italiano' },
-      ];
 
-      const buttons = languages.map(lang => ({
-        text: lang.label,
-        onPress: () => resolve(lang.code as any)
-      }));
-
-      Alert.alert(
-        'Choisir la langue',
-        'Dans quelle langue souhaitez-vous envoyer la facture et l\'email ?',
-        [
-          ...buttons,
-          {
-            text: 'Annuler',
-            style: 'cancel',
-            onPress: () => resolve('fr') // Langue par défaut si annulé
-          }
-        ]
-      );
-    });
-  };
-
-  const regeneratePDFWithLanguage = async (invoiceData: InvoiceData, invoiceNumber: string, language: string): Promise<string> => {
+  const shareInvoice = async (invoiceData: InvoiceData, originalPdfUri: string, emailLanguage: 'fr' | 'en' | 'es' | 'de' | 'it') => {
     try {
-      // Régénérer le HTML avec la langue sélectionnée
-      const html = await generateInvoiceHTML(invoiceData, invoiceNumber, language as any);
-      
-      // Générer un nouveau PDF temporaire
-      const { uri: tempPdfUri } = await Print.printToFileAsync({
-        html,
-        base64: false,
-      });
-
-      return tempPdfUri;
-    } catch (error) {
-      console.error('Erreur lors de la régénération du PDF:', error);
-      throw error;
-    }
-  };
-
-  const shareInvoice = async (invoiceData: InvoiceData, originalPdfUri: string) => {
-    // Demander la langue avant d'envoyer
-    const selectedLanguage = await showLanguageSelector();
-    
-    try {
-      // Extraire le numéro de facture du nom du fichier PDF
-      const fileName = originalPdfUri.split('/').pop() || '';
-      const invoiceNumber = fileName.split('_')[0];
-      
-      // Régénérer la facture avec la langue sélectionnée
-      const pdfUri = await regeneratePDFWithLanguage(invoiceData, invoiceNumber, selectedLanguage);
+      // Le PDF a déjà été généré avec la bonne langue, utiliser directement originalPdfUri
+      const pdfUri = originalPdfUri;
       // Obtenir le mois et l'année de la réservation à partir de la date d'arrivée
       const arrivalDate = new Date(invoiceData.arrivalDate);
       const year = arrivalDate.getFullYear();
@@ -263,7 +216,7 @@ export const InvoiceScreen: React.FC = () => {
       }
 
       // Utiliser la langue sélectionnée et le nom du mois traduit
-      const monthName = getMonthName(arrivalDate.getMonth(), selectedLanguage);
+      const monthName = getMonthName(arrivalDate.getMonth(), emailLanguage);
 
       let subject: string;
       let message: string;
@@ -287,11 +240,11 @@ export const InvoiceScreen: React.FC = () => {
           .replace('{ANNEE}', year.toString());
 
         // Traduire le texte de l'email personnalisé (hors variables)
-        subject = translateEmailText(customSubject, 'fr', selectedLanguage);
-        message = translateEmailText(customMessage, 'fr', selectedLanguage);
+        subject = translateEmailText(customSubject, 'fr', emailLanguage);
+        message = translateEmailText(customMessage, 'fr', emailLanguage);
       } else {
         // Utiliser le template par défaut dans la langue sélectionnée
-        const template = getEmailTemplate(selectedLanguage);
+        const template = getEmailTemplate(emailLanguage);
         subject = template.subject
           .replace('{VILLE}', cityName.toUpperCase())
           .replace('{NOM}', invoiceData.lastName.toUpperCase())

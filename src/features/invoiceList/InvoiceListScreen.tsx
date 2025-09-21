@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import { StorageService, StoredInvoice } from '../../services/storageService';
+import hybridInvoiceService from '../../services/hybridInvoiceService';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import InvoiceFilters, { FilterOptions } from '../../components/InvoiceFilters';
 import SimpleInvoiceFilters from '../../components/SimpleInvoiceFilters';
@@ -56,7 +57,7 @@ export const InvoiceListScreen: React.FC = () => {
   const loadInvoices = async () => {
     try {
       console.log('Chargement des factures...');
-      const loadedInvoices = await StorageService.getInvoices();
+      const loadedInvoices = await hybridInvoiceService.getInvoices();
       console.log('Factures chargées:', loadedInvoices.length);
       setAllInvoices(loadedInvoices);
     } catch (error) {

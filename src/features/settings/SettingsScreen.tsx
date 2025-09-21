@@ -16,9 +16,11 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import hybridSettingsService from '../../services/hybridSettingsService';
 import * as ImagePicker from 'expo-image-picker';
 import { TemplateSelector, TemplateType } from '../../components/TemplateSelector';
 import { SubscriptionSection } from './SubscriptionSection';
+import { GoogleDriveSection } from './GoogleDriveSection';
 
 export interface CustomProperty {
   id: string;
@@ -59,18 +61,19 @@ export interface OwnerSettings {
 
 export const SETTINGS_KEY = 'owner_settings';
 
+// Paramètres complètement vides pour un nouveau compte
 export const DEFAULT_SETTINGS: OwnerSettings = {
-  ownerName: '',
-  ownerFirstName: '',
-  ownerLastName: '',
+  ownerName: '', // Ne plus utiliser - sera récupéré depuis l'activation
+  ownerFirstName: '', // Ne plus utiliser - sera récupéré depuis l'activation
+  ownerLastName: '', // Ne plus utiliser - sera récupéré depuis l'activation
   companyName: '',
   companyAddress: '',
   companyPostalCode: '',
   companyCity: '',
   establishmentId: '',
   legalEntityId: '',
-  phoneNumber: '',
-  email: '',
+  phoneNumber: '', // Vide par défaut
+  email: '', // Ne plus utiliser - sera récupéré depuis l'activation
   enableBcc: false,
   bccEmail: '',
   useCustomEmail: false,
@@ -79,7 +82,7 @@ export const DEFAULT_SETTINGS: OwnerSettings = {
   useSignature: false,
   signatureImage: '',
   customProperties: [],
-  propertyTemplates: [],
+  propertyTemplates: [], // Vide par défaut - utilisateur doit créer ses propriétés
   invoiceTemplate: 'original',
 };
 
@@ -91,7 +94,7 @@ export const SettingsScreen: React.FC = () => {
   // Fonction pour sauvegarder automatiquement
   const autoSaveSettings = useCallback(async (newSettings: OwnerSettings) => {
     try {
-      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+      await hybridSettingsService.saveSettings(newSettings);
       console.log('Paramètres sauvegardés automatiquement');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde automatique:', error);
@@ -111,40 +114,13 @@ export const SettingsScreen: React.FC = () => {
 
   const loadSettings = async () => {
     try {
-      const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
-      if (savedSettings) {
-        const parsedSettings = JSON.parse(savedSettings);
-        
-        // Migration: si ownerName existe mais pas ownerFirstName/ownerLastName
-        if (parsedSettings.ownerName && (!parsedSettings.ownerFirstName || !parsedSettings.ownerLastName)) {
-          const nameParts = parsedSettings.ownerName.trim().split(' ');
-          if (nameParts.length >= 2) {
-            parsedSettings.ownerFirstName = nameParts[0];
-            parsedSettings.ownerLastName = nameParts.slice(1).join(' ');
-          } else {
-            parsedSettings.ownerFirstName = '';
-            parsedSettings.ownerLastName = parsedSettings.ownerName;
-          }
-        }
-        
-        // Migration: ajouter les nouvelles propriétés si elles n'existent pas
-        if (parsedSettings.useSignature === undefined) {
-          parsedSettings.useSignature = false;
-        }
-        if (parsedSettings.signatureImage === undefined) {
-          parsedSettings.signatureImage = '';
-        }
-        if (parsedSettings.customProperties === undefined) {
-          parsedSettings.customProperties = [];
-        }
-        if (parsedSettings.propertyTemplates === undefined) {
-          parsedSettings.propertyTemplates = [];
-        }
-        
-        setSettings(parsedSettings);
-      }
+      // Utiliser le service hybride qui gère Firebase + infos d'activation
+      const loadedSettings = await hybridSettingsService.getSettings();
+      setSettings(loadedSettings);
+      console.log('✅ Paramètres chargés avec infos d\'activation');
     } catch (error) {
       console.error('Erreur lors du chargement des paramètres:', error);
+      setSettings(DEFAULT_SETTINGS);
     }
   };
 
@@ -152,7 +128,7 @@ export const SettingsScreen: React.FC = () => {
   const saveSettings = async () => {
     setIsSaving(true);
     try {
-      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      await hybridSettingsService.saveSettings(settings);
       Alert.alert('Succès', 'Les paramètres ont été sauvegardés');
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de sauvegarder les paramètres');
@@ -669,6 +645,9 @@ Veuillez trouver ci-joint la facture..."
               💾 Toutes les modifications sont sauvegardées automatiquement
             </Text>
           </View>
+
+          {/* Section Google Drive */}
+          <GoogleDriveSection />
 
           {/* Section Abonnement - EN DERNIER */}
           <SubscriptionSection />

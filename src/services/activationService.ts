@@ -7,6 +7,8 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import userDataService from './userDataService';
+import { LocalDataCleanup } from '../utils/cleanupLocalData';
 
 const ACTIVATION_KEY = 'app_activation_code';
 const ACTIVATION_DATA_KEY = 'app_activation_data';
@@ -153,6 +155,25 @@ class ActivationService {
         userName: name
       });
       console.log('✅ Code marqué comme utilisé');
+
+      // 9. Nettoyer les données de test pour nouveau compte
+      console.log('🧹 Nettoyage pour nouveau compte...');
+      try {
+        await LocalDataCleanup.fullCleanupForNewAccount();
+        console.log('✅ Nettoyage terminé');
+      } catch (cleanupError) {
+        console.error('⚠️ Erreur nettoyage (non bloquante):', cleanupError);
+      }
+
+      // 10. Migrer les données locales vers Firebase (après nettoyage)
+      console.log('📦 Migration des données locales...');
+      try {
+        await userDataService.migrateLocalDataToFirebase();
+        console.log('✅ Migration des données terminée');
+      } catch (migrationError) {
+        console.error('⚠️ Erreur migration (non bloquante):', migrationError);
+        // La migration échoue, mais l'activation reste valide
+      }
 
       console.log('🎉 Activation complète avec succès !');
       return { success: true, message: 'Application activée avec succès !' };

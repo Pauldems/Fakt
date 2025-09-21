@@ -6,44 +6,37 @@ import { generateModernTemplate } from './templates/modernTemplate';
 import { generateClassicTemplate } from './templates/classicTemplate';
 import { generateMinimalTemplate } from './templates/minimalTemplate';
 import { translateExtras } from './extrasTranslator';
+import hybridSettingsService from '../services/hybridSettingsService';
 
 export type InvoiceTemplateType = 'modern' | 'classic' | 'minimal' | 'original';
 
 export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: string, language?: 'fr' | 'en' | 'es' | 'de' | 'it'): Promise<string> => {
-  // Charger les paramètres
+  // Charger les paramètres avec service hybride (Firebase + infos activation)
   let settings: OwnerSettings = DEFAULT_SETTINGS;
   let selectedPropertyTemplate = null;
   
   let selectedTemplate: InvoiceTemplateType = 'original'; // Par défaut
   
   try {
-    const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
-    if (savedSettings) {
-      settings = JSON.parse(savedSettings);
-      
-      // Récupérer le template sélectionné
-      if (settings.invoiceTemplate) {
-        selectedTemplate = settings.invoiceTemplate as InvoiceTemplateType;
-      }
-      
-      // Migration: si ownerName existe mais pas ownerFirstName/ownerLastName
-      if (settings.ownerName && (!settings.ownerFirstName || !settings.ownerLastName)) {
-        const nameParts = settings.ownerName.trim().split(' ');
-        if (nameParts.length >= 2) {
-          settings.ownerFirstName = nameParts[0];
-          settings.ownerLastName = nameParts.slice(1).join(' ');
-        } else {
-          settings.ownerFirstName = '';
-          settings.ownerLastName = settings.ownerName;
-        }
-      }
+    // Utiliser le service hybride pour récupérer les bonnes infos utilisateur
+    settings = await hybridSettingsService.getSettings();
+    console.log('📄 Paramètres pour PDF:', {
+      ownerName: settings.ownerName,
+      ownerFirstName: settings.ownerFirstName, 
+      ownerLastName: settings.ownerLastName,
+      email: settings.email
+    });
+    
+    // Récupérer le template sélectionné
+    if (settings.invoiceTemplate) {
+      selectedTemplate = settings.invoiceTemplate as InvoiceTemplateType;
+    }
 
-      // Trouver la propriété sélectionnée
-      if (data.selectedPropertyId && settings.propertyTemplates) {
-        selectedPropertyTemplate = settings.propertyTemplates.find(
-          template => template.id === data.selectedPropertyId
-        );
-      }
+    // Trouver la propriété sélectionnée
+    if (data.selectedPropertyId && settings.propertyTemplates) {
+      selectedPropertyTemplate = settings.propertyTemplates.find(
+        template => template.id === data.selectedPropertyId
+      );
     }
   } catch (error) {
     console.error('Erreur lors du chargement des paramètres:', error);

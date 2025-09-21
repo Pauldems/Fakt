@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { InvoiceFormData, Extra } from '../../types/invoice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, DEFAULT_SETTINGS, OwnerSettings, PropertyTemplate } from '../settings/SettingsScreen';
+import hybridSettingsService from '../../services/hybridSettingsService';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ClientSelector from '../../components/ClientSelector';
 import clientService, { Client } from '../../services/clientService';
@@ -68,6 +69,8 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
   const [extras, setExtras] = useState<Extra[]>([]);
   const [propertyTemplates, setPropertyTemplates] = useState<PropertyTemplate[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<PropertyTemplate | null>(null);
+  const [invoiceLanguage, setInvoiceLanguage] = useState<'fr' | 'en' | 'es' | 'de' | 'it'>('fr');
+  const [emailLanguage, setEmailLanguage] = useState<'fr' | 'en' | 'es' | 'de' | 'it'>('fr');
   const navigation = useNavigation<any>();
   const isBookingReservation = watch('isBookingReservation');
   const isClientInvoice = watch('isClientInvoice');
@@ -105,30 +108,23 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
   const loadPropertyTemplates = useCallback(async () => {
     try {
       console.log('Chargement des templates de propriétés...');
-      const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
-      console.log('Settings récupérés:', savedSettings);
+      const settings = await hybridSettingsService.getSettings();
+      console.log('PropertyTemplates trouvés:', settings.propertyTemplates);
       
-      if (savedSettings) {
-        const settings: OwnerSettings = JSON.parse(savedSettings);
-        console.log('PropertyTemplates trouvés:', settings.propertyTemplates);
-        
-        if (settings.propertyTemplates) {
-          setPropertyTemplates(settings.propertyTemplates);
-          // Sélectionner automatiquement le premier template si disponible
-          if (settings.propertyTemplates.length > 0) {
-            setSelectedProperty(settings.propertyTemplates[0]);
-            setValue('selectedPropertyId', settings.propertyTemplates[0].id);
-          }
-        } else {
-          console.log('Aucun propertyTemplates trouvé');
-          setPropertyTemplates([]);
-        }
+      setPropertyTemplates(settings.propertyTemplates || []);
+      
+      // Sélectionner automatiquement le premier template si disponible
+      if (settings.propertyTemplates && settings.propertyTemplates.length > 0) {
+        setSelectedProperty(settings.propertyTemplates[0]);
+        setValue('selectedPropertyId', settings.propertyTemplates[0].id);
       } else {
-        console.log('Aucun settings sauvegardé');
-        setPropertyTemplates([]);
+        console.log('Aucune propriété configurée');
+        setSelectedProperty(null);
+        setValue('selectedPropertyId', '');
       }
     } catch (error) {
       console.error('Erreur lors du chargement des templates de propriétés:', error);
+      setPropertyTemplates([]);
     }
   }, [setValue]);
 
@@ -139,6 +135,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
   // Recharger les propriétés quand on revient sur l'écran
   useFocusEffect(
     useCallback(() => {
+      console.log('🔄 Écran focalisé - rechargement des propriétés...');
       loadPropertyTemplates();
     }, [loadPropertyTemplates])
   );
@@ -263,6 +260,10 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
 
       // Ajouter les extras à la soumission
       data.extras = extras;
+      
+      // Ajouter les langues sélectionnées
+      data.invoiceLanguage = invoiceLanguage;
+      data.emailLanguage = emailLanguage;
 
       // Si on arrive ici, toutes les validations sont OK
       onSubmit(data);
@@ -410,22 +411,23 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
     >
         {/* Sélection de propriété */}
         <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Sélection de propriété</Text>
+          <Text style={styles.sectionTitle}>Propriété</Text>
           
           {propertyTemplates.length === 0 ? (
             <View style={styles.noPropertyContainer}>
+              <Ionicons name="home-outline" size={48} color="#cccccc" style={styles.noPropertyIcon} />
               <Text style={styles.noPropertyText}>
-                Aucune propriété configurée
+                Créez votre première propriété
               </Text>
               <Text style={styles.noPropertySubtext}>
-                Vous devez créer au moins une propriété avant de pouvoir générer une facture
+                Configurez vos propriétés pour commencer à générer des factures personnalisées
               </Text>
               <TouchableOpacity
-                style={styles.goToSettingsButton}
+                style={styles.createPropertyButton}
                 onPress={() => navigation.navigate('Settings')}
               >
-                <Ionicons name="settings-outline" size={16} color="white" style={{ marginRight: 8 }} />
-                <Text style={styles.goToSettingsText}>Créer une propriété</Text>
+                <Ionicons name="add-circle" size={20} color="white" style={{ marginRight: 8 }} />
+                <Text style={styles.createPropertyText}>Créer votre propriété</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -662,7 +664,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
         />
 
         <View style={styles.formSection}>
-          <Text style={styles.sectionTitle}>Détails de la réservation</Text>
+          <Text style={styles.sectionTitle}>Facture</Text>
 
           <View style={styles.formGroup}>
             <Text style={styles.label}>Date d'arrivée</Text>
@@ -1190,6 +1192,71 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
           )}
         </View>
 
+        {/* Section Langues */}
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Langues</Text>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Langue de la facture</Text>
+            <View style={styles.languageSelector}>
+              {[
+                { code: 'fr', label: 'Français', flag: '🇫🇷' },
+                { code: 'en', label: 'English', flag: '🇬🇧' },
+                { code: 'es', label: 'Español', flag: '🇪🇸' },
+                { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+                { code: 'it', label: 'Italiano', flag: '🇮🇹' }
+              ].map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.languageOption,
+                    invoiceLanguage === lang.code && styles.languageOptionSelected
+                  ]}
+                  onPress={() => setInvoiceLanguage(lang.code as any)}
+                >
+                  <Text style={styles.languageFlag}>{lang.flag}</Text>
+                  <Text style={[
+                    styles.languageLabel,
+                    invoiceLanguage === lang.code && styles.languageLabelSelected
+                  ]}>
+                    {lang.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Langue de l'email</Text>
+            <View style={styles.languageSelector}>
+              {[
+                { code: 'fr', label: 'Français', flag: '🇫🇷' },
+                { code: 'en', label: 'English', flag: '🇬🇧' },
+                { code: 'es', label: 'Español', flag: '🇪🇸' },
+                { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+                { code: 'it', label: 'Italiano', flag: '🇮🇹' }
+              ].map((lang) => (
+                <TouchableOpacity
+                  key={lang.code}
+                  style={[
+                    styles.languageOption,
+                    emailLanguage === lang.code && styles.languageOptionSelected
+                  ]}
+                  onPress={() => setEmailLanguage(lang.code as any)}
+                >
+                  <Text style={styles.languageFlag}>{lang.flag}</Text>
+                  <Text style={[
+                    styles.languageLabel,
+                    emailLanguage === lang.code && styles.languageLabelSelected
+                  ]}>
+                    {lang.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+
         <TouchableOpacity
           style={[styles.submitButton, isGenerating && styles.submitButtonDisabled]}
           onPress={onSubmitWithValidation}
@@ -1299,22 +1366,51 @@ const styles = StyleSheet.create({
   },
   noPropertyContainer: {
     alignItems: 'center',
-    padding: 20,
+    padding: 32,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#e9ecef',
+    borderStyle: 'dashed',
+  },
+  noPropertyIcon: {
+    marginBottom: 16,
   },
   noPropertyText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#333',
-    fontWeight: '600',
+    fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   noPropertySubtext: {
     fontSize: 14,
     color: '#666',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
     lineHeight: 20,
+    paddingHorizontal: 8,
   },
+  createPropertyButton: {
+    backgroundColor: '#28a745',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  createPropertyText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  // Ancien bouton pour backwards compatibility
   goToSettingsButton: {
     backgroundColor: '#0071c2',
     flexDirection: 'row',
@@ -1403,5 +1499,39 @@ const styles = StyleSheet.create({
     marginTop: 4,
     paddingLeft: 2,
     fontStyle: 'italic',
+  },
+  languageSelector: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+  },
+  languageOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#e7e7e7',
+    backgroundColor: '#f8f9fa',
+    minWidth: 80,
+  },
+  languageOptionSelected: {
+    borderColor: '#0071c2',
+    backgroundColor: '#e3f2fd',
+  },
+  languageFlag: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  languageLabel: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  languageLabelSelected: {
+    color: '#0071c2',
+    fontWeight: '600',
   },
 });
