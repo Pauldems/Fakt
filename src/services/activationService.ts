@@ -25,9 +25,19 @@ export interface ActivationData {
 class ActivationService {
   async validateCodeOnly(code: string): Promise<{ success: boolean; message: string }> {
     try {
-      // Formater le code avec tirets
-      const formattedCode = code.replace(/-/g, '').toUpperCase();
-      let codeToSearch = `FAKT-${formattedCode.substring(4, 8)}-${formattedCode.substring(8, 12)}-${formattedCode.substring(12, 16)}`;
+      // Le code arrive déjà nettoyé (sans tirets), on le reformate avec tirets
+      const cleanCode = code.replace(/-/g, '').toUpperCase();
+      
+      // Reformater le code avec les tirets pour chercher dans Firebase
+      let codeToSearch = '';
+      for (let i = 0; i < cleanCode.length && i < 16; i++) {
+        if (i > 0 && i % 4 === 0) {
+          codeToSearch += '-';
+        }
+        codeToSearch += cleanCode[i];
+      }
+      
+      console.log('🔍 Code recherché dans Firebase:', codeToSearch);
       
       // Vérifier si le code existe et est valide
       const codeDoc = await getDoc(doc(db, 'activationCodes', codeToSearch));
@@ -53,9 +63,9 @@ class ActivationService {
     try {
       console.log('🔍 Début activateApp:', { code, name, email });
       
-      // 1. Formater le code avec tirets pour correspondre au format Firebase
-      const formattedCode = code.replace(/-/g, '').toUpperCase();
-      const codeToSearch = `FAKT-${formattedCode.substring(4, 8)}-${formattedCode.substring(8, 12)}-${formattedCode.substring(12, 16)}`;
+      // 1. Le code arrive avec tirets depuis l'écran d'activation
+      // On s'assure qu'il est bien formaté pour la recherche Firebase
+      const codeToSearch = code.toUpperCase();
       console.log('📝 Code recherché:', codeToSearch);
       
       // 2. Vérifier si le code existe et est valide

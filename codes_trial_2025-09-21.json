@@ -1,0 +1,25 @@
+{
+  "type": "trial",
+  "count": 3,
+  "generated_at": "2025-09-21T12:07:01.921Z",
+  "codes": [
+    {
+      "code": "FAKT-TRIA-F86G-YC4T",
+      "type": "trial",
+      "price": 0,
+      "description": "Essai 7 jours"
+    },
+    {
+      "code": "FAKT-TRIA-NKX3-3E4X",
+      "type": "trial",
+      "price": 0,
+      "description": "Essai 7 jours"
+    },
+    {
+      "code": "FAKT-TRIA-IEBH-DUQ8",
+      "type": "trial",
+      "price": 0,
+      "description": "Essai 7 jours"
+    }
+  ]
+}

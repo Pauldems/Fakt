@@ -1,0 +1,38 @@
+{
+  "FAKT-TRIA-F86G-YC4T": {
+    "code": "FAKT-TRIA-F86G-YC4T",
+    "type": "trial",
+    "status": "unused",
+    "createdAt": "2025-09-21T12:07:01.921Z",
+    "expiresAt": null,
+    "usedBy": null,
+    "usedAt": null,
+    "userEmail": null,
+    "price": 0,
+    "description": "Essai 7 jours"
+  },
+  "FAKT-TRIA-NKX3-3E4X": {
+    "code": "FAKT-TRIA-NKX3-3E4X",
+    "type": "trial",
+    "status": "unused",
+    "createdAt": "2025-09-21T12:07:01.921Z",
+    "expiresAt": null,
+    "usedBy": null,
+    "usedAt": null,
+    "userEmail": null,
+    "price": 0,
+    "description": "Essai 7 jours"
+  },
+  "FAKT-TRIA-IEBH-DUQ8": {
+    "code": "FAKT-TRIA-IEBH-DUQ8",
+    "type": "trial",
+    "status": "unused",
+    "createdAt": "2025-09-21T12:07:01.921Z",
+    "expiresAt": null,
+    "usedBy": null,
+    "usedAt": null,
+    "userEmail": null,
+    "price": 0,
+    "description": "Essai 7 jours"
+  }
+}

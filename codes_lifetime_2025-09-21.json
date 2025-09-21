@@ -1,0 +1,37 @@
+{
+  "type": "lifetime",
+  "count": 5,
+  "generated_at": "2025-09-21T12:15:32.832Z",
+  "codes": [
+    {
+      "code": "FAKT-LIFE-EFZK-MPV9",
+      "type": "lifetime",
+      "price": 49.99,
+      "description": "Accès à vie"
+    },
+    {
+      "code": "FAKT-LIFE-0FPE-8QTU",
+      "type": "lifetime",
+      "price": 49.99,
+      "description": "Accès à vie"
+    },
+    {
+      "code": "FAKT-LIFE-9V6N-90DQ",
+      "type": "lifetime",
+      "price": 49.99,
+      "description": "Accès à vie"
+    },
+    {
+      "code": "FAKT-LIFE-VQQE-JUYC",
+      "type": "lifetime",
+      "price": 49.99,
+      "description": "Accès à vie"
+    },
+    {
+      "code": "FAKT-LIFE-L8MX-8CU2",
+      "type": "lifetime",
+      "price": 49.99,
+      "description": "Accès à vie"
+    }
+  ]
+}
