@@ -15,7 +15,15 @@
       "Bash(npx expo start:*)",
       "Bash(npm uninstall:*)",
       "Bash(chmod:*)",
-      "Bash(yes)"
+      "Bash(yes)",
+      "Bash(npx expo prebuild:*)",
+      "Bash(npx eas build:*)",
+      "Bash(pod install:*)",
+      "Bash(npx react-native bundle:*)",
+      "Bash(npx metro build:*)",
+      "Bash(xcodebuild:*)",
+      "Bash(npx expo run:ios:*)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

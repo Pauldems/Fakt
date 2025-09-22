@@ -5,10 +5,12 @@ import { Linking } from 'react-native';
 
 // Configuration Google OAuth
 const CLIENT_ID = '380676393487-c8n03g68r6cbj48g0e83iiddrs3jd9l0.apps.googleusercontent.com';
-const REDIRECT_URI = AuthSession.makeRedirectUri({ 
-  scheme: undefined, // Utiliser le scheme par défaut
+const REDIRECT_URI = AuthSession.makeRedirectUri({
+  scheme: 'com.tomburger.fakt',
   path: 'redirect'
 });
+// Redirect URI pour Expo Go
+const EXPO_REDIRECT_URI = 'https://auth.expo.io/@jure1367/fakt';
 const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
 
 // Clés de stockage
@@ -110,9 +112,11 @@ class GoogleDriveService {
   private async authenticateWithBrowser(): Promise<boolean> {
     try {
       console.log('🔄 Tentative avec Linking...');
-      
-      // URL d'authentification simplifiée pour mobile
-      const mobileRedirectUri = 'https://auth.expo.io/@anonymous/bookingfakt';
+
+      // Utiliser le bon redirect URI selon l'environnement
+      const isExpoGo = !AuthSession.Constants?.manifest;
+      const mobileRedirectUri = isExpoGo ? EXPO_REDIRECT_URI : REDIRECT_URI;
+
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
         `client_id=${CLIENT_ID}&` +
         `redirect_uri=${encodeURIComponent(mobileRedirectUri)}&` +
@@ -129,7 +133,9 @@ class GoogleDriveService {
         const handleUrl = (event: { url: string }) => {
           console.log('📥 URL reçue:', event.url);
           
-          if (event.url.includes('auth.expo.io') || event.url.startsWith(REDIRECT_URI)) {
+          if (event.url.includes('auth.expo.io/@jure1367/fakt') ||
+              event.url.startsWith(REDIRECT_URI) ||
+              event.url.startsWith('com.tomburger.fakt://')) {
             // Nettoyer l'écoute
             Linking.removeEventListener('url', handleUrl);
             
