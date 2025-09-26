@@ -384,7 +384,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
           padding: 20,
         }}>
           <View style={{
-            backgroundColor: 'white',
+            backgroundColor: theme.surface.primary,
             borderRadius: 12,
             padding: 20,
             maxHeight: '80%',
@@ -398,10 +398,10 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
               <Text style={{
                 fontSize: 20,
                 fontWeight: 'bold',
-                color: '#333',
+                color: theme.text.primary,
               }}>Filtres</Text>
               <TouchableOpacity onPress={() => setIsFilterModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color={theme.text.primary} />
               </TouchableOpacity>
             </View>
 
@@ -416,15 +416,15 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                     marginBottom: 20,
                     paddingBottom: 10,
                     borderBottomWidth: 1,
-                    borderBottomColor: '#eee',
+                    borderBottomColor: theme.border.light,
                   }}>
                     <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                      <Ionicons name="arrow-back" size={24} color="#333" />
+                      <Ionicons name="arrow-back" size={24} color={theme.text.primary} />
                     </TouchableOpacity>
                     <Text style={{
                       fontSize: 18,
                       fontWeight: '600',
-                      color: '#333',
+                      color: theme.text.primary,
                       marginLeft: 16,
                     }}>
                       {datePickerType === 'start' ? 'Date de début' : 'Date de fin'}
@@ -440,19 +440,19 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                     paddingHorizontal: 10,
                   }}>
                     <TouchableOpacity onPress={() => changeMonth('prev')}>
-                      <Ionicons name="chevron-back" size={24} color="#333" />
+                      <Ionicons name="chevron-back" size={24} color={theme.text.primary} />
                     </TouchableOpacity>
                     
                     <Text style={{
                       fontSize: 18,
                       fontWeight: '600',
-                      color: '#333',
+                      color: theme.text.primary,
                     }}>
                       {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                     </Text>
                     
                     <TouchableOpacity onPress={() => changeMonth('next')}>
-                      <Ionicons name="chevron-forward" size={24} color="#333" />
+                      <Ionicons name="chevron-forward" size={24} color={theme.text.primary} />
                     </TouchableOpacity>
                   </View>
 
@@ -471,7 +471,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                         <Text style={{
                           fontSize: 12,
                           fontWeight: '600',
-                          color: '#666',
+                          color: theme.text.secondary,
                         }}>
                           {day}
                         </Text>
@@ -495,12 +495,12 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                           <TouchableOpacity
                             style={{
                               flex: 1,
-                              backgroundColor: '#f8f9fa',
+                              backgroundColor: theme.surface.secondary,
                               borderRadius: 8,
                               justifyContent: 'center',
                               alignItems: 'center',
                               borderWidth: 1,
-                              borderColor: '#e0e0e0',
+                              borderColor: theme.border.light,
                             }}
                             onPress={() => {
                               const dateStr = formatDate(date);
@@ -514,7 +514,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                           >
                             <Text style={{
                               fontSize: 16,
-                              color: '#333',
+                              color: theme.text.primary,
                               fontWeight: '400',
                             }}>
                               {date.getDate()}
@@ -534,7 +534,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                 <Text style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#333',
+                  color: theme.text.primary,
                   marginBottom: 12,
                 }}>Période</Text>
                 
@@ -555,19 +555,19 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                       paddingHorizontal: 16,
                       marginBottom: 8,
                       borderRadius: 8,
-                      backgroundColor: dateFilter === period.key ? '#e3f2fd' : '#f5f5f5',
+                      backgroundColor: dateFilter === period.key ? theme.surface.accent : theme.surface.secondary,
                     }}
                     onPress={() => setDateFilter(period.key as any)}
                   >
                     <Ionicons 
                       name={dateFilter === period.key ? "radio-button-on" : "radio-button-off"} 
                       size={20} 
-                      color={dateFilter === period.key ? '#1976d2' : '#666'} 
+                      color={dateFilter === period.key ? theme.primary : theme.text.secondary} 
                     />
                     <Text style={{
                       marginLeft: 12,
                       fontSize: 14,
-                      color: dateFilter === period.key ? '#1976d2' : '#333',
+                      color: dateFilter === period.key ? theme.primary : theme.text.primary,
                       fontWeight: dateFilter === period.key ? '600' : '400',
                     }}>
                       {period.label}
@@ -581,17 +581,17 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                     <Text style={{
                       fontSize: 14,
                       fontWeight: '600',
-                      color: '#333',
+                      color: theme.text.primary,
                       marginBottom: 8,
                     }}>Date de début</Text>
                     <TouchableOpacity
                       style={{
                         borderWidth: 1,
-                        borderColor: '#ddd',
+                        borderColor: theme.border.medium,
                         borderRadius: 8,
                         paddingHorizontal: 12,
                         paddingVertical: 12,
-                        backgroundColor: 'white',
+                        backgroundColor: theme.surface.primary,
                         marginBottom: 12,
                         flexDirection: 'row',
                         justifyContent: 'space-between',
@@ -601,27 +601,27 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                     >
                       <Text style={{
                         fontSize: 14,
-                        color: customStartDate ? '#333' : '#999',
+                        color: customStartDate ? theme.text.primary : theme.text.tertiary,
                       }}>
                         {customStartDate || 'Sélectionner une date'}
                       </Text>
-                      <Ionicons name="calendar-outline" size={20} color="#666" />
+                      <Ionicons name="calendar-outline" size={20} color={theme.text.secondary} />
                     </TouchableOpacity>
 
                     <Text style={{
                       fontSize: 14,
                       fontWeight: '600',
-                      color: '#333',
+                      color: theme.text.primary,
                       marginBottom: 8,
                     }}>Date de fin</Text>
                     <TouchableOpacity
                       style={{
                         borderWidth: 1,
-                        borderColor: '#ddd',
+                        borderColor: theme.border.medium,
                         borderRadius: 8,
                         paddingHorizontal: 12,
                         paddingVertical: 12,
-                        backgroundColor: 'white',
+                        backgroundColor: theme.surface.primary,
                         flexDirection: 'row',
                         justifyContent: 'space-between',
                         alignItems: 'center',
@@ -630,11 +630,11 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                     >
                       <Text style={{
                         fontSize: 14,
-                        color: customEndDate ? '#333' : '#999',
+                        color: customEndDate ? theme.text.primary : theme.text.tertiary,
                       }}>
                         {customEndDate || 'Sélectionner une date'}
                       </Text>
-                      <Ionicons name="calendar-outline" size={20} color="#666" />
+                      <Ionicons name="calendar-outline" size={20} color={theme.text.secondary} />
                     </TouchableOpacity>
                   </View>
                 )}
@@ -645,7 +645,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                 <Text style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#333',
+                  color: theme.text.primary,
                   marginBottom: 12,
                 }}>Propriété</Text>
                 
@@ -657,19 +657,19 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                     paddingHorizontal: 16,
                     marginBottom: 8,
                     borderRadius: 8,
-                    backgroundColor: !selectedPropertyId ? '#e3f2fd' : '#f5f5f5',
+                    backgroundColor: !selectedPropertyId ? theme.surface.accent : theme.surface.secondary,
                   }}
                   onPress={() => setSelectedPropertyId(null)}
                 >
                   <Ionicons 
                     name={!selectedPropertyId ? "radio-button-on" : "radio-button-off"} 
                     size={20} 
-                    color={!selectedPropertyId ? '#1976d2' : '#666'} 
+                    color={!selectedPropertyId ? theme.primary : theme.text.secondary} 
                   />
                   <Text style={{
                     marginLeft: 12,
                     fontSize: 14,
-                    color: !selectedPropertyId ? '#1976d2' : '#333',
+                    color: !selectedPropertyId ? theme.primary : theme.text.primary,
                     fontWeight: !selectedPropertyId ? '600' : '400',
                   }}>
                     Toutes les propriétés
@@ -686,19 +686,19 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                       paddingHorizontal: 16,
                       marginBottom: 8,
                       borderRadius: 8,
-                      backgroundColor: selectedPropertyId === property.id ? '#e3f2fd' : '#f5f5f5',
+                      backgroundColor: selectedPropertyId === property.id ? theme.surface.accent : theme.surface.secondary,
                     }}
                     onPress={() => setSelectedPropertyId(property.id)}
                   >
                     <Ionicons 
                       name={selectedPropertyId === property.id ? "radio-button-on" : "radio-button-off"} 
                       size={20} 
-                      color={selectedPropertyId === property.id ? '#1976d2' : '#666'} 
+                      color={selectedPropertyId === property.id ? theme.primary : theme.text.secondary} 
                     />
                     <Text style={{
                       marginLeft: 12,
                       fontSize: 14,
-                      color: selectedPropertyId === property.id ? '#1976d2' : '#333',
+                      color: selectedPropertyId === property.id ? theme.primary : theme.text.primary,
                       fontWeight: selectedPropertyId === property.id ? '600' : '400',
                     }}>
                       {property.name}
@@ -714,7 +714,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
               flexDirection: 'row',
               paddingTop: 20,
               borderTopWidth: 1,
-              borderTopColor: '#eee',
+              borderTopColor: theme.border.light,
             }}>
               <TouchableOpacity
                 style={{
@@ -722,7 +722,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                   paddingVertical: 12,
                   paddingHorizontal: 16,
                   borderRadius: 8,
-                  backgroundColor: '#f5f5f5',
+                  backgroundColor: theme.surface.secondary,
                   marginRight: 8,
                   alignItems: 'center',
                 }}
@@ -731,7 +731,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                 <Text style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: '#666',
+                  color: theme.text.secondary,
                 }}>Réinitialiser</Text>
               </TouchableOpacity>
 
@@ -741,7 +741,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                   paddingVertical: 12,
                   paddingHorizontal: 16,
                   borderRadius: 8,
-                  backgroundColor: '#1976d2',
+                  backgroundColor: theme.primary,
                   marginLeft: 8,
                   alignItems: 'center',
                 }}
@@ -750,7 +750,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                 <Text style={{
                   fontSize: 16,
                   fontWeight: '600',
-                  color: 'white',
+                  color: theme.text.inverse,
                 }}>Appliquer</Text>
               </TouchableOpacity>
             </View>

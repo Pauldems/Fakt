@@ -318,18 +318,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#001A40',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#1976D2',
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 20,
   },
   form: {
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     borderRadius: 20,
     padding: 32,
     shadowColor: '#000',
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#003580',
     marginBottom: 12,
   },
   codeInput: {
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     textAlign: 'center',
     marginTop: 8,
   },
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     marginLeft: 12,
     flex: 1,
   },
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     textAlign: 'center',
     marginBottom: 4,
   },

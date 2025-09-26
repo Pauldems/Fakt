@@ -23,6 +23,8 @@ import clientService, { Client } from '../../services/clientService';
 import invoiceCounterService from '../../services/invoiceCounterService';
 import { ExtrasManager, validateExtras } from '../../components/ExtrasManager';
 import { getCurrencySymbol } from '../../utils/currencyFormatter';
+import { useTheme } from '../../theme/ThemeContext';
+import { DatePicker } from '../../components/DatePicker';
 
 interface InvoiceFormProps {
   onSubmit: (data: InvoiceFormData) => void;
@@ -30,6 +32,7 @@ interface InvoiceFormProps {
 }
 
 export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGenerating }, ref) => {
+  const { theme } = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
   const {
     control,
@@ -672,7 +675,6 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
           <Text style={styles.sectionTitle}>Facture</Text>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Date d'arrivée</Text>
             <Controller
               control={control}
               name="arrivalDate"
@@ -683,6 +685,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
                   message: 'Format invalide. Utilisez JJ/MM/AAAA'
                 },
                 validate: (value) => {
+                  if (!value) return 'Champ obligatoire';
                   const parts = value.split('/');
                   if (parts.length !== 3) return 'Format invalide';
                   const day = parseInt(parts[0]);
@@ -708,52 +711,19 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
                   return true;
                 }
               }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    showErrors && errors.arrivalDate && styles.inputError
-                  ]}
-                  onBlur={onBlur}
-                  onChangeText={(text) => {
-                    // Si on supprime (texte plus court que la valeur actuelle)
-                    if (text.length < value.length) {
-                      // Si on supprime juste après un slash, supprimer aussi le slash
-                      if (value.endsWith('/') && text === value.slice(0, -1)) {
-                        onChange(text.slice(0, -1));
-                        return;
-                      }
-                    }
-                    
-                    // Supprimer tous les caractères non numériques
-                    const cleaned = text.replace(/\D/g, '');
-                    
-                    // Formater avec les slashes
-                    let formatted = cleaned;
-                    if (cleaned.length >= 2) {
-                      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
-                    }
-                    if (cleaned.length >= 4) {
-                      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
-                    }
-                    
-                    onChange(formatted);
-                  }}
+              render={({ field: { onChange, value } }) => (
+                <DatePicker
                   value={value}
-                  placeholder="JJ/MM/AAAA"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  maxLength={10}
+                  onDateChange={onChange}
+                  label="Date d'arrivée"
+                  placeholder="Sélectionner la date d'arrivée"
+                  error={showErrors && errors.arrivalDate ? errors.arrivalDate.message : undefined}
                 />
               )}
             />
-            {showErrors && errors.arrivalDate && (
-              <Text style={styles.error}>{errors.arrivalDate.message}</Text>
-            )}
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Date de départ</Text>
             <Controller
               control={control}
               name="departureDate"
@@ -764,6 +734,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
                   message: 'Format invalide. Utilisez JJ/MM/AAAA'
                 },
                 validate: (value) => {
+                  if (!value) return 'Champ obligatoire';
                   // Valider le format de la date
                   const parts = value.split('/');
                   if (parts.length !== 3) return 'Format invalide';
@@ -806,48 +777,16 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
                   return true;
                 }
               }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    showErrors && errors.departureDate && styles.inputError
-                  ]}
-                  onBlur={onBlur}
-                  onChangeText={(text) => {
-                    // Si on supprime (texte plus court que la valeur actuelle)
-                    if (text.length < value.length) {
-                      // Si on supprime juste après un slash, supprimer aussi le slash
-                      if (value.endsWith('/') && text === value.slice(0, -1)) {
-                        onChange(text.slice(0, -1));
-                        return;
-                      }
-                    }
-                    
-                    // Supprimer tous les caractères non numériques
-                    const cleaned = text.replace(/\D/g, '');
-                    
-                    // Formater avec les slashes
-                    let formatted = cleaned;
-                    if (cleaned.length >= 2) {
-                      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
-                    }
-                    if (cleaned.length >= 4) {
-                      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
-                    }
-                    
-                    onChange(formatted);
-                  }}
+              render={({ field: { onChange, value } }) => (
+                <DatePicker
                   value={value}
-                  placeholder="JJ/MM/AAAA"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  maxLength={10}
+                  onDateChange={onChange}
+                  label="Date de départ"
+                  placeholder="Sélectionner la date de départ"
+                  error={showErrors && errors.departureDate ? errors.departureDate.message : undefined}
                 />
               )}
             />
-            {showErrors && errors.departureDate && (
-              <Text style={styles.error}>{errors.departureDate.message}</Text>
-            )}
           </View>
 
           <View style={styles.formGroup}>
@@ -966,7 +905,6 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
           )}
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Date de la facture</Text>
             <Controller
               control={control}
               name="invoiceDate"
@@ -977,6 +915,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
                   message: 'Format invalide. Utilisez JJ/MM/AAAA'
                 },
                 validate: (value) => {
+                  if (!value) return 'Champ obligatoire';
                   const parts = value.split('/');
                   if (parts.length !== 3) return 'Format invalide';
                   const day = parseInt(parts[0]);
@@ -1002,48 +941,16 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
                   return true;
                 }
               }}
-              render={({ field: { onChange, onBlur, value } }) => (
-                <TextInput
-                  style={[
-                    styles.input,
-                    showErrors && errors.invoiceDate && styles.inputError
-                  ]}
-                  onBlur={onBlur}
-                  onChangeText={(text) => {
-                    // Si on supprime (texte plus court que la valeur actuelle)
-                    if (text.length < value.length) {
-                      // Si on supprime juste après un slash, supprimer aussi le slash
-                      if (value.endsWith('/') && text === value.slice(0, -1)) {
-                        onChange(text.slice(0, -1));
-                        return;
-                      }
-                    }
-                    
-                    // Supprimer tous les caractères non numériques
-                    const cleaned = text.replace(/\D/g, '');
-                    
-                    // Formater avec les slashes
-                    let formatted = cleaned;
-                    if (cleaned.length >= 2) {
-                      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2);
-                    }
-                    if (cleaned.length >= 4) {
-                      formatted = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
-                    }
-                    
-                    onChange(formatted);
-                  }}
+              render={({ field: { onChange, value } }) => (
+                <DatePicker
                   value={value}
-                  placeholder="JJ/MM/AAAA"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  maxLength={10}
+                  onDateChange={onChange}
+                  label="Date de la facture"
+                  placeholder="Sélectionner la date de la facture"
+                  error={showErrors && errors.invoiceDate ? errors.invoiceDate.message : undefined}
                 />
               )}
             />
-            {showErrors && errors.invoiceDate && (
-              <Text style={styles.error}>{errors.invoiceDate.message}</Text>
-            )}
           </View>
 
           <View style={styles.formGroup}>
@@ -1284,7 +1191,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   formSection: {
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     marginHorizontal: 16,
     marginTop: 16,
     padding: 16,
@@ -1298,7 +1205,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#001A40',
     marginBottom: 16,
   },
   formGroup: {
@@ -1308,7 +1215,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: '#003580',
   },
   input: {
     borderWidth: 2,
@@ -1316,8 +1223,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 12,
     fontSize: 16,
-    backgroundColor: 'white',
-    color: '#1a1a1a',
+    backgroundColor: 'transparent',
+    color: '#001A40',
   },
   inputError: {
     borderColor: '#d32f2f',
@@ -1346,14 +1253,14 @@ const styles = StyleSheet.create({
   },
   disclaimer: {
     textAlign: 'center',
-    color: '#666',
+    color: '#1976D2',
     fontSize: 12,
     marginTop: 16,
     marginHorizontal: 16,
   },
   inputDisabled: {
     backgroundColor: '#f5f5f5',
-    color: '#666',
+    color: '#1976D2',
   },
   switchGroup: {
     marginBottom: 16,
@@ -1367,7 +1274,7 @@ const styles = StyleSheet.create({
   switchLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#003580',
   },
   noPropertyContainer: {
     alignItems: 'center',
@@ -1383,14 +1290,14 @@ const styles = StyleSheet.create({
   },
   noPropertyText: {
     fontSize: 18,
-    color: '#333',
+    color: '#003580',
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 12,
   },
   noPropertySubtext: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
@@ -1466,7 +1373,7 @@ const styles = StyleSheet.create({
   },
   propertyText: {
     fontSize: 16,
-    color: '#333',
+    color: '#003580',
     fontWeight: '500',
   },
   propertyTextSelected: {
@@ -1481,26 +1388,26 @@ const styles = StyleSheet.create({
   },
   switchLabel: {
     fontSize: 16,
-    color: '#333',
+    color: '#003580',
     flex: 1,
     marginRight: 12,
   },
   switchHelperText: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     fontStyle: 'italic',
     marginTop: 8,
     paddingLeft: 4,
   },
   helperText: {
     fontSize: 13,
-    color: '#666',
+    color: '#1976D2',
     marginTop: 6,
     paddingLeft: 2,
   },
   helperTextExample: {
     fontSize: 12,
-    color: '#999',
+    color: '#42A5F5',
     marginTop: 4,
     paddingLeft: 2,
     fontStyle: 'italic',
@@ -1532,7 +1439,7 @@ const styles = StyleSheet.create({
   },
   languageLabel: {
     fontSize: 14,
-    color: '#333',
+    color: '#003580',
     fontWeight: '500',
   },
   languageLabelSelected: {

@@ -9,9 +9,10 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Switch,
   Image,
   Modal,
+  Switch,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -127,7 +128,67 @@ export const SettingsScreen: React.FC = () => {
   const [settings, setSettings] = useState<OwnerSettings>(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<PropertyTemplate | null>(null);
-  const { theme, toggleTheme, isDark } = useTheme();
+  const [showVatInfo, setShowVatInfo] = useState(false);
+  const [vatInfoAnimation] = useState(new Animated.Value(0));
+  const [showCurrencyInfo, setShowCurrencyInfo] = useState(false);
+  const [currencyInfoAnimation] = useState(new Animated.Value(0));
+  const [showEmailInfo, setShowEmailInfo] = useState(false);
+  const [emailInfoAnimation] = useState(new Animated.Value(0));
+  const { theme } = useTheme();
+
+  // Animation pour l'info TVA
+  const toggleVatInfo = () => {
+    const toValue = showVatInfo ? 0 : 1;
+    setShowVatInfo(!showVatInfo);
+    
+    Animated.timing(vatInfoAnimation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Animation pour l'info Devise
+  const toggleCurrencyInfo = () => {
+    const toValue = showCurrencyInfo ? 0 : 1;
+    setShowCurrencyInfo(!showCurrencyInfo);
+    
+    Animated.timing(currencyInfoAnimation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Animation pour l'info Email
+  const toggleEmailInfo = () => {
+    const toValue = showEmailInfo ? 0 : 1;
+    setShowEmailInfo(!showEmailInfo);
+    
+    Animated.timing(emailInfoAnimation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Fonction pour formater le numéro de téléphone
+  const formatPhoneNumber = (text: string) => {
+    // Garder le +, supprimer seulement les espaces en trop
+    let cleaned = text.replace(/\s+/g, ' ').trim();
+    
+    // Si ça commence par +, traiter différemment
+    if (cleaned.startsWith('+')) {
+      const prefix = cleaned.substring(0, 3); // +33
+      const numbers = cleaned.substring(3).replace(/\D/g, '');
+      const formatted = numbers.replace(/(\d{1})(\d{2})(\d{2})(\d{2})(\d{2})/g, '$1 $2 $3 $4 $5');
+      return prefix + (numbers ? ' ' + formatted : '');
+    } else {
+      // Supprimer tout sauf les chiffres et ajouter des espaces
+      const onlyNumbers = cleaned.replace(/\D/g, '');
+      return onlyNumbers.replace(/(\d{2})(?=\d)/g, '$1 ');
+    }
+  };
 
   // Fonction pour sauvegarder automatiquement
   const autoSaveSettings = useCallback(async (newSettings: OwnerSettings) => {
@@ -402,235 +463,15 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Section Template de facture */}
-          <TemplateSelector
-            selectedTemplate={(settings.invoiceTemplate || 'original') as TemplateType}
-            onSelectTemplate={(template) => updateSettings(prev => ({ ...prev, invoiceTemplate: template }))}
-          />
-
-          {/* Section Apparence */}
+          {/* 1. Vos informations */}
           <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
             <View style={styles.headerWithIcon}>
-              <Ionicons name="color-palette-outline" size={24} color={theme.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Apparence</Text>
+              <Ionicons name="person-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Vos informations</Text>
             </View>
-
-            <Text style={[styles.sectionDescription, { color: theme.text.secondary }]}>
-              Personnalisez l'apparence de votre application
-            </Text>
-
-            <View style={styles.switchRow}>
-              <View style={styles.switchTextContainer}>
-                <Text style={[styles.label, { color: theme.text.primary }]}>Mode sombre</Text>
-                <Text style={[styles.switchDescription, { color: theme.text.secondary }]}>
-                  Interface sombre pour réduire la fatigue oculaire et économiser la batterie
-                </Text>
-              </View>
-              <Switch
-                value={isDark}
-                onValueChange={toggleTheme}
-                trackColor={{ false: theme.border.light, true: theme.primary }}
-                thumbColor={isDark ? theme.surface.primary : '#f4f3f4'}
-                ios_backgroundColor={theme.border.light}
-              />
-            </View>
-
-            <View style={[styles.themePreview, { backgroundColor: theme.background.accent }]}>
-              <Ionicons 
-                name={isDark ? "moon" : "sunny"} 
-                size={20} 
-                color={theme.primary}
-              />
-              <Text style={[styles.themePreviewText, { color: theme.text.primary }]}>
-                {isDark ? 'Mode sombre activé' : 'Mode clair activé'}
-              </Text>
-            </View>
-          </View>
-
-          {/* Section TVA */}
-          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
-            <View style={styles.headerWithIcon}>
-              <Ionicons name="calculator-outline" size={24} color={theme.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>TVA (Taxe sur la Valeur Ajoutée)</Text>
-            </View>
-
-            <View style={styles.switchRow}>
-              <View style={styles.switchTextContainer}>
-                <Text style={styles.label}>Assujetti à la TVA</Text>
-                <Text style={styles.switchDescription}>
-                  Activer si vous devez collecter et reverser la TVA sur vos revenus locatifs
-                </Text>
-              </View>
-              <Switch
-                value={settings.vatSettings.isSubjectToVAT}
-                onValueChange={(value) => updateSettings(prev => ({ 
-                  ...prev, 
-                  vatSettings: { ...prev.vatSettings, isSubjectToVAT: value } 
-                }))}
-                trackColor={{ false: '#e7e7e7', true: '#003580' }}
-                thumbColor={settings.vatSettings.isSubjectToVAT ? '#fff' : '#f4f3f4'}
-              />
-            </View>
-
-            {settings.vatSettings.isSubjectToVAT && (
-              <>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Taux de TVA (%)</Text>
-                  <View style={styles.vatRateContainer}>
-                    <TouchableOpacity
-                      style={[
-                        styles.vatRateButton,
-                        settings.vatSettings.vatRate === 10 && !settings.vatSettings.useCustomRate && styles.vatRateButtonActive
-                      ]}
-                      onPress={() => updateSettings(prev => ({ 
-                        ...prev, 
-                        vatSettings: { ...prev.vatSettings, vatRate: 10, useCustomRate: false } 
-                      }))}
-                    >
-                      <Text style={[
-                        styles.vatRateButtonText,
-                        settings.vatSettings.vatRate === 10 && !settings.vatSettings.useCustomRate && styles.vatRateButtonTextActive
-                      ]}>10%</Text>
-                      <Text style={styles.vatRateLabel}>Meublé</Text>
-                    </TouchableOpacity>
-                    
-                    <TouchableOpacity
-                      style={[
-                        styles.vatRateButton,
-                        settings.vatSettings.vatRate === 20 && !settings.vatSettings.useCustomRate && styles.vatRateButtonActive
-                      ]}
-                      onPress={() => updateSettings(prev => ({ 
-                        ...prev, 
-                        vatSettings: { ...prev.vatSettings, vatRate: 20, useCustomRate: false } 
-                      }))}
-                    >
-                      <Text style={[
-                        styles.vatRateButtonText,
-                        settings.vatSettings.vatRate === 20 && !settings.vatSettings.useCustomRate && styles.vatRateButtonTextActive
-                      ]}>20%</Text>
-                      <Text style={styles.vatRateLabel}>Standard</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[
-                        styles.vatRateButton,
-                        settings.vatSettings.vatRate === 5.5 && !settings.vatSettings.useCustomRate && styles.vatRateButtonActive
-                      ]}
-                      onPress={() => updateSettings(prev => ({ 
-                        ...prev, 
-                        vatSettings: { ...prev.vatSettings, vatRate: 5.5, useCustomRate: false } 
-                      }))}
-                    >
-                      <Text style={[
-                        styles.vatRateButtonText,
-                        settings.vatSettings.vatRate === 5.5 && !settings.vatSettings.useCustomRate && styles.vatRateButtonTextActive
-                      ]}>5,5%</Text>
-                      <Text style={styles.vatRateLabel}>Réduit</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.vatRateContainer}>
-                    <TouchableOpacity
-                      style={[
-                        styles.vatRateButton,
-                        styles.customVatButton,
-                        settings.vatSettings.useCustomRate && styles.vatRateButtonActive
-                      ]}
-                      onPress={() => updateSettings(prev => ({ 
-                        ...prev, 
-                        vatSettings: { 
-                          ...prev.vatSettings, 
-                          useCustomRate: true,
-                          vatRate: prev.vatSettings.customRate || 10
-                        } 
-                      }))}
-                    >
-                      <Text style={[
-                        styles.vatRateButtonText,
-                        settings.vatSettings.useCustomRate && styles.vatRateButtonTextActive
-                      ]}>Personnalisé</Text>
-                      <Text style={styles.vatRateLabel}>Autre taux</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {settings.vatSettings.useCustomRate && (
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Taux personnalisé (%)</Text>
-                      <TextInput
-                        style={styles.customVatInput}
-                        value={settings.vatSettings.customRate?.toString() || ''}
-                        onChangeText={(text) => {
-                          const rate = parseFloat(text.replace(',', '.')) || 0;
-                          updateSettings(prev => ({ 
-                            ...prev, 
-                            vatSettings: { 
-                              ...prev.vatSettings, 
-                              customRate: rate,
-                              vatRate: rate
-                            } 
-                          }));
-                        }}
-                        placeholder="Ex: 8.5"
-                        keyboardType="decimal-pad"
-                        maxLength={6}
-                      />
-                      <Text style={styles.helpText}>
-                        Entrez votre taux de TVA personnalisé (ex: 8.5 pour 8,5%)
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                <View style={styles.vatInfoBox}>
-                  <Ionicons name="information-circle" size={16} color="#0ea5e9" />
-                  <View style={styles.vatInfoText}>
-                    <Text style={styles.vatInfoTitle}>Fonctionnement simplifié :</Text>
-                    <Text style={styles.vatInfoDescription}>
-                      • Saisissez vos prix TTC (comme sur Airbnb/Booking){'\n'}
-                      • La facture affichera automatiquement HT, TVA et TTC{'\n'}
-                      • Taux recommandé : 10% pour locations meublées
-                    </Text>
-                  </View>
-                </View>
-              </>
-            )}
-          </View>
-
-          {/* Section Devise */}
-          <View style={styles.section}>
-            <View style={styles.headerWithIcon}>
-              <Ionicons name="cash-outline" size={24} color="#003580" />
-              <Text style={styles.sectionTitle}>Devise</Text>
-            </View>
-
-            <Text style={styles.sectionDescription}>
-              Choisissez la devise principale pour vos factures et tarifs
-            </Text>
-
-            <CurrencyDropdown
-              currencies={SUPPORTED_CURRENCIES}
-              selectedCurrency={settings.currency}
-              onCurrencyChange={(currencyCode) => 
-                updateSettings(prev => ({ ...prev, currency: currencyCode }))
-              }
-            />
-
-            <View style={styles.currencyInfoBox}>
-              <Ionicons name="information-circle" size={16} color="#0ea5e9" />
-              <View style={styles.currencyInfoText}>
-                <Text style={styles.currencyInfoTitle}>Information :</Text>
-                <Text style={styles.currencyInfoDescription}>
-                  Cette devise sera utilisée pour tous les prix et totaux dans vos factures. Vous pouvez la changer à tout moment.
-                </Text>
-              </View>
-            </View>
-          </View>
-          
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Informations propriétaire</Text>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Prénom du propriétaire</Text>
+              <Text style={styles.label}>Votre prénom</Text>
               <TextInput
                 style={styles.input}
                 value={settings.ownerFirstName}
@@ -640,7 +481,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nom du propriétaire</Text>
+              <Text style={styles.label}>Votre nom</Text>
               <TextInput
                 style={styles.input}
                 value={settings.ownerLastName}
@@ -648,11 +489,40 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
                 placeholder="Nom du propriétaire"
               />
             </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Téléphone</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.phoneNumber}
+                onChangeText={(text) => {
+                  const formatted = formatPhoneNumber(text);
+                  updateSettings(prev => ({ ...prev, phoneNumber: formatted }));
+                }}
+                placeholder="Ex: +33 1 12 34 56 78"
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                value={settings.email}
+                onChangeText={(text) => updateSettings(prev => ({ ...prev, email: text }))}
+                placeholder="Email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
           </View>
 
-          {/* Section Templates de propriétés */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Gestion des propriétés</Text>
+          {/* 2. Gestion des propriétés */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="home-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Gestion des propriétés</Text>
+            </View>
             
             <Text style={styles.sectionDescription}>
               Créez des templates pour vos différentes propriétés (nom, adresse, identifiants, etc.)
@@ -692,70 +562,174 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
             ))}
           </View>
 
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Coordonnées</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Téléphone</Text>
-              <TextInput
-                style={styles.input}
-                value={settings.phoneNumber}
-                onChangeText={(text) => updateSettings(prev => ({ ...prev, phoneNumber: text }))}
-                placeholder="Téléphone"
-                keyboardType="phone-pad"
-              />
+          {/* 3. Section Devise */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="cash-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Devise</Text>
+              <TouchableOpacity onPress={toggleCurrencyInfo} style={styles.infoButton}>
+                <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={settings.email}
-                onChangeText={(text) => updateSettings(prev => ({ ...prev, email: text }))}
-                placeholder="Email"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
+            <Animated.View style={[
+              styles.currencyExpandedInfo,
+              {
+                height: currencyInfoAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 150],
+                }),
+                opacity: currencyInfoAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1],
+                }),
+              }
+            ]}>
+              <View style={styles.currencyInfoBox}>
+                <Ionicons name="information-circle" size={16} color="#0ea5e9" />
+                <View style={styles.currencyInfoText}>
+                  <Text style={styles.currencyInfoTitle}>Information Devise :</Text>
+                  <Text style={styles.currencyInfoDescription}>
+                    • Cette devise sera utilisée pour tous les prix et totaux dans vos factures{"\n"}
+                    • Vous pouvez la changer à tout moment{"\n"}
+                    • Les symboles monétaires s'afficheront automatiquement
+                  </Text>
+                </View>
+              </View>
+            </Animated.View>
+
+            <CurrencyDropdown
+              currencies={SUPPORTED_CURRENCIES}
+              selectedCurrency={settings.currency}
+              onCurrencyChange={(currencyCode) => 
+                updateSettings(prev => ({ ...prev, currency: currencyCode }))
+              }
+            />
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Copie cachée des emails</Text>
+          {/* 4. Section TVA */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="calculator-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>TVA (Taxe sur la Valeur Ajoutée)</Text>
+            </View>
 
             <View style={styles.switchRow}>
               <View style={styles.switchTextContainer}>
-                <Text style={styles.label}>Activer la copie cachée (BCC)</Text>
-                <Text style={styles.switchDescription}>
-                  Recevoir automatiquement une copie de chaque facture envoyée
-                </Text>
+                <View style={styles.labelWithInfo}>
+                  <Text style={styles.label}>Assujetti à la TVA</Text>
+                  <TouchableOpacity onPress={toggleVatInfo} style={styles.infoButton}>
+                    <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
+                  </TouchableOpacity>
+                </View>
               </View>
               <Switch
-                value={settings.enableBcc}
-                onValueChange={(value) => updateSettings(prev => ({ ...prev, enableBcc: value }))}
+                value={settings.vatSettings.isSubjectToVAT}
+                onValueChange={(value) => updateSettings(prev => ({ 
+                  ...prev, 
+                  vatSettings: { ...prev.vatSettings, isSubjectToVAT: value } 
+                }))}
                 trackColor={{ false: '#e7e7e7', true: '#003580' }}
-                thumbColor={settings.enableBcc ? '#fff' : '#f4f3f4'}
+                thumbColor={settings.vatSettings.isSubjectToVAT ? '#fff' : '#f4f3f4'}
               />
             </View>
 
-            {settings.enableBcc && (
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email de copie cachée</Text>
-                <TextInput
-                  style={styles.input}
-                  value={settings.bccEmail}
-                  onChangeText={(text) => updateSettings(prev => ({ ...prev, bccEmail: text }))}
-                  placeholder="Email pour la copie cachée"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
+            <Animated.View style={[
+              styles.vatExpandedInfo,
+              {
+                height: vatInfoAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 200],
+                }),
+                opacity: vatInfoAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1],
+                }),
+              }
+            ]}>
+              <View style={styles.vatInfoBox}>
+                <Ionicons name="information-circle" size={16} color="#0ea5e9" />
+                <View style={styles.vatInfoText}>
+                  <Text style={styles.vatInfoTitle}>Information TVA :</Text>
+                  <Text style={styles.vatInfoDescription}>
+                    • Si vous louez un bien meublé, vous devez généralement appliquer la TVA à 10%{"\n"}
+                    • Si vous louez un bien nu (non meublé), vous n'êtes pas assujetti à la TVA{"\n"}
+                    • En cas de doute, consultez votre comptable ou le service des impôts
+                  </Text>
+                </View>
               </View>
+            </Animated.View>
+
+            {settings.vatSettings.isSubjectToVAT && (
+              <>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Taux de TVA (%)</Text>
+                  <TextInput
+                    style={styles.vatInput}
+                    value={settings.vatSettings.vatRate?.toString() || ''}
+                    onChangeText={(text) => {
+                      const rate = parseFloat(text.replace(',', '.')) || 0;
+                      updateSettings(prev => ({ 
+                        ...prev, 
+                        vatSettings: { 
+                          ...prev.vatSettings, 
+                          vatRate: rate
+                        } 
+                      }));
+                    }}
+                    placeholder="Ex: 10"
+                    keyboardType="decimal-pad"
+                    maxLength={6}
+                  />
+                  <Text style={styles.helpText}>
+                    Entrez votre taux de TVA (ex: 10 pour 10%, 20 pour 20%)
+                  </Text>
+                </View>
+              </>
             )}
           </View>
 
+          {/* 5. Section Template de facture */}
+          <TemplateSelector
+            selectedTemplate={(settings.invoiceTemplate || 'original') as TemplateType}
+            onSelectTemplate={(template) => updateSettings(prev => ({ ...prev, invoiceTemplate: template }))}
+          />
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Personnalisation de l'email</Text>
+          {/* 6. Personnalisation de l'email */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="mail-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Personnalisation de l'email</Text>
+              <TouchableOpacity onPress={toggleEmailInfo} style={styles.infoButton}>
+                <Ionicons name="information-circle-outline" size={20} color={theme.primary} />
+              </TouchableOpacity>
+            </View>
+
+            <Animated.View style={[
+              styles.emailExpandedInfo,
+              {
+                height: emailInfoAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 180],
+                }),
+                opacity: emailInfoAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1],
+                }),
+              }
+            ]}>
+              <View style={styles.emailInfoBox}>
+                <Ionicons name="information-circle" size={16} color="#0ea5e9" />
+                <View style={styles.emailInfoText}>
+                  <Text style={styles.emailInfoTitle}>Personnalisation Email :</Text>
+                  <Text style={styles.emailInfoDescription}>
+                    • Personnalisez le sujet et le contenu de vos emails de facture{"\n"}
+                    • Utilisez les variables pour insérer automatiquement les informations{"\n"}
+                    • Vous pouvez réinitialiser à tout moment
+                  </Text>
+                </View>
+              </View>
+            </Animated.View>
 
             <View style={styles.switchRow}>
               <View style={styles.switchTextContainer}>
@@ -832,15 +806,52 @@ Veuillez trouver ci-joint la facture..."
                     Variables disponibles: {'{VILLE}'}, {'{NOM}'}, {'{PRENOM}'}, {'{NOM-PROPRIETAIRE}'}, {'{PRENOM-PROPRIETAIRE}'}, {'{MOIS}'}, {'{ANNEE}'}
                   </Text>
                   <Text style={[styles.helpText, { color: '#4CAF50', fontStyle: 'italic' }]}>
-                    ✨ Les emails personnalisés sont automatiquement traduits selon la langue sélectionnée lors de l'envoi !
+                    📧 Traduction automatique disponible selon la langue sélectionnée lors de l'envoi
                   </Text>
                 </View>
+                
+                <TouchableOpacity
+                  style={[styles.button, styles.resetEmailButton]}
+                  onPress={() => {
+                    Alert.alert(
+                      'Réinitialiser l\'email',
+                      'Voulez-vous vraiment réinitialiser l\'email personnalisé ? Vos modifications actuelles seront perdues.',
+                      [
+                        { text: 'Annuler', style: 'cancel' },
+                        {
+                          text: 'Réinitialiser',
+                          style: 'destructive',
+                          onPress: () => {
+                            updateSettings(prev => ({ 
+                              ...prev,
+                              customEmailSubject: 'Facture séjour {VILLE} - {NOM} {PRENOM}',
+                              customEmailBody: `Bonjour,
+
+Veuillez trouver ci-joint la facture de votre séjour {VILLE} pour le mois de {MOIS} {ANNEE}.
+
+En vous souhaitant bonne réception,
+
+{PRENOM-PROPRIETAIRE} {NOM-PROPRIETAIRE}`
+                            }));
+                          }
+                        }
+                      ]
+                    );
+                  }}
+                >
+                  <Ionicons name="refresh-outline" size={16} color="#1976D2" style={{ marginRight: 8 }} />
+                  <Text style={styles.resetEmailText}>Réinitialiser l'email</Text>
+                </TouchableOpacity>
               </>
             )}
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Signature email</Text>
+          {/* 7. Signature email */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="create-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Signature email</Text>
+            </View>
 
             <View style={styles.switchRow}>
               <View style={styles.switchTextContainer}>
@@ -895,6 +906,43 @@ Veuillez trouver ci-joint la facture..."
                   Recommandé : Image PNG avec fond transparent, dimensions max 600x300px
                 </Text>
               </>
+            )}
+          </View>
+
+          {/* 8. Copie cachée des emails */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="copy-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Copie cachée des emails</Text>
+            </View>
+
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextContainer}>
+                <Text style={styles.label}>Activer la copie cachée (BCC)</Text>
+                <Text style={styles.switchDescription}>
+                  Recevoir automatiquement une copie de chaque facture envoyée
+                </Text>
+              </View>
+              <Switch
+                value={settings.enableBcc}
+                onValueChange={(value) => updateSettings(prev => ({ ...prev, enableBcc: value }))}
+                trackColor={{ false: '#e7e7e7', true: '#003580' }}
+                thumbColor={settings.enableBcc ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+
+            {settings.enableBcc && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email de copie cachée</Text>
+                <TextInput
+                  style={styles.input}
+                  value={settings.bccEmail}
+                  onChangeText={(text) => updateSettings(prev => ({ ...prev, bccEmail: text }))}
+                  placeholder="Email pour la copie cachée"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
             )}
           </View>
 
@@ -1077,13 +1125,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#001A40',
     marginBottom: 16,
   },
   subSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#001A40',
     marginBottom: 8,
     marginTop: 24,
   },
@@ -1094,7 +1142,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: '#003580',
   },
   input: {
     borderWidth: 2,
@@ -1103,7 +1151,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     backgroundColor: 'white',
-    color: '#1a1a1a',
+    color: '#001A40',
   },
   buttonContainer: {
     marginHorizontal: 16,
@@ -1154,7 +1202,7 @@ const styles = StyleSheet.create({
   },
   switchDescription: {
     fontSize: 12,
-    color: '#666',
+    color: '#1976D2',
     marginTop: 4,
   },
   textArea: {
@@ -1163,7 +1211,7 @@ const styles = StyleSheet.create({
   },
   helpText: {
     fontSize: 12,
-    color: '#666',
+    color: '#1976D2',
     marginTop: 4,
     fontStyle: 'italic',
   },
@@ -1250,7 +1298,7 @@ const styles = StyleSheet.create({
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -1283,7 +1331,7 @@ const styles = StyleSheet.create({
   templateName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#001A40',
     flex: 1,
   },
   templateActions: {
@@ -1302,7 +1350,7 @@ const styles = StyleSheet.create({
   },
   templateInfo: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
   },
   modalOverlay: {
     flex: 1,
@@ -1329,7 +1377,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#001A40',
     flex: 1,
   },
   closeButton: {
@@ -1342,7 +1390,7 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#001A40',
     marginTop: 16,
     marginBottom: 12,
   },
@@ -1363,7 +1411,7 @@ const styles = StyleSheet.create({
   },
   propertyInputLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#1976D2',
     marginBottom: 4,
   },
   propertyInput: {
@@ -1408,7 +1456,7 @@ const styles = StyleSheet.create({
     borderColor: '#666',
   },
   cancelButtonText: {
-    color: '#666',
+    color: '#1976D2',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -1442,37 +1490,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  vatRateContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  vatRateButton: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-    borderWidth: 2,
-    borderColor: '#e7e7e7',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  vatRateButtonActive: {
-    backgroundColor: '#e3f2fd',
-    borderColor: '#003580',
-  },
-  vatRateButtonText: {
+  sectionTitleWithIcon: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#666',
-    marginBottom: 4,
-  },
-  vatRateButtonTextActive: {
-    color: '#003580',
-  },
-  vatRateLabel: {
-    fontSize: 12,
-    color: '#888',
-    fontWeight: '500',
+    marginLeft: 12,
   },
   vatInfoBox: {
     flexDirection: 'row',
@@ -1499,18 +1520,74 @@ const styles = StyleSheet.create({
     color: '#0369a1',
     lineHeight: 18,
   },
-  customVatButton: {
-    flex: 2,
-    marginTop: 12,
+  labelWithInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  customVatInput: {
+  infoButton: {
+    padding: 4,
+  },
+  vatExpandedInfo: {
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  currencyExpandedInfo: {
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  emailExpandedInfo: {
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  emailInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#f0f9ff',
+    borderLeftWidth: 4,
+    borderLeftColor: '#0ea5e9',
+    padding: 12,
+    borderRadius: 6,
+  },
+  emailInfoText: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  emailInfoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0369a1',
+    marginBottom: 4,
+  },
+  emailInfoDescription: {
+    fontSize: 13,
+    color: '#0369a1',
+    lineHeight: 18,
+  },
+  resetEmailButton: {
+    backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: '#003580',
+    borderColor: '#1976D2',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  resetEmailText: {
+    color: '#1976D2',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  vatInput: {
+    borderWidth: 2,
+    borderColor: '#e7e7e7',
     borderRadius: 6,
     padding: 12,
     fontSize: 16,
     backgroundColor: 'white',
-    color: '#1a1a1a',
+    color: '#001A40',
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -1538,18 +1615,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#0369a1',
     lineHeight: 18,
-  },
-  // Styles pour la section apparence
-  themePreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 12,
-  },
-  themePreviewText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginLeft: 8,
   },
 });

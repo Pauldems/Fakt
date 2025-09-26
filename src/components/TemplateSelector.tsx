@@ -75,7 +75,10 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Style de facture</Text>
+      <View style={styles.headerWithIcon}>
+        <Ionicons name="brush-outline" size={24} color="#003580" />
+        <Text style={styles.sectionTitle}>Style de facture</Text>
+      </View>
       <Text style={styles.sectionDescription}>
         Choisissez le design qui correspond à votre image
       </Text>
@@ -100,15 +103,12 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             
             <View style={styles.templateInfo}>
               <Text style={styles.templateName}>{template.name}</Text>
-              <Text style={styles.templateDescription} numberOfLines={2}>
-                {template.description}
-              </Text>
             </View>
             
             <View style={styles.templateActions}>
               {selectedTemplate === template.id && (
                 <View style={styles.selectedBadge}>
-                  <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                  <Ionicons name="checkmark-circle" size={20} color="#003580" />
                   <Text style={styles.selectedText}>Sélectionné</Text>
                 </View>
               )}
@@ -135,15 +135,20 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f8f9fa',
   },
+  headerWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
+    fontWeight: '700',
+    color: '#001A40',
+    marginLeft: 12,
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     marginBottom: 20,
   },
   templatesGrid: {
@@ -153,15 +158,16 @@ const styles = StyleSheet.create({
   },
   templateCard: {
     width: '48%',
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     borderRadius: 12,
     marginBottom: 16,
     padding: 12,
     borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderColor: '#BBDEFB',
   },
   templateCardSelected: {
-    borderColor: '#4CAF50',
+    borderColor: '#003580',
+    borderWidth: 3,
   },
   templatePreview: {
     height: 120,
@@ -169,6 +175,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     overflow: 'hidden',
     backgroundColor: '#f0f0f0',
+    borderWidth: 2,
+    borderColor: '#BBDEFB',
   },
   templatePreviewImage: {
     width: '100%',
@@ -180,13 +188,8 @@ const styles = StyleSheet.create({
   templateName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#001A40',
     marginBottom: 4,
-  },
-  templateDescription: {
-    fontSize: 12,
-    color: '#666',
-    lineHeight: 16,
   },
   templateActions: {
     flexDirection: 'column',
@@ -199,7 +202,7 @@ const styles = StyleSheet.create({
   },
   selectedText: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: '#003580',
     marginLeft: 4,
     fontWeight: '600',
   },

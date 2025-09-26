@@ -76,51 +76,51 @@ export const SemanticColors = {
   infoLight: BlueColors.blue100,
 };
 
-// Thème clair
+// Thème clair - Style facture
 export const LightTheme = {
-  // Backgrounds
+  // Backgrounds - Tons bleus inspirés de l'onglet facture
   background: {
-    primary: NeutralColors.gray50,
-    secondary: NeutralColors.white,
-    accent: BlueColors.blue50,
+    primary: BlueColors.blue50,       // Bleu très clair comme fond principal
+    secondary: BlueColors.blue100,    // Bleu clair pour variations
+    accent: BlueColors.blue200,       // Bleu plus prononcé pour accents
   },
   
-  // Surfaces (cards, containers)
+  // Surfaces (cards, containers) - Style facture
   surface: {
-    primary: NeutralColors.white,
-    secondary: BlueColors.blue50,
-    accent: BlueColors.blue100,
-    elevated: NeutralColors.white,
+    primary: NeutralColors.white,     // Blanc pur pour les cartes (contraste)
+    secondary: BlueColors.blue50,     // Bleu très clair
+    accent: BlueColors.blue100,       // Bleu clair pour accents
+    elevated: NeutralColors.white,    // Blanc pour éléments élevés
   },
   
-  // Textes
+  // Textes - Style facture
   text: {
-    primary: NeutralColors.gray900,
-    secondary: NeutralColors.gray700,
-    tertiary: NeutralColors.gray500,
-    inverse: NeutralColors.white,
-    link: BlueColors.primary,
+    primary: BlueColors.primaryDark,  // Bleu foncé pour texte principal (comme l'onglet)
+    secondary: BlueColors.primary,    // Bleu principal pour texte secondaire
+    tertiary: BlueColors.blue600,     // Bleu moyen pour texte tertiaire
+    inverse: NeutralColors.white,     // Blanc pour texte inversé
+    link: BlueColors.blue700,         // Bleu foncé pour liens
   },
   
-  // Bordures
+  // Bordures - Tons bleus
   border: {
-    light: NeutralColors.gray200,
-    medium: NeutralColors.gray300,
-    strong: NeutralColors.gray400,
+    light: BlueColors.blue200,        // Bordures bleu clair
+    medium: BlueColors.blue300,       // Bordures bleu moyen
+    strong: BlueColors.blue400,       // Bordures bleu prononcé
   },
   
-  // Couleurs principales
-  primary: BlueColors.primary,
+  // Couleurs principales - Style facture exact
+  primary: BlueColors.primary,        // #003580 - couleur principale de l'onglet
   primaryLight: BlueColors.primaryLight,
-  primaryDark: BlueColors.primaryDark,
+  primaryDark: BlueColors.primaryDark, // #001A40 - bleu très foncé de l'onglet
   secondary: BlueColors.secondary,
   
-  // Gradients
+  // Gradients - Basés sur l'onglet facture
   gradients: {
-    primary: [BlueColors.primary, BlueColors.secondary],
-    header: [BlueColors.primaryDark, BlueColors.primary],
-    accent: [BlueColors.primaryLight, BlueColors.blue100],
-    subtle: [BlueColors.blue50, BlueColors.blue100],
+    primary: [BlueColors.primaryDark, BlueColors.primary],  // Même que header
+    header: [BlueColors.primaryDark, BlueColors.primary],   // Gradient de l'onglet facture
+    accent: [BlueColors.primary, BlueColors.blue400],       // Variation du gradient facture
+    subtle: [BlueColors.blue100, BlueColors.blue200],       // Version douce
   },
   
   // Status
@@ -128,68 +128,6 @@ export const LightTheme = {
   warning: SemanticColors.warning,
   error: SemanticColors.error,
   info: SemanticColors.info,
-  
-  // Couleurs complètes accessibles
-  colors: {
-    ...BlueColors,
-    ...RedColors,
-    ...GreenColors,
-    ...NeutralColors,
-  },
-};
-
-// Thème sombre
-export const DarkTheme = {
-  // Backgrounds
-  background: {
-    primary: '#0A0E1A',      // Bleu très très foncé
-    secondary: '#1A2332',    // Bleu foncé
-    accent: '#243447',       // Bleu moyen foncé
-  },
-  
-  // Surfaces (cards, containers)
-  surface: {
-    primary: '#1A2332',      // Bleu foncé
-    secondary: '#243447',    // Bleu moyen foncé
-    accent: '#2D4A63',       // Bleu plus clair
-    elevated: '#2D4A63',     // Pour les éléments en relief
-  },
-  
-  // Textes
-  text: {
-    primary: '#E8F4FD',      // Bleu très clair
-    secondary: '#B8D4EA',    // Bleu clair
-    tertiary: '#7BA7D1',     // Bleu moyen
-    inverse: NeutralColors.gray900,
-    link: BlueColors.blue300,
-  },
-  
-  // Bordures
-  border: {
-    light: '#2D4A63',
-    medium: '#3D5A73',
-    strong: '#4D6A83',
-  },
-  
-  // Couleurs principales adaptées
-  primary: BlueColors.blue400,        // Plus clair pour le dark
-  primaryLight: BlueColors.blue300,   // Encore plus clair
-  primaryDark: BlueColors.blue600,    // Contraste pour le dark
-  secondary: BlueColors.blue500,
-  
-  // Gradients adaptés pour le dark
-  gradients: {
-    primary: [BlueColors.blue600, BlueColors.blue400],
-    header: [BlueColors.primaryDark, BlueColors.blue700],
-    accent: [BlueColors.blue400, BlueColors.blue200],
-    subtle: ['#243447', '#2D4A63'],
-  },
-  
-  // Status adaptés
-  success: '#66BB6A',       // Plus clair pour visibilité
-  warning: '#FFA726',       // Plus clair pour visibilité  
-  error: '#EF5350',         // Plus clair pour visibilité
-  info: BlueColors.blue400, // Plus clair pour visibilité
   
   // Couleurs complètes accessibles
   colors: {

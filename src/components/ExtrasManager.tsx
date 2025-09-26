@@ -13,6 +13,7 @@ import { Extra } from '../types/invoice';
 import { getInvoiceTranslation, Language } from '../utils/invoiceTranslations';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, DEFAULT_SETTINGS } from '../features/settings/SettingsScreen';
+import { useTheme } from '../theme/ThemeContext';
 
 interface ExtrasManagerProps {
   extras: Extra[];
@@ -21,6 +22,7 @@ interface ExtrasManagerProps {
 }
 
 export const ExtrasManager: React.FC<ExtrasManagerProps> = ({ extras, onChange, showErrors = false }) => {
+  const { theme } = useTheme();
   const [language, setLanguage] = useState<Language>('fr');
   const [translations, setTranslations] = useState(getInvoiceTranslation('fr'));
 
@@ -202,7 +204,7 @@ export const ExtrasManager: React.FC<ExtrasManagerProps> = ({ extras, onChange, 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     borderRadius: 8,
     marginVertical: 8,
   },
@@ -258,7 +260,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#dee2e6',
     borderRadius: 4,

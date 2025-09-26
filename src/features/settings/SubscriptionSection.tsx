@@ -206,7 +206,7 @@ export const SubscriptionSection: React.FC = () => {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Ajouter un code</Text>
               <TouchableOpacity onPress={() => setShowAddCodeModal(false)}>
-                <Ionicons name="close" size={24} color="#333" />
+                <Ionicons name="close" size={24} color="#003580" />
               </TouchableOpacity>
             </View>
 
@@ -248,12 +248,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#001A40',
     marginBottom: 16,
     paddingHorizontal: 20,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     marginHorizontal: 20,
     borderRadius: 12,
     borderTopWidth: 4,
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   typeLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#001A40',
   },
   starIcon: {
     marginLeft: 8,
@@ -304,11 +304,11 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 13,
-    color: '#666',
+    color: '#1976D2',
   },
   infoValue: {
     fontSize: 13,
-    color: '#1a1a1a',
+    color: '#001A40',
     fontWeight: '500',
   },
   codeText: {
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     borderRadius: 16,
     padding: 24,
     width: '90%',
@@ -361,11 +361,11 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#1a1a1a',
+    color: '#001A40',
   },
   modalDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     marginBottom: 20,
   },
   codeInput: {

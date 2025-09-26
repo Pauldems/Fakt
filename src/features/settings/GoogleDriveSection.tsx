@@ -169,7 +169,7 @@ export const GoogleDriveSection: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     marginHorizontal: 16,
     marginTop: 16,
     padding: 16,
@@ -188,12 +188,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: '#001A40',
     marginLeft: 8,
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     marginBottom: 16,
     lineHeight: 20,
   },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4285F4',
   },
   disconnectButton: {
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#dc3545',
   },
@@ -240,17 +240,17 @@ const styles = StyleSheet.create({
   },
   connectedLabel: {
     fontSize: 12,
-    color: '#666',
+    color: '#1976D2',
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
+    color: '#003580',
   },
   userName: {
     fontSize: 13,
-    color: '#666',
+    color: '#1976D2',
     marginTop: 2,
   },
   userAvatar: {
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 13,
-    color: '#666',
+    color: '#1976D2',
     lineHeight: 18,
     marginBottom: 12,
     backgroundColor: '#f8f9fa',

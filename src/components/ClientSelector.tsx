@@ -144,7 +144,7 @@ export default function ClientSelector({ onSelectClient }: ClientSelectorProps) 
                   setSearchQuery('');
                 }}
               >
-                <Ionicons name="close" size={24} color="#000" />
+                <Ionicons name="close" size={24} color="#003580" />
               </TouchableOpacity>
             </View>
 
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: 'transparent',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 20,
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   clientEmail: {
     fontSize: 14,
-    color: '#666',
+    color: '#1976D2',
     marginBottom: 2,
   },
   clientAddress: {
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    color: '#1976D2',
     marginTop: 12,
   },
   emptySubtext: {

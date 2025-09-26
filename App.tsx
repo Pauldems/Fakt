@@ -34,7 +34,7 @@ function AppContent() {
   return (
     <NavigationContainer>
       <StatusBar 
-        style={theme.text.inverse === '#FFFFFF' ? 'light' : 'dark'} 
+        style="light" 
         backgroundColor={theme.gradients.header[0]} 
       />
       <TabNavigator />
@@ -55,14 +55,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
   },
 });
