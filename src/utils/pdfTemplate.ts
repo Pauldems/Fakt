@@ -164,6 +164,37 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
           font-weight: bold;
         }
         
+        /* Header avec logo */
+        .header-with-logo {
+          background-color: #1a6b7a;
+          color: white;
+          padding: 15px 20px;
+          display: table;
+          width: 100%;
+        }
+        .header-logo-section {
+          display: table-cell;
+          width: 30%;
+          vertical-align: middle;
+        }
+        .header-name-section {
+          display: table-cell;
+          width: 70%;
+          vertical-align: middle;
+          text-align: right;
+        }
+        .header-name-with-logo {
+          font-size: 20px;
+          font-weight: bold;
+        }
+        .logo-image {
+          max-width: 120px;
+          max-height: 60px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+        }
+        
         /* Info entreprise */
         .company-section {
           background-color: #7fc8d6;
@@ -319,9 +350,22 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
     <body>
       <div class="container">
         <!-- Header avec nom -->
+        ${settings.useLogo && settings.logoImage ? `
+        <div class="header-with-logo">
+          <div class="header-logo-section">
+            <img src="${settings.logoImage}" alt="Logo" class="logo-image" />
+          </div>
+          <div class="header-name-section">
+            <div class="header-name-with-logo">
+              ${settings.ownerFirstName} ${settings.ownerLastName}
+            </div>
+          </div>
+        </div>
+        ` : `
         <div class="header-name">
           ${settings.ownerFirstName} ${settings.ownerLastName}
         </div>
+        `}
         
         <!-- Section entreprise -->
         <div class="company-section">

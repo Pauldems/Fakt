@@ -78,6 +78,27 @@ export const generateMinimalTemplate = (
         .logo-section {
           flex: 1;
         }
+        
+        /* Header avec logo */
+        .header-with-logo {
+          margin-bottom: 30px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+        .logo-and-name-section {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+        }
+        .logo-image {
+          max-width: 120px;
+          max-height: 60px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+        }
         .invoice-info {
           text-align: right;
         }
@@ -199,6 +220,19 @@ export const generateMinimalTemplate = (
     <body>
       <div class="container">
         <!-- En-tête -->
+        ${settings.useLogo && settings.logoImage ? `
+        <div class="header-with-logo">
+          <div class="logo-and-name-section">
+            <img src="${settings.logoImage}" alt="Logo" class="logo-image" />
+            <div class="company-name">${settings.ownerFirstName} ${settings.ownerLastName}</div>
+          </div>
+          <div class="invoice-info">
+            <div class="invoice-label">FACTURE</div>
+            <div class="invoice-number">${invoiceNumber}</div>
+            <div class="invoice-date">${formattedDate}</div>
+          </div>
+        </div>
+        ` : `
         <div class="header">
           <div class="logo-section">
             <div class="company-name">${settings.ownerFirstName} ${settings.ownerLastName}</div>
@@ -209,6 +243,7 @@ export const generateMinimalTemplate = (
             <div class="invoice-date">${formattedDate}</div>
           </div>
         </div>
+        `}
         
         <!-- Info entreprise -->
         <div class="company-info">

@@ -64,6 +64,8 @@ export interface OwnerSettings {
   customEmailBody: string;
   useSignature: boolean;
   signatureImage: string;
+  useLogo: boolean;
+  logoImage: string;
   customProperties: CustomProperty[];
   propertyTemplates: PropertyTemplate[];
   invoiceTemplate?: 'modern' | 'classic' | 'minimal' | 'original';
@@ -112,6 +114,8 @@ export const DEFAULT_SETTINGS: OwnerSettings = {
   customEmailBody: '',
   useSignature: false,
   signatureImage: '',
+  useLogo: false,
+  logoImage: '',
   customProperties: [],
   propertyTemplates: [], // Vide par défaut - utilisateur doit créer ses propriétés
   invoiceTemplate: 'original',
@@ -307,6 +311,45 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
           style: 'destructive',
           onPress: () => {
             updateSettings(prev => ({ ...prev, signatureImage: '', useSignature: false }));
+          },
+        },
+      ]
+    );
+  };
+
+  const pickLogoImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission requise', 'Vous devez autoriser l\'accès à la galerie photo pour sélectionner un logo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [2, 1], // Format paysage recommandé pour un logo
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (!result.canceled && result.assets[0] && result.assets[0].base64) {
+      const base64Image = `data:image/png;base64,${result.assets[0].base64}`;
+      updateSettings(prev => ({ ...prev, logoImage: base64Image }));
+    }
+  };
+
+  const removeLogo = () => {
+    Alert.alert(
+      'Supprimer le logo',
+      'Voulez-vous vraiment supprimer le logo ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: () => {
+            updateSettings(prev => ({ ...prev, logoImage: '', useLogo: false }));
           },
         },
       ]
@@ -909,7 +952,70 @@ En vous souhaitant bonne réception,
             )}
           </View>
 
-          {/* 8. Copie cachée des emails */}
+          {/* 8. Logo entreprise */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="business-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Logo entreprise</Text>
+            </View>
+
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextContainer}>
+                <Text style={styles.label}>Ajouter un logo sur les factures</Text>
+                <Text style={styles.switchDescription}>
+                  Affiche votre logo en haut à gauche de chaque facture
+                </Text>
+              </View>
+              <Switch
+                value={settings.useLogo}
+                onValueChange={(value) => updateSettings(prev => ({ ...prev, useLogo: value }))}
+                trackColor={{ false: '#e7e7e7', true: '#003580' }}
+                thumbColor={settings.useLogo ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+
+            {settings.useLogo && (
+              <>
+                {settings.logoImage ? (
+                  <View style={styles.logoContainer}>
+                    <Text style={styles.label}>Logo actuel</Text>
+                    <Image 
+                      source={{ uri: settings.logoImage }} 
+                      style={styles.logoImage}
+                      resizeMode="contain"
+                    />
+                    <View style={styles.logoButtons}>
+                      <TouchableOpacity
+                        style={[styles.button, styles.changeLogoButton]}
+                        onPress={pickLogoImage}
+                      >
+                        <Text style={styles.changeLogoText}>Changer le logo</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.button, styles.removeLogoButton]}
+                        onPress={removeLogo}
+                      >
+                        <Text style={styles.removeLogoText}>Supprimer</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={[styles.button, styles.selectLogoButton]}
+                    onPress={pickLogoImage}
+                  >
+                    <Ionicons name="image-outline" size={20} color="white" style={{ marginRight: 8 }} />
+                    <Text style={styles.selectLogoText}>Sélectionner un logo</Text>
+                  </TouchableOpacity>
+                )}
+                <Text style={styles.helpText}>
+                  Recommandé : Image PNG/JPG avec fond transparent, format paysage, dimensions max 300x150px
+                </Text>
+              </>
+            )}
+          </View>
+
+          {/* 9. Copie cachée des emails */}
           <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
             <View style={styles.headerWithIcon}>
               <Ionicons name="copy-outline" size={24} color={theme.primary} />
@@ -1269,6 +1375,55 @@ const styles = StyleSheet.create({
     borderColor: '#dc3545',
   },
   removeSignatureText: {
+    color: '#dc3545',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  logoContainer: {
+    marginTop: 16,
+  },
+  logoImage: {
+    width: '100%',
+    height: 80,
+    marginVertical: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e7e7e7',
+    backgroundColor: '#f9f9f9',
+  },
+  logoButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  selectLogoButton: {
+    backgroundColor: '#003580',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  selectLogoText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  changeLogoButton: {
+    flex: 1,
+    backgroundColor: '#0056b3',
+  },
+  changeLogoText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  removeLogoButton: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#dc3545',
+  },
+  removeLogoText: {
     color: '#dc3545',
     fontSize: 14,
     fontWeight: '600',

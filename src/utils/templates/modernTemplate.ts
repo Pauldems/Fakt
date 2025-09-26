@@ -121,6 +121,26 @@ export const generateModernTemplate = (
           justify-content: space-between;
           align-items: center;
         }
+        .header-with-logo {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 20px;
+        }
+        .logo-section {
+          flex-shrink: 0;
+        }
+        .logo-image {
+          max-width: 120px;
+          max-height: 60px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+        }
+        .title-section {
+          flex-grow: 1;
+          text-align: center;
+        }
         .header-title {
           font-size: 32px;
           font-weight: 300;
@@ -322,10 +342,22 @@ export const generateModernTemplate = (
       <div class="container">
         <!-- Header moderne -->
         <div class="header">
+          ${settings.useLogo && settings.logoImage ? `
+          <div class="header-with-logo">
+            <div class="logo-section">
+              <img src="${settings.logoImage}" alt="Logo" class="logo-image" />
+            </div>
+            <div class="title-section">
+              <div class="header-title">${translations.invoice}</div>
+            </div>
+            <div class="invoice-badge">${invoiceNumber}</div>
+          </div>
+          ` : `
           <div class="header-content">
             <div class="header-title">${translations.invoice}</div>
             <div class="invoice-badge">${invoiceNumber}</div>
           </div>
+          `}
         </div>
         
         <!-- Section entreprise -->

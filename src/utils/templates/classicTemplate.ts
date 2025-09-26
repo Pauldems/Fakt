@@ -74,6 +74,34 @@ export const generateClassicTemplate = (
           border-bottom: 3px double #000;
           padding-bottom: 20px;
         }
+        
+        /* Header avec logo */
+        .header-with-logo {
+          display: table;
+          width: 100%;
+          margin-bottom: 40px;
+          border-bottom: 3px double #000;
+          padding-bottom: 20px;
+        }
+        .logo-section {
+          display: table-cell;
+          width: 30%;
+          vertical-align: middle;
+          text-align: left;
+        }
+        .company-section {
+          display: table-cell;
+          width: 70%;
+          vertical-align: middle;
+          text-align: center;
+        }
+        .logo-image {
+          max-width: 120px;
+          max-height: 60px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+        }
         .company-name {
           font-size: 24pt;
           font-weight: bold;
@@ -208,6 +236,24 @@ export const generateClassicTemplate = (
     <body>
       <div class="container">
         <!-- En-tête -->
+        ${settings.useLogo && settings.logoImage ? `
+        <div class="header-with-logo">
+          <div class="logo-section">
+            <img src="${settings.logoImage}" alt="Logo" class="logo-image" />
+          </div>
+          <div class="company-section">
+            <div class="company-name">
+              ${settings.ownerFirstName} ${settings.ownerLastName}
+            </div>
+            <div class="company-details">
+              ${selectedPropertyTemplate ? selectedPropertyTemplate.name || settings.companyName : settings.companyName}<br>
+              ${selectedPropertyTemplate ? selectedPropertyTemplate.properties.find(p => p.label === 'Adresse')?.value || settings.companyAddress : settings.companyAddress}<br>
+              ${selectedPropertyTemplate ? `${selectedPropertyTemplate.properties.find(p => p.label === 'Code postal')?.value || settings.companyPostalCode} ${selectedPropertyTemplate.properties.find(p => p.label === 'Ville')?.value || settings.companyCity}` : `${settings.companyPostalCode} ${settings.companyCity}`}<br>
+              Tél: ${settings.phoneNumber} - Email: ${settings.email}
+            </div>
+          </div>
+        </div>
+        ` : `
         <div class="header">
           <div class="company-name">
             ${settings.ownerFirstName} ${settings.ownerLastName}
@@ -219,6 +265,7 @@ export const generateClassicTemplate = (
             Tél: ${settings.phoneNumber} - Email: ${settings.email}
           </div>
         </div>
+        `}
         
         <!-- Titre FACTURE -->
         <div class="invoice-title">FACTURE</div>
