@@ -20,12 +20,19 @@ import hybridSettingsService from '../../services/hybridSettingsService';
 import * as ImagePicker from 'expo-image-picker';
 import { TemplateSelector, TemplateType } from '../../components/TemplateSelector';
 import { SubscriptionSection } from './SubscriptionSection';
-import { GoogleDriveSection } from './GoogleDriveSection';
+// import { GoogleDriveSection } from './GoogleDriveSection'; // Désactivé temporairement
 
 export interface CustomProperty {
   id: string;
   label: string;
   value: string;
+}
+
+export interface Currency {
+  code: string;
+  symbol: string;
+  name: string;
+  flag: string;
 }
 
 export interface PropertyTemplate {
@@ -57,9 +64,30 @@ export interface OwnerSettings {
   customProperties: CustomProperty[];
   propertyTemplates: PropertyTemplate[];
   invoiceTemplate?: 'modern' | 'classic' | 'minimal' | 'original';
+  vatSettings: {
+    isSubjectToVAT: boolean;
+    vatRate: number;
+    customRate?: number;
+    useCustomRate: boolean;
+  };
+  currency: string;
 }
 
 export const SETTINGS_KEY = 'owner_settings';
+
+// Devises supportées
+export const SUPPORTED_CURRENCIES: Currency[] = [
+  { code: 'EUR', symbol: '€', name: 'Euro', flag: '🇪🇺' },
+  { code: 'USD', symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+  { code: 'GBP', symbol: '£', name: 'British Pound', flag: '🇬🇧' },
+  { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc', flag: '🇨🇭' },
+  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar', flag: '🇨🇦' },
+  { code: 'JPY', symbol: '¥', name: 'Japanese Yen', flag: '🇯🇵' },
+  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar', flag: '🇦🇺' },
+  { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone', flag: '🇳🇴' },
+  { code: 'SEK', symbol: 'kr', name: 'Swedish Krona', flag: '🇸🇪' },
+  { code: 'DKK', symbol: 'kr', name: 'Danish Krone', flag: '🇩🇰' },
+];
 
 // Paramètres complètement vides pour un nouveau compte
 export const DEFAULT_SETTINGS: OwnerSettings = {
@@ -84,6 +112,13 @@ export const DEFAULT_SETTINGS: OwnerSettings = {
   customProperties: [],
   propertyTemplates: [], // Vide par défaut - utilisateur doit créer ses propriétés
   invoiceTemplate: 'original',
+  vatSettings: {
+    isSubjectToVAT: false,
+    vatRate: 10, // TVA 10% pour locations meublées par défaut
+    customRate: 10,
+    useCustomRate: false,
+  },
+  currency: 'EUR', // Euro par défaut
 };
 
 export const SettingsScreen: React.FC = () => {
@@ -369,6 +404,205 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
             selectedTemplate={(settings.invoiceTemplate || 'original') as TemplateType}
             onSelectTemplate={(template) => updateSettings(prev => ({ ...prev, invoiceTemplate: template }))}
           />
+
+          {/* Section TVA */}
+          <View style={styles.section}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="calculator-outline" size={24} color="#003580" />
+              <Text style={styles.sectionTitle}>TVA (Taxe sur la Valeur Ajoutée)</Text>
+            </View>
+
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextContainer}>
+                <Text style={styles.label}>Assujetti à la TVA</Text>
+                <Text style={styles.switchDescription}>
+                  Activer si vous devez collecter et reverser la TVA sur vos revenus locatifs
+                </Text>
+              </View>
+              <Switch
+                value={settings.vatSettings.isSubjectToVAT}
+                onValueChange={(value) => updateSettings(prev => ({ 
+                  ...prev, 
+                  vatSettings: { ...prev.vatSettings, isSubjectToVAT: value } 
+                }))}
+                trackColor={{ false: '#e7e7e7', true: '#003580' }}
+                thumbColor={settings.vatSettings.isSubjectToVAT ? '#fff' : '#f4f3f4'}
+              />
+            </View>
+
+            {settings.vatSettings.isSubjectToVAT && (
+              <>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Taux de TVA (%)</Text>
+                  <View style={styles.vatRateContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.vatRateButton,
+                        settings.vatSettings.vatRate === 10 && !settings.vatSettings.useCustomRate && styles.vatRateButtonActive
+                      ]}
+                      onPress={() => updateSettings(prev => ({ 
+                        ...prev, 
+                        vatSettings: { ...prev.vatSettings, vatRate: 10, useCustomRate: false } 
+                      }))}
+                    >
+                      <Text style={[
+                        styles.vatRateButtonText,
+                        settings.vatSettings.vatRate === 10 && !settings.vatSettings.useCustomRate && styles.vatRateButtonTextActive
+                      ]}>10%</Text>
+                      <Text style={styles.vatRateLabel}>Meublé</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={[
+                        styles.vatRateButton,
+                        settings.vatSettings.vatRate === 20 && !settings.vatSettings.useCustomRate && styles.vatRateButtonActive
+                      ]}
+                      onPress={() => updateSettings(prev => ({ 
+                        ...prev, 
+                        vatSettings: { ...prev.vatSettings, vatRate: 20, useCustomRate: false } 
+                      }))}
+                    >
+                      <Text style={[
+                        styles.vatRateButtonText,
+                        settings.vatSettings.vatRate === 20 && !settings.vatSettings.useCustomRate && styles.vatRateButtonTextActive
+                      ]}>20%</Text>
+                      <Text style={styles.vatRateLabel}>Standard</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.vatRateButton,
+                        settings.vatSettings.vatRate === 5.5 && !settings.vatSettings.useCustomRate && styles.vatRateButtonActive
+                      ]}
+                      onPress={() => updateSettings(prev => ({ 
+                        ...prev, 
+                        vatSettings: { ...prev.vatSettings, vatRate: 5.5, useCustomRate: false } 
+                      }))}
+                    >
+                      <Text style={[
+                        styles.vatRateButtonText,
+                        settings.vatSettings.vatRate === 5.5 && !settings.vatSettings.useCustomRate && styles.vatRateButtonTextActive
+                      ]}>5,5%</Text>
+                      <Text style={styles.vatRateLabel}>Réduit</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.vatRateContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.vatRateButton,
+                        styles.customVatButton,
+                        settings.vatSettings.useCustomRate && styles.vatRateButtonActive
+                      ]}
+                      onPress={() => updateSettings(prev => ({ 
+                        ...prev, 
+                        vatSettings: { 
+                          ...prev.vatSettings, 
+                          useCustomRate: true,
+                          vatRate: prev.vatSettings.customRate || 10
+                        } 
+                      }))}
+                    >
+                      <Text style={[
+                        styles.vatRateButtonText,
+                        settings.vatSettings.useCustomRate && styles.vatRateButtonTextActive
+                      ]}>Personnalisé</Text>
+                      <Text style={styles.vatRateLabel}>Autre taux</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {settings.vatSettings.useCustomRate && (
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Taux personnalisé (%)</Text>
+                      <TextInput
+                        style={styles.customVatInput}
+                        value={settings.vatSettings.customRate?.toString() || ''}
+                        onChangeText={(text) => {
+                          const rate = parseFloat(text.replace(',', '.')) || 0;
+                          updateSettings(prev => ({ 
+                            ...prev, 
+                            vatSettings: { 
+                              ...prev.vatSettings, 
+                              customRate: rate,
+                              vatRate: rate
+                            } 
+                          }));
+                        }}
+                        placeholder="Ex: 8.5"
+                        keyboardType="decimal-pad"
+                        maxLength={6}
+                      />
+                      <Text style={styles.helpText}>
+                        Entrez votre taux de TVA personnalisé (ex: 8.5 pour 8,5%)
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.vatInfoBox}>
+                  <Ionicons name="information-circle" size={16} color="#0ea5e9" />
+                  <View style={styles.vatInfoText}>
+                    <Text style={styles.vatInfoTitle}>Fonctionnement simplifié :</Text>
+                    <Text style={styles.vatInfoDescription}>
+                      • Saisissez vos prix TTC (comme sur Airbnb/Booking){'\n'}
+                      • La facture affichera automatiquement HT, TVA et TTC{'\n'}
+                      • Taux recommandé : 10% pour locations meublées
+                    </Text>
+                  </View>
+                </View>
+              </>
+            )}
+          </View>
+
+          {/* Section Devise */}
+          <View style={styles.section}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="cash-outline" size={24} color="#003580" />
+              <Text style={styles.sectionTitle}>Devise</Text>
+            </View>
+
+            <Text style={styles.sectionDescription}>
+              Choisissez la devise principale pour vos factures et tarifs
+            </Text>
+
+            <View style={styles.currencyContainer}>
+              {SUPPORTED_CURRENCIES.map((currency) => (
+                <TouchableOpacity
+                  key={currency.code}
+                  style={[
+                    styles.currencyButton,
+                    settings.currency === currency.code && styles.currencyButtonActive
+                  ]}
+                  onPress={() => updateSettings(prev => ({ ...prev, currency: currency.code }))}
+                >
+                  <Text style={styles.currencyFlag}>{currency.flag}</Text>
+                  <Text style={[
+                    styles.currencySymbol,
+                    settings.currency === currency.code && styles.currencySymbolActive
+                  ]}>
+                    {currency.symbol}
+                  </Text>
+                  <Text style={[
+                    styles.currencyCode,
+                    settings.currency === currency.code && styles.currencyCodeActive
+                  ]}>
+                    {currency.code}
+                  </Text>
+                  <Text style={styles.currencyName}>{currency.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.currencyInfoBox}>
+              <Ionicons name="information-circle" size={16} color="#0ea5e9" />
+              <View style={styles.currencyInfoText}>
+                <Text style={styles.currencyInfoTitle}>Information :</Text>
+                <Text style={styles.currencyInfoDescription}>
+                  Cette devise sera utilisée pour tous les prix et totaux dans vos factures. Vous pouvez la changer à tout moment.
+                </Text>
+              </View>
+            </View>
+          </View>
           
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Informations propriétaire</Text>
@@ -646,8 +880,6 @@ Veuillez trouver ci-joint la facture..."
             </Text>
           </View>
 
-          {/* Section Google Drive */}
-          <GoogleDriveSection />
 
           {/* Section Abonnement - EN DERNIER */}
           <SubscriptionSection />
@@ -1180,5 +1412,155 @@ const styles = StyleSheet.create({
     color: '#0369a1',
     textAlign: 'center',
     fontWeight: '500',
+  },
+  headerWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  vatRateContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  vatRateButton: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 2,
+    borderColor: '#e7e7e7',
+    borderRadius: 8,
+    padding: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  vatRateButtonActive: {
+    backgroundColor: '#e3f2fd',
+    borderColor: '#003580',
+  },
+  vatRateButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#666',
+    marginBottom: 4,
+  },
+  vatRateButtonTextActive: {
+    color: '#003580',
+  },
+  vatRateLabel: {
+    fontSize: 12,
+    color: '#888',
+    fontWeight: '500',
+  },
+  vatInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#f0f9ff',
+    borderLeftWidth: 4,
+    borderLeftColor: '#0ea5e9',
+    padding: 12,
+    borderRadius: 6,
+    marginTop: 16,
+  },
+  vatInfoText: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  vatInfoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0369a1',
+    marginBottom: 4,
+  },
+  vatInfoDescription: {
+    fontSize: 13,
+    color: '#0369a1',
+    lineHeight: 18,
+  },
+  customVatButton: {
+    flex: 2,
+    marginTop: 12,
+  },
+  customVatInput: {
+    borderWidth: 2,
+    borderColor: '#003580',
+    borderRadius: 6,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#1a1a1a',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  // Styles pour la section devise
+  currencyContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 16,
+  },
+  currencyButton: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: '#f8f9fa',
+    borderWidth: 2,
+    borderColor: '#e7e7e7',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currencyButtonActive: {
+    backgroundColor: '#e3f2fd',
+    borderColor: '#003580',
+  },
+  currencyFlag: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  currencySymbol: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#666',
+    marginBottom: 2,
+  },
+  currencySymbolActive: {
+    color: '#003580',
+  },
+  currencyCode: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#888',
+    marginBottom: 2,
+  },
+  currencyCodeActive: {
+    color: '#003580',
+  },
+  currencyName: {
+    fontSize: 10,
+    color: '#999',
+    textAlign: 'center',
+  },
+  currencyInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#f0f9ff',
+    borderLeftWidth: 4,
+    borderLeftColor: '#0ea5e9',
+    padding: 12,
+    borderRadius: 6,
+  },
+  currencyInfoText: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  currencyInfoTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#0369a1',
+    marginBottom: 4,
+  },
+  currencyInfoDescription: {
+    fontSize: 13,
+    color: '#0369a1',
+    lineHeight: 18,
   },
 });

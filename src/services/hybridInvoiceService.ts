@@ -3,7 +3,7 @@ import { LocalStorageService, StoredInvoice } from './localStorageService';
 import { InvoiceData } from '../types/invoice';
 import googleDriveService from './googleDriveService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SETTINGS_KEY, PropertyTemplate } from '../features/settings/SettingsScreen';
+import { SETTINGS_KEY, PropertyTemplate, OwnerSettings } from '../features/settings/SettingsScreen';
 
 /**
  * Service hybride pour les factures :
@@ -68,8 +68,8 @@ class HybridInvoiceService {
         console.log('⚠️ Mode hors ligne - facture sauvegardée localement uniquement');
       }
       
-      // Synchroniser avec Google Drive si connecté
-      await this.syncToGoogleDrive(storedInvoice, invoiceData);
+      // Synchroniser avec Google Drive si connecté (désactivé temporairement)
+      // await this.syncToGoogleDrive(storedInvoice, invoiceData);
       
       return storedInvoice;
       
@@ -208,7 +208,7 @@ class HybridInvoiceService {
     
     console.log('Numéro de facture formaté:', invoiceNumber);
 
-    // Calculer le montant total
+    // Calculer le montant total avec TVA si applicable
     const numberOfNights = typeof invoiceData.numberOfNights === 'string' ? parseInt(invoiceData.numberOfNights) : invoiceData.numberOfNights;
     const pricePerNight = typeof invoiceData.pricePerNight === 'string' ? parseFloat((invoiceData.pricePerNight as string).replace(',', '.')) : invoiceData.pricePerNight;
     const taxAmount = typeof invoiceData.taxAmount === 'string' ? parseFloat((invoiceData.taxAmount as string).replace(',', '.')) : invoiceData.taxAmount;
@@ -217,9 +217,31 @@ class HybridInvoiceService {
     const totalExtras = invoiceData.extras ? invoiceData.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0) : 0;
     
     // Inclure la taxe seulement si la plateforme ne la collecte pas
-    const totalAmount = (numberOfNights * pricePerNight) + totalExtras + (invoiceData.isPlatformCollectingTax ? 0 : taxAmount);
+    const baseTotalAmount = (numberOfNights * pricePerNight) + totalExtras + (invoiceData.isPlatformCollectingTax ? 0 : taxAmount);
 
-    console.log('Montant total calculé:', totalAmount);
+    // Récupérer les settings pour la TVA via AsyncStorage car nous sommes dans saveInvoiceWithLanguage
+    let vatSettings = { isSubjectToVAT: false, vatRate: 10, useCustomRate: false, customRate: 10 };
+    try {
+      const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
+      if (savedSettings) {
+        const parsedSettings = JSON.parse(savedSettings);
+        if (parsedSettings.vatSettings) {
+          vatSettings = parsedSettings.vatSettings;
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lecture settings TVA:', error);
+    }
+
+    // Calculer le montant final avec TVA
+    let totalAmount = baseTotalAmount;
+    if (vatSettings.isSubjectToVAT) {
+      // L'utilisateur entre TTC, donc totalAmount reste le même
+      // Le calcul HT/TVA sera fait dans le template PDF
+      totalAmount = baseTotalAmount;
+    }
+
+    console.log('Montant total calculé (avec TVA si applicable):', totalAmount);
 
     // Générer le PDF final avec le bon numéro de facture et la langue
     console.log('Génération du PDF final avec numéro:', invoiceNumber, 'et langue:', language);

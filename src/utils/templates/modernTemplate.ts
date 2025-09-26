@@ -2,6 +2,7 @@ import { InvoiceData } from '../../types/invoice';
 import { OwnerSettings } from '../../features/settings/SettingsScreen';
 import { getInvoiceTranslation } from '../invoiceTranslations';
 import { translateExtras } from '../extrasTranslator';
+import { formatPrice, getCurrencySymbol } from '../currencyFormatter';
 
 export const generateModernTemplate = (
   data: InvoiceData,
@@ -20,7 +21,34 @@ export const generateModernTemplate = (
   const totalNights = numberOfNights * pricePerNight;
   const totalExtras = translatedData.extras ? translatedData.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0) : 0;
   const finalTaxAmount = translatedData.isPlatformCollectingTax ? 0 : taxAmount;
-  const totalWithTax = totalNights + totalExtras + finalTaxAmount;
+  
+  // Calculs TVA
+  const isVATSubject = settings.vatSettings?.isSubjectToVAT || false;
+  const vatRate = settings.vatSettings?.useCustomRate 
+    ? (settings.vatSettings?.customRate || 0)
+    : (settings.vatSettings?.vatRate || 0);
+  
+  let subtotalHT = 0;
+  let vatAmount = 0;
+  let totalTTC = 0;
+  
+  if (isVATSubject) {
+    // L'utilisateur entre le prix TTC, on calcule le HT
+    const totalBeforeVAT = totalNights + totalExtras;
+    totalTTC = totalBeforeVAT + finalTaxAmount;
+    subtotalHT = totalTTC / (1 + vatRate / 100);
+    vatAmount = totalTTC - subtotalHT;
+  } else {
+    // Pas de TVA, le total reste le même
+    subtotalHT = totalNights + totalExtras + finalTaxAmount;
+    vatAmount = 0;
+    totalTTC = subtotalHT;
+  }
+  
+  const totalWithTax = totalTTC;
+  
+  // Obtenir la devise pour le formatage
+  const currencyCode = settings.currency || 'EUR';
   
   const locale = language === 'en' ? 'en-US' : 
                 language === 'es' ? 'es-ES' :
@@ -224,6 +252,57 @@ export const generateModernTemplate = (
           letter-spacing: -1px;
         }
         
+        /* VAT Breakdown pour template moderne */
+        .total-breakdown {
+          background: white;
+          border-radius: 8px;
+          padding: 20px;
+          margin: 0 30px;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .total-line {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 12px 0;
+          border-bottom: 1px solid #f4f5f6;
+        }
+        .total-line:last-child {
+          border-bottom: none;
+        }
+        .total-line.total-final {
+          border-top: 2px solid #667eea;
+          margin-top: 10px;
+          padding-top: 15px;
+          background: rgba(102, 126, 234, 0.05);
+          margin-left: -20px;
+          margin-right: -20px;
+          padding-left: 20px;
+          padding-right: 20px;
+        }
+        .breakdown-label {
+          font-size: 14px;
+          color: #1a1a1a;
+          font-weight: 500;
+        }
+        .breakdown-amount {
+          font-size: 14px;
+          color: #1a1a1a;
+          font-weight: 600;
+        }
+        .breakdown-label-final {
+          font-size: 16px;
+          color: #667eea;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+        .breakdown-amount-final {
+          font-size: 20px;
+          color: #1a1a1a;
+          font-weight: 700;
+        }
+        
         /* Footer */
         .footer {
           padding: 20px 30px;
@@ -316,8 +395,8 @@ export const generateModernTemplate = (
                   ${translatedData.isBookingReservation ? `<br><small style="color: #6c757d;">${translations.bookingReservation} ${translatedData.bookingNumber || ''}</small>` : ''}
                 </td>
                 <td class="qty-cell">${numberOfNights}</td>
-                <td class="price-cell">${pricePerNight.toFixed(2)} €</td>
-                <td class="price-cell">${totalNights.toFixed(2)} €</td>
+                <td class="price-cell">${formatPrice(pricePerNight, currencyCode)}</td>
+                <td class="price-cell">${formatPrice(totalNights, currencyCode)}</td>
               </tr>
               ${translatedData.extras && translatedData.extras.length > 0 ? translatedData.extras.map(extra => `
                 <tr>
@@ -325,8 +404,8 @@ export const generateModernTemplate = (
                     ${extra.name}
                   </td>
                   <td class="qty-cell">${extra.quantity}</td>
-                  <td class="price-cell">${extra.price.toFixed(2)} €</td>
-                  <td class="price-cell">${(extra.price * extra.quantity).toFixed(2)} €</td>
+                  <td class="price-cell">${formatPrice(extra.price, currencyCode)}</td>
+                  <td class="price-cell">${formatPrice(extra.price * extra.quantity, currencyCode)}</td>
                 </tr>
               `).join('') : ''}
               ${taxAmount > 0 ? `
@@ -336,20 +415,37 @@ export const generateModernTemplate = (
                     ${translatedData.isPlatformCollectingTax ? `<br><small style="color: #6c757d;">${translations.collectedByPlatform}</small>` : ''}
                   </td>
                   <td class="qty-cell ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">1</td>
-                  <td class="price-cell ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">${taxAmount.toFixed(2)} €</td>
-                  <td class="price-cell ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">${taxAmount.toFixed(2)} €</td>
+                  <td class="price-cell ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">${formatPrice(taxAmount, currencyCode)}</td>
+                  <td class="price-cell ${translatedData.isPlatformCollectingTax ? 'strikethrough' : ''}">${formatPrice(taxAmount, currencyCode)}</td>
                 </tr>
               ` : ''}
             </tbody>
           </table>
         </div>
         
-        <!-- Total -->
+        <!-- Total avec détail TVA -->
         <div class="total-section">
+          ${isVATSubject ? `
+          <div class="total-breakdown">
+            <div class="total-line">
+              <div class="breakdown-label">${translations.subtotalHT}</div>
+              <div class="breakdown-amount">${formatPrice(subtotalHT, currencyCode)}</div>
+            </div>
+            <div class="total-line">
+              <div class="breakdown-label">${translations.vat} (${vatRate.toFixed(vatRate % 1 === 0 ? 0 : 1)}%)</div>
+              <div class="breakdown-amount">${formatPrice(vatAmount, currencyCode)}</div>
+            </div>
+            <div class="total-line total-final">
+              <div class="breakdown-label-final">${translations.totalTTC}</div>
+              <div class="breakdown-amount-final">${formatPrice(totalTTC, currencyCode)}</div>
+            </div>
+          </div>
+          ` : `
           <div class="total-content">
             <div class="total-label">${translations.total}</div>
-            <div class="total-amount">${totalWithTax.toFixed(2)} €</div>
+            <div class="total-amount">${formatPrice(totalWithTax, currencyCode)}</div>
           </div>
+          `}
         </div>
         
         <!-- Footer -->

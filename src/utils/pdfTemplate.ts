@@ -7,6 +7,7 @@ import { generateClassicTemplate } from './templates/classicTemplate';
 import { generateMinimalTemplate } from './templates/minimalTemplate';
 import { translateExtras } from './extrasTranslator';
 import hybridSettingsService from '../services/hybridSettingsService';
+import { formatPrice, getCurrencySymbol } from './currencyFormatter';
 
 export type InvoiceTemplateType = 'modern' | 'classic' | 'minimal' | 'original';
 
@@ -75,7 +76,34 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
   
   // Inclure la taxe dans le total seulement si la plateforme ne la collecte pas
   const finalTaxAmount = data.isPlatformCollectingTax ? 0 : taxAmount;
-  const totalWithTax = totalNights + totalExtras + finalTaxAmount;
+  
+  // Calculs TVA
+  const isVATSubject = settings.vatSettings?.isSubjectToVAT || false;
+  const vatRate = settings.vatSettings?.useCustomRate 
+    ? (settings.vatSettings?.customRate || 0)
+    : (settings.vatSettings?.vatRate || 0);
+  
+  let subtotalHT = 0;
+  let vatAmount = 0;
+  let totalTTC = 0;
+  
+  if (isVATSubject) {
+    // L'utilisateur entre le prix TTC, on calcule le HT
+    const totalBeforeVAT = totalNights + totalExtras;
+    totalTTC = totalBeforeVAT + finalTaxAmount;
+    subtotalHT = totalTTC / (1 + vatRate / 100);
+    vatAmount = totalTTC - subtotalHT;
+  } else {
+    // Pas de TVA, le total reste le même
+    subtotalHT = totalNights + totalExtras + finalTaxAmount;
+    vatAmount = 0;
+    totalTTC = subtotalHT;
+  }
+  
+  const totalWithTax = totalTTC;
+  
+  // Obtenir la devise pour le formatage
+  const currencyCode = settings.currency || 'EUR';
   
   // Obtenir la langue et les traductions (déjà défini plus haut)
   const translations = getInvoiceTranslation(selectedLanguage);
@@ -245,6 +273,46 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
           color: #333;
         }
         
+        /* TVA Breakdown */
+        .total-breakdown {
+          display: inline-block;
+          border: 2px solid #1a6b7a;
+          background-color: white;
+          min-width: 350px;
+        }
+        .total-line {
+          display: flex;
+          justify-content: space-between;
+          padding: 10px 20px;
+          border-bottom: 1px solid #e0e0e0;
+        }
+        .total-line:last-child {
+          border-bottom: none;
+        }
+        .total-line.total-final {
+          border-top: 2px solid #1a6b7a;
+          background-color: #f8fafb;
+        }
+        .total-label-breakdown {
+          font-size: 14px;
+          color: #333;
+        }
+        .total-amount-breakdown {
+          font-size: 14px;
+          color: #333;
+          font-weight: 500;
+        }
+        .total-label-final {
+          font-size: 16px;
+          color: #1a6b7a;
+          font-weight: bold;
+        }
+        .total-amount-final {
+          font-size: 16px;
+          color: #333;
+          font-weight: bold;
+        }
+        
         /* Infos supplémentaires */
       </style>
     </head>
@@ -307,8 +375,8 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
                 ${translations.accommodation} ${arrivalDate} ${translations.to} ${departureDate}${data.isGeniusRate ? ` ${translations.geniusRate}` : ''}
               </td>
               <td style="vertical-align: top;">${numberOfNights.toFixed(2)}</td>
-              <td style="vertical-align: top;">${pricePerNight.toFixed(2)} €</td>
-              <td style="vertical-align: top;">${totalNights.toFixed(2)} €</td>
+              <td style="vertical-align: top;">${formatPrice(pricePerNight, currencyCode)}</td>
+              <td style="vertical-align: top;">${formatPrice(totalNights, currencyCode)}</td>
             </tr>
             ${data.extras && data.extras.length > 0 ? data.extras.map(extra => `
             <tr>
@@ -316,8 +384,8 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
                 ${extra.name}${extra.quantity > 1 ? ` (x${extra.quantity})` : ''}
               </td>
               <td style="padding-top: 10px;">${extra.quantity}</td>
-              <td style="padding-top: 10px;">${extra.price.toFixed(2)} €</td>
-              <td style="vertical-align: top; padding-top: 10px;">${(extra.price * extra.quantity).toFixed(2)} €</td>
+              <td style="padding-top: 10px;">${formatPrice(extra.price, currencyCode)}</td>
+              <td style="vertical-align: top; padding-top: 10px;">${formatPrice(extra.price * extra.quantity, currencyCode)}</td>
             </tr>
             `).join('') : ''}
             <tr>
@@ -329,8 +397,8 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
               <td style="padding-top: 20px;"></td>
               <td style="vertical-align: top; padding-top: 20px;">
                 ${data.isPlatformCollectingTax ? 
-                  `<span style="text-decoration: line-through; color: #666;">${taxAmount.toFixed(2)} €</span><br><small style="color: #666;">0,00 €</small>` : 
-                  `${taxAmount.toFixed(2)} €`
+                  `<span style="text-decoration: line-through; color: #666;">${formatPrice(taxAmount, currencyCode)}</span><br><small style="color: #666;">${formatPrice(0, currencyCode)}</small>` : 
+                  `${formatPrice(taxAmount, currencyCode)}`
                 }
               </td>
             </tr>
@@ -349,12 +417,29 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
           </tbody>
         </table>
         
-        <!-- Total -->
+        <!-- Total avec détail TVA -->
         <div class="total-section">
+          ${isVATSubject ? `
+          <div class="total-breakdown">
+            <div class="total-line">
+              <span class="total-label-breakdown">${translations.subtotalHT || 'Sous-total HT'}</span>
+              <span class="total-amount-breakdown">${formatPrice(subtotalHT, currencyCode)}</span>
+            </div>
+            <div class="total-line">
+              <span class="total-label-breakdown">${translations.vat || 'TVA'} (${vatRate.toFixed(vatRate % 1 === 0 ? 0 : 1)}%)</span>
+              <span class="total-amount-breakdown">${formatPrice(vatAmount, currencyCode)}</span>
+            </div>
+            <div class="total-line total-final">
+              <span class="total-label-final">${translations.totalTTC || 'Total TTC'}</span>
+              <span class="total-amount-final">${formatPrice(totalTTC, currencyCode)}</span>
+            </div>
+          </div>
+          ` : `
           <div class="total-box">
             <span class="total-label">${translations.total}</span>
-            <span class="total-amount">${totalWithTax.toFixed(2)} €</span>
+            <span class="total-amount">${formatPrice(totalWithTax, currencyCode)}</span>
           </div>
+          `}
         </div>
       </div>
     </body>

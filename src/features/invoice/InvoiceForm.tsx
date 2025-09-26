@@ -22,6 +22,7 @@ import ClientSelector from '../../components/ClientSelector';
 import clientService, { Client } from '../../services/clientService';
 import invoiceCounterService from '../../services/invoiceCounterService';
 import { ExtrasManager, validateExtras } from '../../components/ExtrasManager';
+import { getCurrencySymbol } from '../../utils/currencyFormatter';
 
 interface InvoiceFormProps {
   onSubmit: (data: InvoiceFormData) => void;
@@ -71,6 +72,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
   const [selectedProperty, setSelectedProperty] = useState<PropertyTemplate | null>(null);
   const [invoiceLanguage, setInvoiceLanguage] = useState<'fr' | 'en' | 'es' | 'de' | 'it'>('fr');
   const [emailLanguage, setEmailLanguage] = useState<'fr' | 'en' | 'es' | 'de' | 'it'>('fr');
+  const [currency, setCurrency] = useState<string>('EUR');
   const navigation = useNavigation<any>();
   const isBookingReservation = watch('isBookingReservation');
   const isClientInvoice = watch('isClientInvoice');
@@ -112,6 +114,9 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       console.log('PropertyTemplates trouvés:', settings.propertyTemplates);
       
       setPropertyTemplates(settings.propertyTemplates || []);
+      
+      // Charger la devise sélectionnée
+      setCurrency(settings.currency || 'EUR');
       
       // Sélectionner automatiquement le premier template si disponible
       if (settings.propertyTemplates && settings.propertyTemplates.length > 0) {
@@ -861,7 +866,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
           </View>
 
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Prix par nuit (€)</Text>
+            <Text style={styles.label}>Prix par nuit ({getCurrencySymbol(currency)})</Text>
             <Controller
               control={control}
               name="pricePerNight"
@@ -925,7 +930,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
 
           {!isPlatformCollectingTax && (
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Taxe de séjour (€)</Text>
+              <Text style={styles.label}>Taxe de séjour ({getCurrencySymbol(currency)})</Text>
               <Controller
                 control={control}
                 name="taxAmount"

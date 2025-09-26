@@ -52,6 +52,10 @@ interface InvoiceTranslations {
   extraNamePlaceholder: string;
   extraPricePlaceholder: string;
   extraQuantityPlaceholder: string;
+  // Traductions TVA
+  subtotalHT: string;
+  vat: string;
+  totalTTC: string;
 }
 
 export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
@@ -105,7 +109,11 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     extrasHelpText: 'Vous pouvez :\n\n• Sélectionner un extra prédéfini en appuyant sur une icône\n• Modifier le nom, le prix et la quantité de chaque extra ajouté\n• Ajouter un extra personnalisé en appuyant sur le bouton en bas\n• Supprimer un extra avec l\'icône poubelle',
     extraNamePlaceholder: 'Nom de l\'extra',
     extraPricePlaceholder: 'Prix',
-    extraQuantityPlaceholder: 'Qt'
+    extraQuantityPlaceholder: 'Qt',
+    // TVA
+    subtotalHT: 'Sous-total HT',
+    vat: 'TVA',
+    totalTTC: 'Total TTC'
   },
   en: {
     billedTo: 'Billed to:',
@@ -157,7 +165,11 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     extrasHelpText: 'You can:\n\n• Select a predefined extra by tapping an icon\n• Modify the name, price and quantity of each added extra\n• Add a custom extra by tapping the button below\n• Remove an extra with the trash icon',
     extraNamePlaceholder: 'Extra name',
     extraPricePlaceholder: 'Price',
-    extraQuantityPlaceholder: 'Qty'
+    extraQuantityPlaceholder: 'Qty',
+    // VAT
+    subtotalHT: 'Subtotal (ex. VAT)',
+    vat: 'VAT',
+    totalTTC: 'Total (inc. VAT)'
   },
   es: {
     billedTo: 'Facturado a:',
@@ -209,7 +221,11 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     extrasHelpText: 'Puedes:\n\n• Seleccionar un extra predefinido tocando un icono\n• Modificar el nombre, precio y cantidad de cada extra añadido\n• Añadir un extra personalizado tocando el botón de abajo\n• Eliminar un extra con el icono de papelera',
     extraNamePlaceholder: 'Nombre del extra',
     extraPricePlaceholder: 'Precio',
-    extraQuantityPlaceholder: 'Cant'
+    extraQuantityPlaceholder: 'Cant',
+    // IVA
+    subtotalHT: 'Subtotal (sin IVA)',
+    vat: 'IVA',
+    totalTTC: 'Total (con IVA)'
   },
   de: {
     billedTo: 'Rechnungsempfänger:',
@@ -261,7 +277,11 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     extrasHelpText: 'Du kannst:\n\n• Ein vordefiniertes Extra auswählen, indem du auf ein Symbol tippst\n• Namen, Preis und Menge jedes hinzugefügten Extras ändern\n• Ein benutzerdefiniertes Extra hinzufügen, indem du auf die Schaltfläche unten tippst\n• Ein Extra mit dem Papierkorbsymbol entfernen',
     extraNamePlaceholder: 'Extra Name',
     extraPricePlaceholder: 'Preis',
-    extraQuantityPlaceholder: 'Anz'
+    extraQuantityPlaceholder: 'Anz',
+    // MwSt
+    subtotalHT: 'Zwischensumme (ohne MwSt.)',
+    vat: 'MwSt.',
+    totalTTC: 'Gesamt (inkl. MwSt.)'
   },
   it: {
     billedTo: 'Fatturato a:',
@@ -313,7 +333,11 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     extrasHelpText: 'Puoi:\n\n• Selezionare un extra predefinito toccando un\'icona\n• Modificare nome, prezzo e quantità di ogni extra aggiunto\n• Aggiungere un extra personalizzato toccando il pulsante in basso\n• Rimuovere un extra con l\'icona del cestino',
     extraNamePlaceholder: 'Nome extra',
     extraPricePlaceholder: 'Prezzo',
-    extraQuantityPlaceholder: 'Qt'
+    extraQuantityPlaceholder: 'Qt',
+    // IVA
+    subtotalHT: 'Subtotale (senza IVA)',
+    vat: 'IVA',
+    totalTTC: 'Totale (con IVA)'
   }
 };
 
