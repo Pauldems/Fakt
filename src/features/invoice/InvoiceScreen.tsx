@@ -134,6 +134,7 @@ export const InvoiceScreen: React.FC = () => {
         clientCity: formData.clientCity,
         selectedPropertyId: formData.selectedPropertyId,
         extras: formData.extras,
+        paymentMethod: formData.paymentMethod,
       };
       
       // Récupérer les langues sélectionnées

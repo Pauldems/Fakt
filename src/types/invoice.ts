@@ -27,6 +27,7 @@ export interface InvoiceData {
   clientCity?: string;
   selectedPropertyId?: string;
   extras?: Extra[];
+  paymentMethod?: 'platform' | 'cash' | 'card' | 'transfer' | 'check';
 }
 
 export interface InvoiceFormData {
@@ -54,4 +55,5 @@ export interface InvoiceFormData {
   extras?: Extra[];
   invoiceLanguage?: 'fr' | 'en' | 'es' | 'de' | 'it';
   emailLanguage?: 'fr' | 'en' | 'es' | 'de' | 'it';
+  paymentMethod?: 'platform' | 'cash' | 'card' | 'transfer' | 'check';
 }

@@ -56,6 +56,13 @@ interface InvoiceTranslations {
   subtotalHT: string;
   vat: string;
   totalTTC: string;
+  // Traductions modes de paiement
+  paymentMethod: string;
+  paymentPlatform: string;
+  paymentCash: string;
+  paymentCard: string;
+  paymentTransfer: string;
+  paymentCheck: string;
 }
 
 export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
@@ -113,7 +120,14 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     // TVA
     subtotalHT: 'Sous-total HT',
     vat: 'TVA',
-    totalTTC: 'Total TTC'
+    totalTTC: 'Total TTC',
+    // Modes de paiement
+    paymentMethod: 'Mode de paiement',
+    paymentPlatform: 'Règlement effectué directement sur la plateforme',
+    paymentCash: 'Règlement effectué en espèces',
+    paymentCard: 'Règlement effectué par carte bancaire',
+    paymentTransfer: 'Règlement effectué par virement bancaire',
+    paymentCheck: 'Règlement effectué par chèque'
   },
   en: {
     billedTo: 'Billed to:',
@@ -169,7 +183,14 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     // VAT
     subtotalHT: 'Subtotal (ex. VAT)',
     vat: 'VAT',
-    totalTTC: 'Total (inc. VAT)'
+    totalTTC: 'Total (inc. VAT)',
+    // Payment methods
+    paymentMethod: 'Payment method',
+    paymentPlatform: 'Payment made directly on the platform',
+    paymentCash: 'Payment made in cash',
+    paymentCard: 'Payment made by bank card',
+    paymentTransfer: 'Payment made by bank transfer',
+    paymentCheck: 'Payment made by check'
   },
   es: {
     billedTo: 'Facturado a:',
@@ -225,7 +246,14 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     // IVA
     subtotalHT: 'Subtotal (sin IVA)',
     vat: 'IVA',
-    totalTTC: 'Total (con IVA)'
+    totalTTC: 'Total (con IVA)',
+    // Métodos de pago
+    paymentMethod: 'Método de pago',
+    paymentPlatform: 'Pago realizado directamente en la plataforma',
+    paymentCash: 'Pago realizado en efectivo',
+    paymentCard: 'Pago realizado con tarjeta bancaria',
+    paymentTransfer: 'Pago realizado por transferencia bancaria',
+    paymentCheck: 'Pago realizado con cheque'
   },
   de: {
     billedTo: 'Rechnungsempfänger:',
@@ -281,7 +309,14 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     // MwSt
     subtotalHT: 'Zwischensumme (ohne MwSt.)',
     vat: 'MwSt.',
-    totalTTC: 'Gesamt (inkl. MwSt.)'
+    totalTTC: 'Gesamt (inkl. MwSt.)',
+    // Zahlungsmethoden
+    paymentMethod: 'Zahlungsmethode',
+    paymentPlatform: 'Zahlung direkt über die Plattform erfolgt',
+    paymentCash: 'Zahlung in bar erfolgt',
+    paymentCard: 'Zahlung mit Bankkarte erfolgt',
+    paymentTransfer: 'Zahlung per Banküberweisung erfolgt',
+    paymentCheck: 'Zahlung per Scheck erfolgt'
   },
   it: {
     billedTo: 'Fatturato a:',
@@ -337,7 +372,14 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     // IVA
     subtotalHT: 'Subtotale (senza IVA)',
     vat: 'IVA',
-    totalTTC: 'Totale (con IVA)'
+    totalTTC: 'Totale (con IVA)',
+    // Metodi di pagamento
+    paymentMethod: 'Metodo di pagamento',
+    paymentPlatform: 'Pagamento effettuato direttamente sulla piattaforma',
+    paymentCash: 'Pagamento effettuato in contanti',
+    paymentCard: 'Pagamento effettuato con carta bancaria',
+    paymentTransfer: 'Pagamento effettuato tramite bonifico bancario',
+    paymentCheck: 'Pagamento effettuato con assegno'
   }
 };
 

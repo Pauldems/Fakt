@@ -66,6 +66,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       clientCity: '',
       selectedPropertyId: '',
       extras: [],
+      paymentMethod: 'platform',
     },
   });
 
@@ -273,6 +274,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       data.invoiceLanguage = invoiceLanguage;
       data.emailLanguage = emailLanguage;
 
+
       // Si on arrive ici, toutes les validations sont OK
       onSubmit(data);
     },
@@ -390,6 +392,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
     setValue('clientPostalCode', '');
     setValue('clientCity', '');
     setValue('selectedPropertyId', '');
+    setValue('paymentMethod', 'platform');
     
     // Remettre le numéro de facture (déjà mis à jour)
     setValue('invoiceNumber', currentInvoiceNumber);
@@ -1104,6 +1107,49 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
           )}
         </View>
 
+        {/* Section Mode de paiement */}
+        <View style={styles.formSection}>
+          <Text style={styles.sectionTitle}>Mode de paiement</Text>
+          
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Comment le paiement a été effectué ?</Text>
+            <Controller
+              control={control}
+              name="paymentMethod"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.radioGroup}>
+                  {[
+                    { key: 'platform', label: 'Directement sur la plateforme' },
+                    { key: 'cash', label: 'Espèces' },
+                    { key: 'card', label: 'Carte bancaire' },
+                    { key: 'transfer', label: 'Virement bancaire' },
+                    { key: 'check', label: 'Chèque' }
+                  ].map((option) => (
+                    <TouchableOpacity
+                      key={option.key}
+                      style={styles.radioOption}
+                      onPress={() => onChange(option.key)}
+                    >
+                      <View style={[
+                        styles.radioCircle,
+                        value === option.key && styles.radioCircleSelected
+                      ]}>
+                        {value === option.key && <View style={styles.radioInner} />}
+                      </View>
+                      <Text style={[
+                        styles.radioLabel,
+                        value === option.key && styles.radioLabelSelected
+                      ]}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            />
+          </View>
+        </View>
+
         {/* Section Langues */}
         <View style={styles.formSection}>
           <Text style={styles.sectionTitle}>Langues</Text>
@@ -1443,6 +1489,52 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   languageLabelSelected: {
+    color: '#0071c2',
+    fontWeight: '600',
+  },
+  radioGroup: {
+    marginTop: 8,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  radioOptionSelected: {
+    backgroundColor: '#e3f2fd',
+    borderColor: '#0071c2',
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioCircleSelected: {
+    borderColor: '#0071c2',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#0071c2',
+  },
+  radioLabel: {
+    fontSize: 16,
+    color: '#003580',
+    fontWeight: '500',
+  },
+  radioLabelSelected: {
     color: '#0071c2',
     fontWeight: '600',
   },

@@ -452,7 +452,13 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
                 ${data.isBookingReservation && data.bookingNumber ? `<br><br>${translations.bookingReservation}${data.bookingNumber}` : ''}
                 ${data.isClientInvoice && data.clientInvoiceNumber ? `<br><br>${translations.clientInvoice} ${data.clientInvoiceNumber}` : ''}
                 <br><br>
-                ${translations.paymentMade}
+                ${(() => {
+                  if (data.paymentMethod === 'cash') return translations.paymentCash;
+                  if (data.paymentMethod === 'card') return translations.paymentCard;
+                  if (data.paymentMethod === 'transfer') return translations.paymentTransfer;
+                  if (data.paymentMethod === 'check') return translations.paymentCheck;
+                  return translations.paymentPlatform || translations.paymentMade || 'Règlement effectué directement sur la plateforme';
+                })()}
               </td>
               <td style="border-bottom: none;"></td>
               <td style="border-bottom: none;"></td>
