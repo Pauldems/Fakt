@@ -30,6 +30,10 @@ import { generateInvoiceHTML } from '../../utils/pdfTemplate';
 import * as Print from 'expo-print';
 import * as FileSystem from 'expo-file-system/legacy';
 import clientService from '../../services/clientService';
+import { useTheme } from '../../theme/ThemeContext';
+import { ModernHeader } from '../../components/modern/ModernHeader';
+import hybridSettingsService from '../../services/hybridSettingsService';
+import deepLTranslateService from '../../services/deepLTranslateService';
 
 const { width } = Dimensions.get('window');
 
@@ -39,6 +43,7 @@ export const InvoiceScreen: React.FC = () => {
   const [pdfUri, setPdfUri] = useState<string | null>(null);
   const formRef = useRef<any>(null);
   const navigation = useNavigation<any>();
+  const { theme } = useTheme();
 
 
   const handleFormSubmit = async (formData: InvoiceFormData) => {
@@ -196,20 +201,24 @@ export const InvoiceScreen: React.FC = () => {
       let cityName = ''; // Pas de valeur par défaut
       let settings: OwnerSettings | null = null;
       try {
-        const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
-        if (savedSettings) {
-          settings = JSON.parse(savedSettings);
-          if (settings?.ownerName) {
-            ownerName = settings.ownerName;
-          }
-          // Migration: utiliser prénom + nom si ownerName n'existe pas
-          if (!ownerName && settings?.ownerFirstName && settings?.ownerLastName) {
-            ownerName = `${settings.ownerFirstName} ${settings.ownerLastName}`;
-          }
-          // Utiliser directement la ville depuis les paramètres
-          if (settings?.companyCity) {
-            cityName = settings.companyCity;
-          }
+        // Utiliser le service hybride pour charger les paramètres
+        settings = await hybridSettingsService.getSettings();
+        console.log('📧 Paramètres chargés:', {
+          useCustomEmail: settings?.useCustomEmail,
+          hasCustomSubject: !!settings?.customEmailSubject,
+          hasCustomBody: !!settings?.customEmailBody
+        });
+        
+        if (settings?.ownerName) {
+          ownerName = settings.ownerName;
+        }
+        // Migration: utiliser prénom + nom si ownerName n'existe pas
+        if (!ownerName && settings?.ownerFirstName && settings?.ownerLastName) {
+          ownerName = `${settings.ownerFirstName} ${settings.ownerLastName}`;
+        }
+        // Utiliser directement la ville depuis les paramètres
+        if (settings?.companyCity) {
+          cityName = settings.companyCity;
         }
       } catch (error) {
         console.error('Erreur lors du chargement des paramètres:', error);
@@ -221,7 +230,17 @@ export const InvoiceScreen: React.FC = () => {
       let subject: string;
       let message: string;
 
+      // Debug: vérifier les paramètres d'email personnalisé
+      console.log('🔍 Paramètres email:', {
+        useCustomEmail: settings?.useCustomEmail,
+        hasCustomSubject: !!settings?.customEmailSubject,
+        hasCustomBody: !!settings?.customEmailBody,
+        customSubject: settings?.customEmailSubject,
+        customBody: settings?.customEmailBody?.substring(0, 100) + '...'
+      });
+
       if (settings?.useCustomEmail && settings.customEmailSubject && settings.customEmailBody) {
+        console.log('✅ Utilisation de l\'email personnalisé');
         // Utiliser l'email personnalisé avec remplacement des variables
         let customSubject = settings.customEmailSubject
           .replace('{VILLE}', cityName.toUpperCase())
@@ -239,10 +258,26 @@ export const InvoiceScreen: React.FC = () => {
           .replace('{MOIS}', monthName)
           .replace('{ANNEE}', year.toString());
 
-        // Traduire le texte de l'email personnalisé (hors variables)
-        subject = translateEmailText(customSubject, 'fr', emailLanguage);
-        message = translateEmailText(customMessage, 'fr', emailLanguage);
+        // Traduire automatiquement si langue différente du français
+        if (emailLanguage !== 'fr' && deepLTranslateService.isLanguageSupported(emailLanguage)) {
+          console.log('🌍 Traduction DeepL activée, traduction vers:', emailLanguage);
+          try {
+            subject = await deepLTranslateService.translateEmailText(customSubject, 'fr', emailLanguage);
+            message = await deepLTranslateService.translateEmailText(customMessage, 'fr', emailLanguage);
+            console.log('✅ Email personnalisé traduit avec DeepL');
+          } catch (error) {
+            console.error('❌ Erreur traduction DeepL:', error);
+            // Fallback sur le texte original
+            subject = customSubject;
+            message = customMessage;
+          }
+        } else {
+          console.log('📝 Email personnalisé sans traduction (français ou langue non supportée)');
+          subject = customSubject;
+          message = customMessage;
+        }
       } else {
+        console.log('❌ Utilisation du template par défaut');
         // Utiliser le template par défaut dans la langue sélectionnée
         const template = getEmailTemplate(emailLanguage);
         subject = template.subject
@@ -340,21 +375,25 @@ export const InvoiceScreen: React.FC = () => {
     }
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background.primary,
+    },
+    formContainer: {
+      flex: 1,
+      marginTop: 20,
+    },
+  });
+
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#003580', '#0052cc']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <View style={styles.headerContent}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="receipt" size={30} color="white" />
-          </View>
-          <Text style={styles.title}>Nouvelle Facture</Text>
-        </View>
-      </LinearGradient>
+      <ModernHeader
+        title="Nouvelle Facture"
+        subtitle="Créer une facture pour vos clients"
+        icon="receipt"
+        variant="default"
+      />
 
       <KeyboardAvoidingView 
         style={styles.formContainer}
@@ -366,45 +405,3 @@ export const InvoiceScreen: React.FC = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f7fa',
-  },
-  header: {
-    paddingTop: 50,
-    paddingBottom: 15,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 25,
-    borderBottomRightRadius: 25,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 1,
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 5,
-    marginTop: 10,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: 'white',
-    letterSpacing: 0.5,
-  },
-  formContainer: {
-    flex: 1,
-    marginTop: 160,
-  },
-});

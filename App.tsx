@@ -7,9 +7,11 @@ import { StorageService } from './src/services/storageService';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ActivationScreen } from './src/features/activation/ActivationScreen';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 
 function AppContent() {
   const { isLoading, isActivated } = useAuth();
+  const { theme } = useTheme();
 
   useEffect(() => {
     // Initialiser le service de stockage
@@ -18,8 +20,8 @@ function AppContent() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#003580" />
+      <View style={[styles.loadingContainer, { backgroundColor: theme.background.primary }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -31,7 +33,10 @@ function AppContent() {
 
   return (
     <NavigationContainer>
-      <StatusBar style="light" backgroundColor="#667eea" />
+      <StatusBar 
+        style={theme.text.inverse === '#FFFFFF' ? 'light' : 'dark'} 
+        backgroundColor={theme.gradients.header[0]} 
+      />
       <TabNavigator />
     </NavigationContainer>
   );
@@ -40,9 +45,11 @@ function AppContent() {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

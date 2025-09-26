@@ -13,6 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 // import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, PropertyTemplate } from '../features/settings/SettingsScreen';
+import { useTheme } from '../theme/ThemeContext';
+import { ModernCard } from './modern/ModernCard';
+import { ModernButton } from './modern/ModernButton';
 
 export interface FilterOptions {
   searchQuery: string;
@@ -34,6 +37,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [properties, setProperties] = useState<PropertyTemplate[]>([]);
   const [activeFiltersCount, setActiveFiltersCount] = useState(0);
+  const { theme } = useTheme();
 
   useEffect(() => {
     loadProperties();
@@ -113,38 +117,164 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
     return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
   };
 
+  const styles = StyleSheet.create({
+    container: {
+      paddingHorizontal: 20,
+      paddingVertical: 16,
+    },
+    searchCard: {
+      marginBottom: 12,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 4,
+    },
+    searchIcon: {
+      marginRight: 12,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 16,
+      color: theme.text.primary,
+      paddingVertical: 8,
+    },
+    filterRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    resultCount: {
+      fontSize: 14,
+      color: theme.text.secondary,
+      fontWeight: '500',
+    },
+    modalContainer: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      justifyContent: 'flex-end',
+    },
+    modalContent: {
+      backgroundColor: theme.surface.primary,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      paddingTop: 20,
+      maxHeight: '80%',
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingBottom: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.border.light,
+    },
+    modalTitle: {
+      fontSize: 20,
+      fontWeight: '700',
+      color: theme.text.primary,
+    },
+    modalBody: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
+    filterSection: {
+      marginBottom: 24,
+    },
+    filterSectionTitle: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: theme.text.primary,
+      marginBottom: 12,
+    },
+    periodOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginBottom: 8,
+      borderRadius: 12,
+      backgroundColor: theme.surface.secondary,
+    },
+    periodOptionActive: {
+      backgroundColor: theme.surface.accent,
+      borderWidth: 2,
+      borderColor: theme.primary,
+    },
+    periodOptionText: {
+      marginLeft: 12,
+      fontSize: 16,
+      color: theme.text.primary,
+    },
+    periodOptionTextActive: {
+      fontWeight: '600',
+      color: theme.primary,
+    },
+    propertyOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      marginBottom: 8,
+      borderRadius: 12,
+      backgroundColor: theme.surface.secondary,
+    },
+    propertyOptionActive: {
+      backgroundColor: theme.surface.accent,
+      borderWidth: 2,
+      borderColor: theme.primary,
+    },
+    propertyOptionText: {
+      marginLeft: 12,
+      fontSize: 16,
+      color: theme.text.primary,
+    },
+    propertyOptionTextActive: {
+      fontWeight: '600',
+      color: theme.primary,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingHorizontal: 20,
+      paddingVertical: 20,
+      borderTopWidth: 1,
+      borderTopColor: theme.border.light,
+      gap: 12,
+    },
+  });
+
   return (
     <>
       <View style={styles.container}>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher un client..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#999"
-          />
-          {searchQuery !== '' && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={20} color="#999" />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        <View style={styles.filterButtons}>
-          <TouchableOpacity
-            style={styles.filterButton}
-            onPress={() => setIsFilterModalVisible(true)}
-          >
-            <Ionicons name="filter" size={20} color="#007AFF" />
-            <Text style={styles.filterButtonText}>Filtres</Text>
-            {activeFiltersCount > 0 && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{activeFiltersCount}</Text>
-              </View>
+        <ModernCard variant="default" size="medium" style={styles.searchCard}>
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color={theme.text.tertiary} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Rechercher un client..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor={theme.text.tertiary}
+            />
+            {searchQuery !== '' && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={20} color={theme.text.tertiary} />
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
+          </View>
+        </ModernCard>
+
+        <View style={styles.filterRow}>
+          <ModernButton
+            title={`Filtres${activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}`}
+            variant="outline"
+            size="small"
+            icon="filter"
+            onPress={() => setIsFilterModalVisible(true)}
+          />
 
           <Text style={styles.resultCount}>
             {invoiceCount} facture{invoiceCount > 1 ? 's' : ''}
@@ -163,7 +293,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Filtres</Text>
               <TouchableOpacity onPress={() => setIsFilterModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#000" />
+                <Ionicons name="close" size={24} color={theme.text.primary} />
               </TouchableOpacity>
             </View>
 
@@ -176,17 +306,19 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                   <TouchableOpacity
                     key={period}
                     style={[
-                      styles.filterOption,
-                      dateFilter === period && styles.filterOptionSelected,
+                      styles.periodOption,
+                      dateFilter === period && styles.periodOptionActive,
                     ]}
                     onPress={() => setDateFilter(period as any)}
                   >
-                    <View style={styles.radioButton}>
-                      {dateFilter === period && <View style={styles.radioButtonSelected} />}
-                    </View>
+                    <Ionicons 
+                      name={dateFilter === period ? "radio-button-on" : "radio-button-off"} 
+                      size={20} 
+                      color={dateFilter === period ? theme.primary : theme.text.tertiary} 
+                    />
                     <Text style={[
-                      styles.filterOptionText,
-                      dateFilter === period && styles.filterOptionTextSelected,
+                      styles.periodOptionText,
+                      dateFilter === period && styles.periodOptionTextActive,
                     ]}>
                       {period === 'all' && 'Toutes les factures'}
                       {period === 'today' && "Aujourd'hui"}
@@ -204,17 +336,19 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                 
                 <TouchableOpacity
                   style={[
-                    styles.filterOption,
-                    !selectedPropertyId && styles.filterOptionSelected,
+                    styles.propertyOption,
+                    !selectedPropertyId && styles.propertyOptionActive,
                   ]}
                   onPress={() => setSelectedPropertyId(null)}
                 >
-                  <View style={styles.radioButton}>
-                    {!selectedPropertyId && <View style={styles.radioButtonSelected} />}
-                  </View>
+                  <Ionicons 
+                    name={!selectedPropertyId ? "radio-button-on" : "radio-button-off"} 
+                    size={20} 
+                    color={!selectedPropertyId ? theme.primary : theme.text.tertiary} 
+                  />
                   <Text style={[
-                    styles.filterOptionText,
-                    !selectedPropertyId && styles.filterOptionTextSelected,
+                    styles.propertyOptionText,
+                    !selectedPropertyId && styles.propertyOptionTextActive,
                   ]}>
                     Toutes les propriétés
                   </Text>
@@ -224,17 +358,19 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
                   <TouchableOpacity
                     key={property.id}
                     style={[
-                      styles.filterOption,
-                      selectedPropertyId === property.id && styles.filterOptionSelected,
+                      styles.propertyOption,
+                      selectedPropertyId === property.id && styles.propertyOptionActive,
                     ]}
                     onPress={() => setSelectedPropertyId(property.id)}
                   >
-                    <View style={styles.radioButton}>
-                      {selectedPropertyId === property.id && <View style={styles.radioButtonSelected} />}
-                    </View>
+                    <Ionicons 
+                      name={selectedPropertyId === property.id ? "radio-button-on" : "radio-button-off"} 
+                      size={20} 
+                      color={selectedPropertyId === property.id ? theme.primary : theme.text.tertiary} 
+                    />
                     <Text style={[
-                      styles.filterOptionText,
-                      selectedPropertyId === property.id && styles.filterOptionTextSelected,
+                      styles.propertyOptionText,
+                      selectedPropertyId === property.id && styles.propertyOptionTextActive,
                     ]}>
                       {property.name}
                     </Text>
@@ -243,20 +379,22 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
               </View>
             </ScrollView>
 
-            <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonSecondary]}
+            <View style={styles.modalActions}>
+              <ModernButton
+                title="Réinitialiser"
+                variant="outline"
+                size="medium"
                 onPress={resetFilters}
-              >
-                <Text style={styles.modalButtonSecondaryText}>Réinitialiser</Text>
-              </TouchableOpacity>
+                style={{ flex: 1 }}
+              />
 
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary]}
+              <ModernButton
+                title="Appliquer"
+                variant="primary"
+                size="medium"
                 onPress={() => setIsFilterModalVisible(false)}
-              >
-                <Text style={styles.modalButtonPrimaryText}>Appliquer</Text>
-              </TouchableOpacity>
+                style={{ flex: 1 }}
+              />
             </View>
           </View>
         </View>
@@ -264,169 +402,3 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    paddingTop: 10,
-    paddingBottom: 5,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 10,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-  filterButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 5,
-  },
-  filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#f0f8ff',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#007AFF',
-  },
-  filterButtonText: {
-    marginLeft: 6,
-    color: '#007AFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  badge: {
-    marginLeft: 6,
-    backgroundColor: '#007AFF',
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  resultCount: {
-    fontSize: 14,
-    color: '#666',
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  modalBody: {
-    padding: 20,
-  },
-  filterSection: {
-    marginBottom: 25,
-  },
-  filterSectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-    color: '#333',
-  },
-  filterOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-  },
-  filterOptionSelected: {
-    backgroundColor: '#f0f8ff',
-  },
-  filterOptionText: {
-    fontSize: 15,
-    color: '#666',
-    marginLeft: 10,
-  },
-  filterOptionTextSelected: {
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#ccc',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioButtonSelected: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#007AFF',
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  modalButtonSecondary: {
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  modalButtonPrimary: {
-    marginLeft: 10,
-    backgroundColor: '#007AFF',
-  },
-  modalButtonSecondaryText: {
-    color: '#666',
-    fontSize: 16,
-  },
-  modalButtonPrimaryText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-});

@@ -1,0 +1,242 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export type SupportedLanguage = 'fr' | 'en' | 'es' | 'de' | 'it';
+
+interface TranslationCache {
+  [key: string]: {
+    translation: string;
+    timestamp: number;
+  };
+}
+
+interface DeepLResponse {
+  translations: Array<{
+    text: string;
+  }>;
+}
+
+class DeepLTranslateService {
+  private cache: TranslationCache = {};
+  private cacheKey = '@deepl_translation_cache';
+  private cacheExpiry = 30 * 24 * 60 * 60 * 1000; // 30 jours
+  private apiKey = 'd6fd65fc-6d40-4e45-b1b6-d02b716b0d52:fx'; // DeepL API key partagée
+  private endpoint = 'https://api-free.deepl.com/v2/translate';
+
+  constructor() {
+    this.loadCache();
+  }
+
+  /**
+   * Traduit un email personnalisé en utilisant DeepL
+   */
+  async translateEmailText(text: string, fromLang: SupportedLanguage, toLang: SupportedLanguage): Promise<string> {
+    if (fromLang === toLang) return text;
+
+    console.log(`🌍 Traduction DeepL ${fromLang} → ${toLang}:`, text.substring(0, 50) + '...');
+
+    // Protéger les variables BookingFakt
+    const protectedText = this.protectVariables(text);
+    
+    try {
+      const translatedText = await this.translateText(protectedText, fromLang, toLang);
+      const finalText = this.restoreVariables(translatedText);
+      console.log('✅ Traduction DeepL réussie');
+      return finalText;
+    } catch (error) {
+      console.error('❌ Erreur traduction DeepL:', error);
+      return text; // Retourner le texte original en cas d'erreur
+    }
+  }
+
+  /**
+   * Traduit un texte en utilisant l'API DeepL
+   */
+  private async translateText(text: string, fromLang: SupportedLanguage, toLang: SupportedLanguage): Promise<string> {
+    const cacheKey = `${text}_${fromLang}_${toLang}`;
+    
+    // Vérifier le cache
+    const cached = this.cache[cacheKey];
+    if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
+      console.log('📋 Traduction depuis le cache DeepL');
+      return cached.translation;
+    }
+
+    // Mapper les codes de langue pour DeepL
+    const langMap: Record<SupportedLanguage, string> = {
+      'fr': 'FR',
+      'en': 'EN',
+      'es': 'ES',
+      'de': 'DE',
+      'it': 'IT'
+    };
+
+    const fromCode = langMap[fromLang];
+    const toCode = langMap[toLang];
+
+    if (!fromCode || !toCode) {
+      throw new Error(`Langue non supportée: ${fromLang} → ${toLang}`);
+    }
+
+    try {
+      const response = await fetch(this.endpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `DeepL-Auth-Key ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: [text],
+          source_lang: fromCode,
+          target_lang: toCode
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Erreur API DeepL:', response.status, errorText);
+        throw new Error(`Erreur API DeepL: ${response.status} - ${errorText}`);
+      }
+
+      const data: DeepLResponse = await response.json();
+      
+      if (!data || !data.translations || data.translations.length === 0) {
+        throw new Error('Réponse invalide de DeepL');
+      }
+
+      const translatedText = data.translations[0].text;
+
+      // Sauvegarder en cache
+      this.cache[cacheKey] = {
+        translation: translatedText,
+        timestamp: Date.now(),
+      };
+      this.saveCache();
+
+      return translatedText;
+    } catch (error) {
+      console.error('Erreur lors de l\'appel à DeepL:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Protège les variables BookingFakt
+   */
+  private protectVariables(text: string): string {
+    const variables = [
+      '{VILLE}', '{NOM}', '{PRENOM}', 
+      '{NOM-PROPRIETAIRE}', '{PRENOM-PROPRIETAIRE}', 
+      '{MOIS}', '{ANNEE}'
+    ];
+
+    let protectedText = text;
+    variables.forEach((variable, index) => {
+      const placeholder = `XVARX${index}XVARX`;
+      protectedText = protectedText.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), placeholder);
+    });
+
+    return protectedText;
+  }
+
+  /**
+   * Restore les variables BookingFakt après traduction
+   */
+  private restoreVariables(text: string): string {
+    const variables = [
+      '{VILLE}', '{NOM}', '{PRENOM}', 
+      '{NOM-PROPRIETAIRE}', '{PRENOM-PROPRIETAIRE}', 
+      '{MOIS}', '{ANNEE}'
+    ];
+
+    let restoredText = text;
+    variables.forEach((variable, index) => {
+      const placeholder = `XVARX${index}XVARX`;
+      restoredText = restoredText.replace(new RegExp(placeholder, 'g'), variable);
+    });
+
+    return restoredText;
+  }
+
+  /**
+   * Charge le cache depuis AsyncStorage
+   */
+  private async loadCache(): Promise<void> {
+    try {
+      const cacheData = await AsyncStorage.getItem(this.cacheKey);
+      if (cacheData) {
+        this.cache = JSON.parse(cacheData);
+      }
+    } catch (error) {
+      console.error('Erreur chargement cache traduction DeepL:', error);
+    }
+  }
+
+  /**
+   * Sauvegarde le cache dans AsyncStorage
+   */
+  private async saveCache(): Promise<void> {
+    try {
+      await AsyncStorage.setItem(this.cacheKey, JSON.stringify(this.cache));
+    } catch (error) {
+      console.error('Erreur sauvegarde cache traduction DeepL:', error);
+    }
+  }
+
+  /**
+   * Obtient les statistiques d'utilisation
+   */
+  getUsageStats(): { cachedTranslations: number; totalCharacters: number } {
+    const entries = Object.entries(this.cache);
+    const totalCharacters = entries.reduce((sum, [key]) => {
+      const text = key.split('_')[0];
+      return sum + text.length;
+    }, 0);
+
+    return {
+      cachedTranslations: entries.length,
+      totalCharacters,
+    };
+  }
+
+  /**
+   * Vérifie si une langue est supportée
+   */
+  isLanguageSupported(lang: string): lang is SupportedLanguage {
+    return ['fr', 'en', 'es', 'de', 'it'].includes(lang);
+  }
+
+  /**
+   * Test basique du service
+   */
+  async testConnection(): Promise<boolean> {
+    try {
+      const testText = 'Bonjour, je suis propriétaire et voici la facture pour votre séjour. Merci et cordialement';
+      const result = await this.translateText(testText, 'fr', 'en');
+      console.log('✅ Test traduction DeepL réussi:', result);
+      return result.length > 0 && result !== testText;
+    } catch (error) {
+      console.error('❌ Test traduction DeepL échoué:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Nettoie le cache expiré
+   */
+  async cleanExpiredCache(): Promise<void> {
+    const now = Date.now();
+    const validEntries: TranslationCache = {};
+
+    Object.entries(this.cache).forEach(([key, value]) => {
+      if (now - value.timestamp < this.cacheExpiry) {
+        validEntries[key] = value;
+      }
+    });
+
+    this.cache = validEntries;
+    await this.saveCache();
+    console.log('🧹 Cache DeepL nettoyé');
+  }
+}
+
+export default new DeepLTranslateService();

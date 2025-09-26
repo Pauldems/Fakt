@@ -21,6 +21,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { TemplateSelector, TemplateType } from '../../components/TemplateSelector';
 import { SubscriptionSection } from './SubscriptionSection';
 // import { GoogleDriveSection } from './GoogleDriveSection'; // Désactivé temporairement
+import { useTheme } from '../../theme/ThemeContext';
+import { CurrencyDropdown } from '../../components/CurrencyDropdown';
 
 export interface CustomProperty {
   id: string;
@@ -125,6 +127,7 @@ export const SettingsScreen: React.FC = () => {
   const [settings, setSettings] = useState<OwnerSettings>(DEFAULT_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<PropertyTemplate | null>(null);
+  const { theme, toggleTheme, isDark } = useTheme();
 
   // Fonction pour sauvegarder automatiquement
   const autoSaveSettings = useCallback(async (newSettings: OwnerSettings) => {
@@ -381,16 +384,16 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
 
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background.primary }]}>
       <LinearGradient
-        colors={['#003580', '#0052cc']}
+        colors={theme.gradients.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <Ionicons name="settings" size={30} color="white" />
-          <Text style={styles.title}>Paramètres</Text>
+          <Ionicons name="settings" size={30} color={theme.text.inverse} />
+          <Text style={[styles.title, { color: theme.text.inverse }]}>Paramètres</Text>
         </View>
       </LinearGradient>
 
@@ -405,11 +408,50 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
             onSelectTemplate={(template) => updateSettings(prev => ({ ...prev, invoiceTemplate: template }))}
           />
 
-          {/* Section TVA */}
-          <View style={styles.section}>
+          {/* Section Apparence */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
             <View style={styles.headerWithIcon}>
-              <Ionicons name="calculator-outline" size={24} color="#003580" />
-              <Text style={styles.sectionTitle}>TVA (Taxe sur la Valeur Ajoutée)</Text>
+              <Ionicons name="color-palette-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>Apparence</Text>
+            </View>
+
+            <Text style={[styles.sectionDescription, { color: theme.text.secondary }]}>
+              Personnalisez l'apparence de votre application
+            </Text>
+
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextContainer}>
+                <Text style={[styles.label, { color: theme.text.primary }]}>Mode sombre</Text>
+                <Text style={[styles.switchDescription, { color: theme.text.secondary }]}>
+                  Interface sombre pour réduire la fatigue oculaire et économiser la batterie
+                </Text>
+              </View>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                trackColor={{ false: theme.border.light, true: theme.primary }}
+                thumbColor={isDark ? theme.surface.primary : '#f4f3f4'}
+                ios_backgroundColor={theme.border.light}
+              />
+            </View>
+
+            <View style={[styles.themePreview, { backgroundColor: theme.background.accent }]}>
+              <Ionicons 
+                name={isDark ? "moon" : "sunny"} 
+                size={20} 
+                color={theme.primary}
+              />
+              <Text style={[styles.themePreviewText, { color: theme.text.primary }]}>
+                {isDark ? 'Mode sombre activé' : 'Mode clair activé'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Section TVA */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="calculator-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text.primary }]}>TVA (Taxe sur la Valeur Ajoutée)</Text>
             </View>
 
             <View style={styles.switchRow}>
@@ -565,33 +607,13 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
               Choisissez la devise principale pour vos factures et tarifs
             </Text>
 
-            <View style={styles.currencyContainer}>
-              {SUPPORTED_CURRENCIES.map((currency) => (
-                <TouchableOpacity
-                  key={currency.code}
-                  style={[
-                    styles.currencyButton,
-                    settings.currency === currency.code && styles.currencyButtonActive
-                  ]}
-                  onPress={() => updateSettings(prev => ({ ...prev, currency: currency.code }))}
-                >
-                  <Text style={styles.currencyFlag}>{currency.flag}</Text>
-                  <Text style={[
-                    styles.currencySymbol,
-                    settings.currency === currency.code && styles.currencySymbolActive
-                  ]}>
-                    {currency.symbol}
-                  </Text>
-                  <Text style={[
-                    styles.currencyCode,
-                    settings.currency === currency.code && styles.currencyCodeActive
-                  ]}>
-                    {currency.code}
-                  </Text>
-                  <Text style={styles.currencyName}>{currency.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <CurrencyDropdown
+              currencies={SUPPORTED_CURRENCIES}
+              selectedCurrency={settings.currency}
+              onCurrencyChange={(currencyCode) => 
+                updateSettings(prev => ({ ...prev, currency: currencyCode }))
+              }
+            />
 
             <View style={styles.currencyInfoBox}>
               <Ionicons name="information-circle" size={16} color="#0ea5e9" />
@@ -809,6 +831,9 @@ Veuillez trouver ci-joint la facture..."
                   <Text style={styles.helpText}>
                     Variables disponibles: {'{VILLE}'}, {'{NOM}'}, {'{PRENOM}'}, {'{NOM-PROPRIETAIRE}'}, {'{PRENOM-PROPRIETAIRE}'}, {'{MOIS}'}, {'{ANNEE}'}
                   </Text>
+                  <Text style={[styles.helpText, { color: '#4CAF50', fontStyle: 'italic' }]}>
+                    ✨ Les emails personnalisés sont automatiquement traduits selon la langue sélectionnée lors de l'envoi !
+                  </Text>
                 </View>
               </>
             )}
@@ -872,7 +897,6 @@ Veuillez trouver ci-joint la facture..."
               </>
             )}
           </View>
-
 
           <View style={styles.autoSaveInfo}>
             <Text style={styles.autoSaveText}>
@@ -1491,54 +1515,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   // Styles pour la section devise
-  currencyContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 16,
-  },
-  currencyButton: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: '#f8f9fa',
-    borderWidth: 2,
-    borderColor: '#e7e7e7',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  currencyButtonActive: {
-    backgroundColor: '#e3f2fd',
-    borderColor: '#003580',
-  },
-  currencyFlag: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  currencySymbol: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#666',
-    marginBottom: 2,
-  },
-  currencySymbolActive: {
-    color: '#003580',
-  },
-  currencyCode: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#888',
-    marginBottom: 2,
-  },
-  currencyCodeActive: {
-    color: '#003580',
-  },
-  currencyName: {
-    fontSize: 10,
-    color: '#999',
-    textAlign: 'center',
-  },
   currencyInfoBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -1562,5 +1538,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#0369a1',
     lineHeight: 18,
+  },
+  // Styles pour la section apparence
+  themePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  themePreviewText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 8,
   },
 });

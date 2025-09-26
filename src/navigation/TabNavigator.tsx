@@ -7,6 +7,7 @@ import { InvoiceListScreen } from '../features/invoiceList/InvoiceListScreen';
 import { PDFViewerScreen } from '../features/pdfViewer/PDFViewerScreen';
 import { SettingsScreen } from '../features/settings/SettingsScreen';
 import { View, Platform } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -54,15 +55,17 @@ const SettingsStack = () => {
 };
 
 export const TabNavigator = () => {
+  const { theme } = useTheme();
+  
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: theme.surface.primary,
           borderTopWidth: 0,
           elevation: 20,
-          shadowColor: '#000',
+          shadowColor: theme.text.primary,
           shadowOffset: { width: 0, height: -3 },
           shadowOpacity: 0.1,
           shadowRadius: 10,
@@ -70,8 +73,8 @@ export const TabNavigator = () => {
           paddingTop: 10,
           height: Platform.OS === 'ios' ? 95 : 70,
         },
-        tabBarActiveTintColor: '#003580',
-        tabBarInactiveTintColor: '#8e8e93',
+        tabBarActiveTintColor: theme.primary,
+        tabBarInactiveTintColor: theme.text.tertiary,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',

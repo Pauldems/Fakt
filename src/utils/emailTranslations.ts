@@ -29,7 +29,7 @@ En vous souhaitant bonne réception,
     defaultSubject: 'Invoice for stay in {VILLE} - {NOM} {PRENOM}',
     defaultBody: `Hello,
 
-Please find attached the invoice for your stay in {VILLE} for {MOIS} {ANNEE}.
+Please find attached the invoice for your stay in {VILLE} for the month of {MOIS} {ANNEE}.
 
 Best regards,
 
@@ -44,7 +44,7 @@ Best regards,
     defaultSubject: 'Factura estancia {VILLE} - {NOM} {PRENOM}',
     defaultBody: `Hola,
 
-Adjunto encontrará la factura de su estancia en {VILLE} para {MOIS} {ANNEE}.
+Adjunto encontrará la factura de su estancia en {VILLE} para el mes de {MOIS} {ANNEE}.
 
 Saludos cordiales,
 
@@ -59,7 +59,7 @@ Saludos cordiales,
     defaultSubject: 'Rechnung Aufenthalt {VILLE} - {NOM} {PRENOM}',
     defaultBody: `Guten Tag,
 
-Im Anhang finden Sie die Rechnung für Ihren Aufenthalt in {VILLE} für {MOIS} {ANNEE}.
+Im Anhang finden Sie die Rechnung für Ihren Aufenthalt in {VILLE} für den Monat {MOIS} {ANNEE}.
 
 Mit freundlichen Grüßen,
 
@@ -74,7 +74,7 @@ Mit freundlichen Grüßen,
     defaultSubject: 'Fattura soggiorno {VILLE} - {NOM} {PRENOM}',
     defaultBody: `Buongiorno,
 
-In allegato trova la fattura del suo soggiorno a {VILLE} per {MOIS} {ANNEE}.
+In allegato trova la fattura del suo soggiorno a {VILLE} per il mese di {MOIS} {ANNEE}.
 
 Cordiali saluti,
 
