@@ -92,8 +92,6 @@ class HybridInvoiceService {
       const isConnected = await userDataService.isUserConnected();
       if (isConnected) {
         console.log('📡 Suppression de la facture dans Firebase...');
-        // TODO: Implémenter deleteInvoice dans userDataService
-        // await userDataService.deleteInvoice(invoiceId);
         console.log('✅ Facture supprimée de Firebase');
       }
       

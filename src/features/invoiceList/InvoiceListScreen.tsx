@@ -18,7 +18,6 @@ import { StorageService, StoredInvoice } from '../../services/storageService';
 import hybridInvoiceService from '../../services/hybridInvoiceService';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import InvoiceFilters, { FilterOptions } from '../../components/InvoiceFilters';
-import SimpleInvoiceFilters from '../../components/SimpleInvoiceFilters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, PropertyTemplate } from '../settings/SettingsScreen';
 import { generateInvoiceHTML } from '../../utils/pdfTemplate';

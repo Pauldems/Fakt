@@ -28,19 +28,11 @@ export default function ClientSelector({ onSelectClient }: ClientSelectorProps) 
 
   const loadClients = async () => {
     try {
-      console.log('Chargement des clients...');
       const loadedClients = await clientService.getClients();
-      console.log('Clients chargés:', loadedClients);
-      console.log('Type des clients:', typeof loadedClients);
-      console.log('Est un tableau?', Array.isArray(loadedClients));
       
-      if (loadedClients && loadedClients.length > 0) {
-        console.log('Premier client:', JSON.stringify(loadedClients[0], null, 2));
-      }
       
       setClients(loadedClients);
       setFilteredClients(loadedClients);
-      console.log('État clients mis à jour avec', loadedClients.length, 'clients');
     } catch (error) {
       console.error('Erreur lors du chargement des clients:', error);
       setClients([]);
@@ -88,7 +80,6 @@ export default function ClientSelector({ onSelectClient }: ClientSelectorProps) 
   };
 
   const renderClient = ({ item }: { item: Client }) => {
-    console.log('Rendu du client:', item);
     return (
       <View style={styles.clientItem}>
         <TouchableOpacity
@@ -118,10 +109,8 @@ export default function ClientSelector({ onSelectClient }: ClientSelectorProps) 
       <TouchableOpacity
         style={styles.button}
         onPress={async () => {
-          console.log('Ouverture du carnet de clients...');
           await loadClients();
           setIsModalVisible(true);
-          console.log('Modal visible:', true);
         }}
       >
         <Ionicons name="people-outline" size={20} color="#007AFF" />
@@ -158,7 +147,6 @@ export default function ClientSelector({ onSelectClient }: ClientSelectorProps) 
               />
             </View>
 
-            {console.log('Avant rendu FlatList - filteredClients:', filteredClients.length, filteredClients)}
             {filteredClients.length > 0 ? (
               <FlatList
                 data={filteredClients}
@@ -169,10 +157,6 @@ export default function ClientSelector({ onSelectClient }: ClientSelectorProps) 
                 ItemSeparatorComponent={() => <View style={styles.separator} />}
                 showsVerticalScrollIndicator={true}
                 initialNumToRender={10}
-                ListHeaderComponent={() => {
-                  console.log('FlatList - Nombre de clients à afficher:', filteredClients.length);
-                  return null;
-                }}
               />
             ) : (
               <View style={styles.emptyContainer}>

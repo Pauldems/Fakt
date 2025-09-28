@@ -1,0 +1,387 @@
+================================================================================
+                      FAKT - GUIDE COMPLET DES FONCTIONNALITÉS
+================================================================================
+
+FAKT est une application mobile de facturation spécialement conçue pour les 
+hébergeurs touristiques (Airbnb, chambres d'hôtes, locations saisonnières).
+
+================================================================================
+🔑 SYSTÈME D'ACTIVATION
+================================================================================
+
+ACTIVATION INITIALE :
+- Code d'activation à 16 caractères (format: XXXX-XXXX-XXXX-XXXX)
+- Validation en temps réel via Firebase
+- Un code = un seul appareil (sécurité renforcée)
+- Sauvegarde locale + cloud pour fonctionnement hors-ligne
+
+TYPES D'ABONNEMENTS :
+✓ Essai gratuit     : 7 jours
+✓ Mensuel          : 1 mois (4,99€)  
+✓ Trimestriel      : 3 mois (12,99€)
+✓ Annuel           : 1 an (19,99€)
+✓ Vie              : Permanent (49,99€)
+
+FONCTIONNALITÉS :
+- Extension d'abonnement possible
+- Surveillance en temps réel du statut
+- Blocage automatique si code désactivé
+- Mode dégradé si pas de connexion
+
+================================================================================
+📄 CRÉATION DE FACTURES  
+================================================================================
+
+INFORMATIONS CLIENT :
+✓ Prénom et nom obligatoires
+✓ Email (validation automatique)
+✓ Adresse complète optionnelle :
+  - Rue/numéro
+  - Code postal (validation 5 chiffres)
+  - Ville
+✓ Carnet de clients intégré avec auto-complétion
+
+DÉTAILS DE RÉSERVATION :
+✓ Dates d'arrivée et départ (calendrier intégré)
+✓ Calcul automatique du nombre de nuits
+✓ Prix par nuit configurable
+✓ Montant des taxes avec option "collecte plateforme"
+✓ Indicateur "tarif Genius" Booking.com
+✓ Numéro de réservation plateforme
+✓ Numéro de facture client personnalisé
+
+MODES DE PAIEMENT :
+✓ Plateforme (Airbnb, Booking.com...)
+✓ Espèces
+✓ Carte bancaire  
+✓ Virement bancaire
+✓ Chèque
+
+EXTRAS ET SERVICES :
+✓ Extras prédéfinis multilingues :
+  - Ménage de fin de séjour
+  - Petit-déjeuner
+  - Linge de lit
+  - Parking
+  - Transfert aéroport
+✓ Extras personnalisés avec quantité et prix
+✓ Calculs automatiques des totaux
+
+GESTION DES PROPRIÉTÉS :
+✓ Templates de propriétés multiples
+✓ Sélection rapide des informations
+✓ Paramètres par défaut configurables
+
+================================================================================
+🎨 TEMPLATES DE FACTURES
+================================================================================
+
+4 MODÈLES PROFESSIONNELS :
+✓ Moderne    : Design épuré et contemporain
+✓ Classique  : Style traditionnel et sobre
+✓ Minimal    : Ultra-simple et clean
+✓ Original   : Template de base complet
+
+PERSONNALISATION :
+✓ Logo d'entreprise (upload d'image)
+✓ Signature numérique
+✓ Couleurs et branding
+✓ Aperçu en temps réel
+
+QUALITÉ PDF :
+✓ Haute résolution pour impression
+✓ Format A4 standard
+✓ Compatibilité universelle
+✓ Métadonnées incluses
+
+================================================================================
+🌍 SUPPORT MULTILINGUE
+================================================================================
+
+LANGUES SUPPORTÉES :
+✓ Français (par défaut)
+✓ Anglais
+✓ Espagnol
+✓ Allemand
+✓ Italien
+
+TRADUCTION INTELLIGENTE :
+✓ Factures complètement localisées
+✓ Extras traduits automatiquement
+✓ Emails traduits via API DeepL
+✓ Interface utilisateur adaptée
+✓ Formats de dates et monnaies localisés
+
+SÉLECTION DE LANGUE :
+✓ Langue de facture indépendante
+✓ Langue d'email séparée
+✓ Mémorisation des préférences client
+
+================================================================================
+💰 GESTION MULTI-DEVISES
+================================================================================
+
+DEVISES SUPPORTÉES :
+✓ EUR - Euro (par défaut)
+✓ USD - Dollar américain
+✓ GBP - Livre sterling  
+✓ CHF - Franc suisse
+✓ CAD - Dollar canadien
+✓ JPY - Yen japonais
+✓ AUD - Dollar australien
+✓ NOK - Couronne norvégienne
+✓ SEK - Couronne suédoise
+✓ DKK - Couronne danoise
+
+FONCTIONNALITÉS :
+✓ Symboles de devises automatiques
+✓ Formatage selon standards locaux
+✓ Calculs précis avec décimales
+✓ Affichage cohérent dans l'app
+
+================================================================================
+👥 GESTION CLIENTÈLE
+================================================================================
+
+CARNET DE CLIENTS :
+✓ Sauvegarde automatique lors de facturation
+✓ Recherche intelligente (nom, prénom, email)
+✓ Historique complet des interactions
+✓ Adresses mémorisées
+
+SÉLECTEUR AVANCÉ :
+✓ Modal de sélection avec recherche
+✓ Auto-complétion en temps réel
+✓ Affichage d'informations complètes
+✓ Suppression sécurisée avec confirmation
+
+SYNCHRONISATION :
+✓ Sauvegarde locale + cloud (à venir)
+✓ Disponibilité hors-ligne
+✓ Synchronisation automatique
+
+================================================================================
+⚙️ PARAMÈTRES ENTREPRISE
+================================================================================
+
+INFORMATIONS LÉGALES :
+✓ Nom et prénom du propriétaire
+✓ Raison sociale de l'entreprise
+✓ Adresse complète du siège
+✓ Téléphone et email de contact
+✓ Numéro d'établissement/SIRET
+✓ Identifiant d'entité légale
+
+PARAMÈTRES TVA :
+✓ Statut assujetti TVA (oui/non)
+✓ Taux de TVA configurables :
+  - 10% (taux réduit)
+  - 15% (DOM-TOM)
+  - 20% (taux normal)
+  - Taux personnalisé
+✓ Calculs automatiques sur factures
+
+BRANDING VISUEL :
+✓ Upload de logo entreprise
+✓ Signature numérique pour emails
+✓ Sélection de template par défaut
+✓ Aperçu en temps réel
+
+================================================================================
+📧 SYSTÈME EMAIL AVANCÉ
+================================================================================
+
+TEMPLATES EMAIL :
+✓ Templates par défaut multilingues
+✓ Personnalisation complète possible :
+  - Objet personnalisé
+  - Corps de message personnalisé
+  - Variables dynamiques disponibles
+
+VARIABLES AUTOMATIQUES :
+✓ {VILLE} - Ville de la propriété
+✓ {NOM} - Nom du client (majuscules)
+✓ {PRENOM} - Prénom du client
+✓ {NOM-PROPRIETAIRE} - Nom du propriétaire
+✓ {PRENOM-PROPRIETAIRE} - Prénom du propriétaire
+✓ {MOIS} - Mois de la réservation
+✓ {ANNEE} - Année de la réservation
+
+FONCTIONNALITÉS AVANCÉES :
+✓ BCC automatique (copie cachée)
+✓ Signature avec image intégrée
+✓ Traduction automatique DeepL
+✓ Pièce jointe PDF automatique
+✓ Intégration app mail native
+
+================================================================================
+📊 GESTION DES FACTURES
+================================================================================
+
+LISTE INTELLIGENTE :
+✓ Affichage chronologique (plus récentes en premier)
+✓ Informations résumées par facture
+✓ Statuts visuels clairs
+✓ Accès rapide aux actions
+
+FILTRES AVANCÉS :
+✓ Filtrage par période :
+  - 7 derniers jours
+  - 30 derniers jours
+  - 90 derniers jours
+  - Plage personnalisée
+✓ Filtrage par propriété
+✓ Recherche textuelle (nom client, email)
+✓ Combinaison de filtres
+
+ACTIONS SUR FACTURES :
+✓ Visualisation PDF intégrée
+✓ Partage direct
+✓ Envoi par email
+✓ Suppression sécurisée
+✓ Régénération PDF
+✓ Export individuel
+
+NUMÉROTATION :
+✓ Numérotation séquentielle automatique
+✓ Format personnalisable
+✓ Pas de doublons
+✓ Continuité garantie
+
+================================================================================
+📤 EXPORT ET PARTAGE
+================================================================================
+
+EXPORT CSV :
+✓ Données complètes de facturation
+✓ Compatible Excel/LibreOffice
+✓ Colonnes standardisées :
+  - Date de facture
+  - Numéro de facture
+  - Client (nom, prénom, email)
+  - Période de séjour
+  - Montants (HT, TVA, TTC)
+  - Mode de paiement
+  - Propriété
+
+PARTAGE PDF :
+✓ Partage système natif iOS/Android
+✓ Email direct avec pièce jointe
+✓ Sauvegarde dans galerie/fichiers
+✓ Qualité optimisée pour impression
+
+SAUVEGARDE CLOUD :
+✓ Google Drive automatique (optionnel)
+✓ Authentification OAuth sécurisée
+✓ Organisation par dossiers
+✓ Backup incrémental
+
+================================================================================
+☁️ STOCKAGE ET SYNCHRONISATION
+================================================================================
+
+ARCHITECTURE HYBRIDE :
+✓ Stockage local (AsyncStorage)
+✓ Synchronisation Firebase Cloud
+✓ Fonctionnement hors-ligne garanti
+✓ Sync automatique quand connecté
+
+SÉCURITÉ DES DONNÉES :
+✓ Chiffrement local des données sensibles
+✓ Isolation complète entre utilisateurs
+✓ Règles de sécurité Firebase strictes
+✓ Authentification à deux facteurs
+
+GESTION HORS-LIGNE :
+✓ Création de factures sans internet
+✓ Consultation de l'historique
+✓ Sauvegarde locale temporaire
+✓ Synchronisation différée
+
+================================================================================
+🔒 SÉCURITÉ ET CONFORMITÉ
+================================================================================
+
+PROTECTION DES DONNÉES :
+✓ Conformité RGPD
+✓ Données stockées en Europe (Firebase EU)
+✓ Chiffrement en transit et au repos
+✓ Pas de partage avec des tiers
+
+AUTHENTIFICATION :
+✓ Firebase Auth sécurisé
+✓ Tokens automatiquement renouvelés
+✓ Session sécurisée
+✓ Déconnexion automatique
+
+ISOLATION UTILISATEUR :
+✓ Données strictement séparées par utilisateur
+✓ Impossible d'accéder aux données d'autrui
+✓ Suppression complète en cas de désactivation
+
+================================================================================
+📱 INTERFACE UTILISATEUR
+================================================================================
+
+DESIGN MODERNE :
+✓ Interface native iOS/Android
+✓ Thème sombre/clair adaptatif
+✓ Animations fluides
+✓ Composants Material Design
+
+NAVIGATION INTUITIVE :
+✓ 3 onglets principaux :
+  - Nouvelle facture
+  - Mes factures  
+  - Paramètres
+✓ Navigation modale pour détails
+✓ Retour et navigation cohérents
+
+EXPÉRIENCE UTILISATEUR :
+✓ Formulaires avec validation temps réel
+✓ Messages d'erreur explicites
+✓ Confirmations pour actions critiques
+✓ États de chargement visuels
+
+================================================================================
+🔧 FONCTIONNALITÉS TECHNIQUES
+================================================================================
+
+PERFORMANCE :
+✓ Chargement optimisé des données
+✓ Pagination intelligente des listes
+✓ Cache local pour interface rapide
+✓ Génération PDF asynchrone
+
+COMPATIBILITÉ :
+✓ iOS 11+ et Android 6+
+✓ Support des dernières versions
+✓ Adaptation automatique aux écrans
+
+================================================================================
+💡 CONSEILS D'UTILISATION
+================================================================================
+
+OPTIMISATION WORKFLOW :
+1. Configurer ses paramètres d'entreprise en premier
+2. Créer des templates de propriétés
+4. Personnaliser les emails selon sa clientèle
+
+BONNES PRATIQUES :
+✓ Vérifier les informations avant génération PDF
+✓ Tester l'envoi d'emails avec différentes langues
+✓ Faire des exports CSV réguliers pour comptabilité
+✓ Maintenir le carnet de clients à jour
+✓ Utiliser les modes de paiement appropriés
+
+================================================================================
+
+FAKT - Solution complète de facturation pour hébergeurs touristiques
+Développé avec React Native + TypeScript + Firebase
+Version actuelle : Production stable
+
+Pour support technique ou questions : 
+- Consulter la documentation intégrée
+- Contacter l'équipe de développement (contact@topal.fr)
+
+================================================================================
