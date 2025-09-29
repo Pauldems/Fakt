@@ -27,13 +27,9 @@ FAKT est votre assistant personnel pour créer des factures professionnelles en 
 - Saisissez-le à l'ouverture de l'app
 - Renseignez votre nom et email
 
-📝 **Pas encore de code ?**
-- Choisissez votre formule d'abonnement
-- Essai gratuit 7 jours disponible !
-
 ### Étape 3 : Configuration Initiale
 ⚙️ **Allez dans "Paramètres" pour configurer :**
-1. Vos informations d'entreprise
+1. Vos informations personnelles et du logement
 2. Votre logo (optionnel)
 3. Vos paramètres de TVA
 4. Votre template de facture préféré
@@ -58,8 +54,8 @@ FAKT est votre assistant personnel pour créer des factures professionnelles en 
 
 💰 **Tarification** :
 - Prix par nuit
-- Montant des taxes
-- Cochez "Taxe collectée par la plateforme" si c'est Airbnb/Booking
+- Montant de la taxe de séjour
+- Cochez "Taxe de séjour collectée par la plateforme" si c'est Airbnb/Booking
 
 ### 3. Mode de Paiement
 💳 **Choisissez le mode de paiement** :
@@ -276,9 +272,6 @@ Cordialement,
 **Q : Je ne vois pas mon logo sur la facture**
 ✅ Vérifiez que l'image est bien uploadée dans Paramètres > Logo d'entreprise
 
-**Q : Les dates ne s'affichent pas correctement**
-✅ Utilisez le calendrier intégré plutôt que de taper les dates manuellement
-
 **Q : Je ne trouve plus une ancienne facture**
 ✅ Utilisez les filtres dans "Mes Factures" pour retrouver par période ou client
 
@@ -290,33 +283,9 @@ Cordialement,
 
 ---
 
-## 📈 Formules d'Abonnement
-
-### 🆓 Essai Gratuit
-- **7 jours gratuits**
-- Toutes les fonctionnalités incluses
-- Aucun engagement
-
-### 💳 Abonnements
-- **Mensuel** : 4,99€/mois
-- **Trimestriel** : 12,99€ (3 mois)
-- **Annuel** : 19,99€ (1 an) - *Le plus populaire !*
-- **Vie** : 49,99€ (une seule fois)
-
-### ✨ Tous les Abonnements Incluent
-✅ Factures illimitées  
-✅ Support client  
-✅ Mises à jour automatiques  
-✅ Synchronisation cloud  
-✅ Export CSV  
-✅ Multi-langues et devises  
-✅ Templates personnalisables  
-
----
-
 ## 🎉 Félicitations !
 
-Vous êtes maintenant prêt à utiliser FAKT comme un pro ! 
+Vous êtes maintenant prêt à utiliser FAKT ! 
 
 ### 🚀 Prochaines Étapes
 1. **Créez votre première facture** test
@@ -332,5 +301,3 @@ Vous êtes maintenant prêt à utiliser FAKT comme un pro !
 ---
 
 **FAKT - Parce que facturer ne devrait jamais être compliqué ! 🏠✨**
-
-*Créé avec ❤️ pour les hébergeurs touristiques*
