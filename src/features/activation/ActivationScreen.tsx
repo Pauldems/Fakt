@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import activationService from '../../services/activationService';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -133,17 +132,16 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
         >
           <View style={styles.content}>
             <View style={styles.header}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.backButton}
                 onPress={() => {
-                  // Reprendre les vérifications périodiques si on revient en arrière
-                      setStep('code');
+                  setStep('code');
                 }}
               >
-                <Ionicons name="arrow-back" size={24} color="#003580" />
+                <Text style={{fontSize: 24, color: '#003580'}}>←</Text>
               </TouchableOpacity>
               <View style={styles.logoContainer}>
-                <Ionicons name="person-add" size={60} color="#003580" />
+                <Text style={{fontSize: 60}}>👤</Text>
               </View>
               <Text style={styles.title}>Vos informations</Text>
               <Text style={styles.subtitle}>
@@ -153,7 +151,7 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
 
             <View style={styles.form}>
               <View style={styles.codeValidated}>
-                <Ionicons name="checkmark-circle" size={32} color="#4CAF50" />
+                <Text style={{fontSize: 32}}>✓</Text>
                 <Text style={styles.codeValidatedText}>Code validé !</Text>
                 <Text style={styles.codeDisplay}>{code}</Text>
               </View>
@@ -194,10 +192,7 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
                 {isLoading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <>
-                    <Ionicons name="rocket" size={20} color="#fff" />
-                    <Text style={styles.activateButtonText}>Activer ma licence</Text>
-                  </>
+                  <Text style={styles.activateButtonText}>🚀 Activer ma licence</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -216,7 +211,7 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
         <View style={styles.content}>
           <View style={styles.header}>
             <View style={styles.logoContainer}>
-              <Ionicons name="receipt" size={60} color="#003580" />
+              <Text style={{fontSize: 60}}>📄</Text>
             </View>
             <Text style={styles.title}>BookingFakt</Text>
             <Text style={styles.subtitle}>
@@ -252,24 +247,21 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <>
-                  <Ionicons name="checkmark" size={20} color="#fff" />
-                  <Text style={styles.activateButtonText}>Valider le code</Text>
-                </>
+                <Text style={styles.activateButtonText}>✓ Valider le code</Text>
               )}
             </TouchableOpacity>
 
             <View style={styles.infoSection}>
               <View style={styles.infoItem}>
-                <Ionicons name="shield-checkmark" size={24} color="#4CAF50" />
+                <Text style={{fontSize: 24}}>🛡️</Text>
                 <Text style={styles.infoText}>Code unique à usage unique</Text>
               </View>
               <View style={styles.infoItem}>
-                <Ionicons name="phone-portrait" size={24} color="#4CAF50" />
+                <Text style={{fontSize: 24}}>📱</Text>
                 <Text style={styles.infoText}>Activation définitive sur cet appareil</Text>
               </View>
               <View style={styles.infoItem}>
-                <Ionicons name="wifi-off" size={24} color="#4CAF50" />
+                <Text style={{fontSize: 24}}>📶</Text>
                 <Text style={styles.infoText}>Fonctionne sans connexion après activation</Text>
               </View>
             </View>

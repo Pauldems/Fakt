@@ -23,7 +23,11 @@
       "Bash(npx metro build:*)",
       "Bash(xcodebuild:*)",
       "Bash(npx expo run:ios:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(open:*)",
+      "Bash(killall:*)",
+      "Bash(npx eas build:list:*)",
+      "Read(//Users/tometpaul/Documents/FindMyCourt1.1/**)"
     ],
     "deny": []
   }
