@@ -51,13 +51,14 @@ export const InvoiceScreen: React.FC = () => {
     console.log('Données du formulaire:', formData);
     
     // Vérifier si les paramètres sont remplis
-    const { checkSettingsComplete } = require('../../utils/settingsUtils');
-    const settingsComplete = await checkSettingsComplete();
-    
-    if (!settingsComplete) {
+    const { checkSettingsDetailed } = require('../../utils/settingsUtils');
+    const settingsCheck = await checkSettingsDetailed();
+
+    if (!settingsCheck.isComplete) {
+      const missingList = settingsCheck.missingFields.map(field => `• ${field}`).join('\n');
       Alert.alert(
-        'Paramètres requis',
-        'Veuillez d\'abord remplir vos informations dans les paramètres.',
+        'Paramètres incomplets',
+        `Les informations suivantes sont manquantes :\n\n${missingList}\n\nVeuillez les remplir dans les paramètres.`,
         [
           {
             text: 'Aller aux paramètres',
