@@ -10,6 +10,8 @@ import {
   Platform,
   ActivityIndicator,
   SafeAreaView,
+  ScrollView,
+  Linking,
 } from 'react-native';
 import activationService from '../../services/activationService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -208,74 +210,78 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Text style={{fontSize: 60}}>📄</Text>
-            </View>
-            <Text style={styles.title}>BookingFakt</Text>
-            <Text style={styles.subtitle}>
-              Entrez votre code d'activation pour déverrouiller l'application
-            </Text>
-          </View>
-
-          <View style={styles.form}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Code d'activation</Text>
-              <TextInput
-                style={styles.codeInput}
-                value={code}
-                onChangeText={handleCodeChange}
-                placeholder="XXXX-XXXX-XXXX-XXXX"
-                autoCapitalize="characters"
-                maxLength={19}
-                editable={!isLoading}
-              />
-              <Text style={styles.hint}>
-                Le code contient 16 caractères (lettres et chiffres)
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.content}>
+            <View style={styles.header}>
+              <View style={styles.logoContainer}>
+                <Text style={{fontSize: 48}}>📄</Text>
+              </View>
+              <Text style={styles.title}>BookingFakt</Text>
+              <Text style={styles.subtitle}>
+                Entrez votre code d'activation
               </Text>
             </View>
 
-            <TouchableOpacity
-              style={[
-                styles.activateButton,
-                (isLoading || code.replace(/-/g, '').length < 16) && styles.activateButtonDisabled
-              ]}
-              onPress={validateCode}
-              disabled={isLoading || code.replace(/-/g, '').length < 16}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.activateButtonText}>✓ Valider le code</Text>
-              )}
-            </TouchableOpacity>
+            <View style={styles.form}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Code d'activation</Text>
+                <TextInput
+                  style={styles.codeInput}
+                  value={code}
+                  onChangeText={handleCodeChange}
+                  placeholder="XXXX-XXXX-XXXX-XXXX"
+                  autoCapitalize="characters"
+                  maxLength={19}
+                  editable={!isLoading}
+                />
+                <Text style={styles.hint}>
+                  16 caractères (lettres et chiffres)
+                </Text>
+              </View>
 
-            <View style={styles.infoSection}>
-              <View style={styles.infoItem}>
-                <Text style={{fontSize: 24}}>🛡️</Text>
-                <Text style={styles.infoText}>Code unique à usage unique</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={{fontSize: 24}}>📱</Text>
-                <Text style={styles.infoText}>Activation définitive sur cet appareil</Text>
-              </View>
-              <View style={styles.infoItem}>
-                <Text style={{fontSize: 24}}>📶</Text>
-                <Text style={styles.infoText}>Fonctionne sans connexion après activation</Text>
+              <TouchableOpacity
+                style={[
+                  styles.activateButton,
+                  (isLoading || code.replace(/-/g, '').length < 16) && styles.activateButtonDisabled
+                ]}
+                onPress={validateCode}
+                disabled={isLoading || code.replace(/-/g, '').length < 16}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.activateButtonText}>✓ Valider</Text>
+                )}
+              </TouchableOpacity>
+
+              <View style={styles.infoSection}>
+                <View style={styles.infoItem}>
+                  <Text style={{fontSize: 20}}>🛡️</Text>
+                  <Text style={styles.infoText}>Code unique</Text>
+                </View>
+                <View style={styles.infoItem}>
+                  <Text style={{fontSize: 20}}>📱</Text>
+                  <Text style={styles.infoText}>Activation définitive</Text>
+                </View>
+                <View style={styles.infoItem}>
+                  <Text style={{fontSize: 20}}>📶</Text>
+                  <Text style={styles.infoText}>Fonctionne hors ligne</Text>
+                </View>
               </View>
             </View>
-          </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Vous n'avez pas de code d'activation ?
-            </Text>
-            <Text style={styles.footerSubtext}>
-              Contactez notre support pour obtenir votre licence
-            </Text>
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>Pas de code ?</Text>
+              <TouchableOpacity onPress={() => Linking.openURL('mailto:contact@topal.fr')}>
+                <Text style={styles.footerLink}>Contactez le support</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -289,88 +295,91 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  content: {
-    flex: 1,
+  scrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
-    padding: 24,
+    paddingVertical: 20,
+  },
+  content: {
+    padding: 20,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 48,
+    marginBottom: 32,
   },
   logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
     backgroundColor: '#f0f7ff',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
     color: '#001A40',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#1976D2',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 20,
     paddingHorizontal: 20,
   },
   form: {
     backgroundColor: 'transparent',
-    borderRadius: 20,
-    padding: 32,
+    borderRadius: 16,
+    padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
-    marginBottom: 32,
+    shadowRadius: 8,
+    elevation: 4,
+    marginBottom: 20,
   },
   inputGroup: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: '#003580',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   codeInput: {
     borderWidth: 2,
     borderColor: '#003580',
-    borderRadius: 12,
-    padding: 20,
-    fontSize: 20,
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 18,
     fontWeight: '600',
     textAlign: 'center',
     backgroundColor: '#f8f9fa',
-    letterSpacing: 3,
-    marginBottom: 8,
+    letterSpacing: 2,
+    marginBottom: 6,
   },
   hint: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#1976D2',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 4,
   },
   activateButton: {
     backgroundColor: '#003580',
-    borderRadius: 12,
-    padding: 18,
+    borderRadius: 10,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 16,
+    marginTop: 12,
     shadowColor: '#003580',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 6,
+    elevation: 4,
   },
   activateButtonDisabled: {
     backgroundColor: '#ccc',
@@ -379,41 +388,44 @@ const styles = StyleSheet.create({
   },
   activateButtonText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: 6,
   },
   infoSection: {
-    marginTop: 32,
-    paddingTop: 24,
+    marginTop: 20,
+    paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
   },
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   infoText: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#1976D2',
-    marginLeft: 12,
+    marginLeft: 10,
     flex: 1,
   },
   footer: {
     alignItems: 'center',
     paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   footerText: {
-    fontSize: 14,
-    color: '#1976D2',
+    fontSize: 12,
+    color: '#666',
     textAlign: 'center',
     marginBottom: 4,
   },
-  footerSubtext: {
+  footerLink: {
     fontSize: 13,
-    color: '#999',
+    color: '#003580',
     textAlign: 'center',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   backButton: {
     position: 'absolute',

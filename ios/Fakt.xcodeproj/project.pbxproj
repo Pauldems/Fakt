@@ -9,27 +9,27 @@
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		4856120375C9AB36BDD99BF2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D1B9D01063E9066F30C8CFDC /* PrivacyInfo.xcprivacy */; };
-		831D16EA12402FF49ED30EE6 /* libPods-BookingFakt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F6022A51DF352A2CDA5B8A9D /* libPods-BookingFakt.a */; };
-		B196F14601532732CC2FBBD9 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BD0342D7949A140C3A5C1D0 /* ExpoModulesProvider.swift */; };
+		883C92F1A4846907409A206B /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A064E342B54B40E1BB9C1689 /* ExpoModulesProvider.swift */; };
+		972C981F90B634496BBB8A33 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 733F49629A5BDE28CBD58B3A /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		CDE3F58348E123310B87E541 /* libPods-Fakt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D53EACCA4BD8AB73FCD271CD /* libPods-Fakt.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		13B07F961A680F5B00A75B9A /* BookingFakt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BookingFakt.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = BookingFakt/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BookingFakt/Info.plist; sourceTree = "<group>"; };
-		6BD0342D7949A140C3A5C1D0 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BookingFakt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = BookingFakt/SplashScreen.storyboard; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Fakt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fakt.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Fakt/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Fakt/Info.plist; sourceTree = "<group>"; };
+		733F49629A5BDE28CBD58B3A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Fakt/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		7A154C99B657DCAA8B001877 /* Pods-Fakt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Fakt.release.xcconfig"; path = "Target Support Files/Pods-Fakt/Pods-Fakt.release.xcconfig"; sourceTree = "<group>"; };
+		7DE683B1A207E0370CFAF149 /* Pods-Fakt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Fakt.debug.xcconfig"; path = "Target Support Files/Pods-Fakt/Pods-Fakt.debug.xcconfig"; sourceTree = "<group>"; };
+		A064E342B54B40E1BB9C1689 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Fakt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Fakt/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		C7DAB7B196E6D41261409881 /* Pods-BookingFakt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BookingFakt.debug.xcconfig"; path = "Target Support Files/Pods-BookingFakt/Pods-BookingFakt.debug.xcconfig"; sourceTree = "<group>"; };
-		D1B9D01063E9066F30C8CFDC /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = BookingFakt/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		D53EACCA4BD8AB73FCD271CD /* libPods-Fakt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Fakt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BookingFakt/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* BookingFakt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "BookingFakt-Bridging-Header.h"; path = "BookingFakt/BookingFakt-Bridging-Header.h"; sourceTree = "<group>"; };
-		F6022A51DF352A2CDA5B8A9D /* libPods-BookingFakt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BookingFakt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		FD6B32DEFEF620B4FF5B0B0F /* Pods-BookingFakt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BookingFakt.release.xcconfig"; path = "Target Support Files/Pods-BookingFakt/Pods-BookingFakt.release.xcconfig"; sourceTree = "<group>"; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Fakt/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* Fakt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Fakt-Bridging-Header.h"; path = "Fakt/Fakt-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,42 +37,50 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				831D16EA12402FF49ED30EE6 /* libPods-BookingFakt.a in Frameworks */,
+				CDE3F58348E123310B87E541 /* libPods-Fakt.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13B07FAE1A68108700A75B9A /* BookingFakt */ = {
+		13B07FAE1A68108700A75B9A /* Fakt */ = {
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
-				F11748442D0722820044C1D9 /* BookingFakt-Bridging-Header.h */,
+				F11748442D0722820044C1D9 /* Fakt-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				D1B9D01063E9066F30C8CFDC /* PrivacyInfo.xcprivacy */,
+				733F49629A5BDE28CBD58B3A /* PrivacyInfo.xcprivacy */,
 			);
-			name = BookingFakt;
-			sourceTree = "<group>";
-		};
-		16DE08574F45935A6602B2EE /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				CF1B54867BA4B7784102553A /* BookingFakt */,
-			);
-			name = ExpoModulesProviders;
+			name = Fakt;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				F6022A51DF352A2CDA5B8A9D /* libPods-BookingFakt.a */,
+				D53EACCA4BD8AB73FCD271CD /* libPods-Fakt.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6194B5F5E3FF589D586C80D5 /* Fakt */ = {
+			isa = PBXGroup;
+			children = (
+				A064E342B54B40E1BB9C1689 /* ExpoModulesProvider.swift */,
+			);
+			name = Fakt;
+			sourceTree = "<group>";
+		};
+		767561A1537CEAAC05B73E46 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				6194B5F5E3FF589D586C80D5 /* Fakt */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -85,12 +93,12 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* BookingFakt */,
+				13B07FAE1A68108700A75B9A /* Fakt */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				D2F9700B3B4BA11157252786 /* Pods */,
-				16DE08574F45935A6602B2EE /* ExpoModulesProviders */,
+				E5CB4322FB7BA709AC001802 /* Pods */,
+				767561A1537CEAAC05B73E46 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -100,7 +108,7 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* BookingFakt.app */,
+				13B07F961A680F5B00A75B9A /* Fakt.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -111,22 +119,14 @@
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
 			);
 			name = Supporting;
-			path = BookingFakt/Supporting;
+			path = Fakt/Supporting;
 			sourceTree = "<group>";
 		};
-		CF1B54867BA4B7784102553A /* BookingFakt */ = {
+		E5CB4322FB7BA709AC001802 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				6BD0342D7949A140C3A5C1D0 /* ExpoModulesProvider.swift */,
-			);
-			name = BookingFakt;
-			sourceTree = "<group>";
-		};
-		D2F9700B3B4BA11157252786 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				C7DAB7B196E6D41261409881 /* Pods-BookingFakt.debug.xcconfig */,
-				FD6B32DEFEF620B4FF5B0B0F /* Pods-BookingFakt.release.xcconfig */,
+				7DE683B1A207E0370CFAF149 /* Pods-Fakt.debug.xcconfig */,
+				7A154C99B657DCAA8B001877 /* Pods-Fakt.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -134,26 +134,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* BookingFakt */ = {
+		13B07F861A680F5B00A75B9A /* Fakt */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BookingFakt" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Fakt" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				3D9369CB14A75BEA57E1F4DD /* [Expo] Configure project */,
+				524EC843C2550660E78ECA2E /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				C3EC42A2745B0697C8726B8F /* [CP] Embed Pods Frameworks */,
+				339A044C66FC2451B9675F53 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = BookingFakt;
-			productName = BookingFakt;
-			productReference = 13B07F961A680F5B00A75B9A /* BookingFakt.app */;
+			name = Fakt;
+			productName = Fakt;
+			productReference = 13B07F961A680F5B00A75B9A /* Fakt.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -169,7 +169,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "BookingFakt" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Fakt" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -182,7 +182,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* BookingFakt */,
+				13B07F861A680F5B00A75B9A /* Fakt */,
 			);
 		};
 /* End PBXProject section */
@@ -195,7 +195,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				4856120375C9AB36BDD99BF2 /* PrivacyInfo.xcprivacy in Resources */,
+				972C981F90B634496BBB8A33 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,14 +234,36 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-BookingFakt-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-Fakt-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		3D9369CB14A75BEA57E1F4DD /* [Expo] Configure project */ = {
+		339A044C66FC2451B9675F53 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Fakt/Pods-Fakt-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Fakt/Pods-Fakt-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		524EC843C2550660E78ECA2E /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -252,18 +274,18 @@
 			inputPaths = (
 				"$(SRCROOT)/.xcode.env",
 				"$(SRCROOT)/.xcode.env.local",
-				"$(SRCROOT)/BookingFakt/BookingFakt.entitlements",
-				"$(SRCROOT)/Pods/Target Support Files/Pods-BookingFakt/expo-configure-project.sh",
+				"$(SRCROOT)/Fakt/Fakt.entitlements",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-Fakt/expo-configure-project.sh",
 			);
 			name = "[Expo] Configure project";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(SRCROOT)/Pods/Target Support Files/Pods-BookingFakt/ExpoModulesProvider.swift",
+				"$(SRCROOT)/Pods/Target Support Files/Pods-Fakt/ExpoModulesProvider.swift",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-BookingFakt/expo-configure-project.sh\"\n";
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-Fakt/expo-configure-project.sh\"\n";
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -271,7 +293,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BookingFakt/Pods-BookingFakt-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-Fakt/Pods-Fakt-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXApplication/ExpoApplication_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
@@ -294,29 +316,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BookingFakt/Pods-BookingFakt-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		C3EC42A2745B0697C8726B8F /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BookingFakt/Pods-BookingFakt-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BookingFakt/Pods-BookingFakt-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Fakt/Pods-Fakt-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -327,7 +327,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				B196F14601532732CC2FBBD9 /* ExpoModulesProvider.swift in Sources */,
+				883C92F1A4846907409A206B /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -336,19 +336,19 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C7DAB7B196E6D41261409881 /* Pods-BookingFakt.debug.xcconfig */;
+			baseConfigurationReference = 7DE683B1A207E0370CFAF149 /* Pods-Fakt.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = BookingFakt/BookingFakt.entitlements;
-				CURRENT_PROJECT_VERSION = 5;
+				CODE_SIGN_ENTITLEMENTS = Fakt/Fakt.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 88GH63G82M;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
-				INFOPLIST_FILE = BookingFakt/Info.plist;
+				INFOPLIST_FILE = Fakt/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -361,9 +361,9 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.fakt.tomburger;
-				PRODUCT_NAME = BookingFakt;
-				SWIFT_OBJC_BRIDGING_HEADER = "BookingFakt/BookingFakt-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = com.tomburger.faktapp;
+				PRODUCT_NAME = Fakt;
+				SWIFT_OBJC_BRIDGING_HEADER = "Fakt/Fakt-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -373,14 +373,14 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FD6B32DEFEF620B4FF5B0B0F /* Pods-BookingFakt.release.xcconfig */;
+			baseConfigurationReference = 7A154C99B657DCAA8B001877 /* Pods-Fakt.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = BookingFakt/BookingFakt.entitlements;
-				CURRENT_PROJECT_VERSION = 5;
+				CODE_SIGN_ENTITLEMENTS = Fakt/Fakt.entitlements;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 88GH63G82M;
-				INFOPLIST_FILE = BookingFakt/Info.plist;
+				INFOPLIST_FILE = Fakt/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -393,9 +393,9 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.fakt.tomburger;
-				PRODUCT_NAME = BookingFakt;
-				SWIFT_OBJC_BRIDGING_HEADER = "BookingFakt/BookingFakt-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = com.tomburger.faktapp;
+				PRODUCT_NAME = Fakt;
+				SWIFT_OBJC_BRIDGING_HEADER = "Fakt/Fakt-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -523,7 +523,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BookingFakt" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Fakt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -532,7 +532,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "BookingFakt" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Fakt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,

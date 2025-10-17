@@ -120,20 +120,24 @@ class DeepLTranslateService {
   }
 
   /**
-   * Protège les variables BookingFakt
+   * Protège TOUTES les variables entre accolades {} pour éviter qu'elles soient traduites
    */
   private protectVariables(text: string): string {
-    const variables = [
-      '{VILLE}', '{NOM}', '{PRENOM}', 
-      '{NOM-PROPRIETAIRE}', '{PRENOM-PROPRIETAIRE}', 
-      '{MOIS}', '{ANNEE}'
-    ];
+    // Trouver toutes les variables entre accolades
+    const variablePattern = /\{[^}]+\}/g;
+    const variables = text.match(variablePattern) || [];
 
     let protectedText = text;
     variables.forEach((variable, index) => {
-      const placeholder = `XVARX${index}XVARX`;
-      protectedText = protectedText.replace(new RegExp(variable.replace(/[{}]/g, '\\$&'), 'g'), placeholder);
+      // Utiliser un placeholder unique et robuste
+      const placeholder = `__VARIABLE_${index}_PLACEHOLDER__`;
+      // Échapper les caractères spéciaux pour le regex
+      const escapedVariable = variable.replace(/[{}]/g, '\\$&');
+      protectedText = protectedText.replace(new RegExp(escapedVariable, 'g'), placeholder);
     });
+
+    // Stocker les variables pour la restauration
+    (this as any)._protectedVariables = variables;
 
     return protectedText;
   }
@@ -142,17 +146,18 @@ class DeepLTranslateService {
    * Restore les variables BookingFakt après traduction
    */
   private restoreVariables(text: string): string {
-    const variables = [
-      '{VILLE}', '{NOM}', '{PRENOM}', 
-      '{NOM-PROPRIETAIRE}', '{PRENOM-PROPRIETAIRE}', 
-      '{MOIS}', '{ANNEE}'
-    ];
+    const variables = (this as any)._protectedVariables || [];
 
     let restoredText = text;
-    variables.forEach((variable, index) => {
-      const placeholder = `XVARX${index}XVARX`;
-      restoredText = restoredText.replace(new RegExp(placeholder, 'g'), variable);
+    variables.forEach((variable: string, index: number) => {
+      const placeholder = `__VARIABLE_${index}_PLACEHOLDER__`;
+      // Gérer les cas où DeepL ajoute des espaces autour du placeholder
+      const placeholderPattern = new RegExp(`\\s*${placeholder}\\s*`, 'g');
+      restoredText = restoredText.replace(placeholderPattern, variable);
     });
+
+    // Nettoyer les variables stockées
+    delete (this as any)._protectedVariables;
 
     return restoredText;
   }

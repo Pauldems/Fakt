@@ -6,7 +6,7 @@ PODS:
   - EXImageLoader (6.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (54.0.9):
+  - Expo (54.0.13):
     - ExpoModulesCore
     - hermes-engine
     - RCTRequired
@@ -39,9 +39,9 @@ PODS:
     - ExpoModulesCore
   - ExpoDocumentPicker (14.0.7):
     - ExpoModulesCore
-  - ExpoFileSystem (19.0.14):
+  - ExpoFileSystem (19.0.17):
     - ExpoModulesCore
-  - ExpoFont (14.0.8):
+  - ExpoFont (14.0.9):
     - ExpoModulesCore
   - ExpoImagePicker (17.0.8):
     - ExpoModulesCore
@@ -53,7 +53,7 @@ PODS:
     - ExpoModulesCore
   - ExpoMailComposer (15.0.7):
     - ExpoModulesCore
-  - ExpoModulesCore (3.0.17):
+  - ExpoModulesCore (3.0.21):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2413,19 +2413,19 @@ SPEC CHECKSUMS:
   EXApplication: 296622817d459f46b6c5fe8691f4aac44d2b79e7
   EXConstants: a95804601ee4a6aa7800645f9b070d753b1142b3
   EXImageLoader: 189e3476581efe3ad4d1d3fb4735b7179eb26f05
-  Expo: ced678abc0c40ce8d0ee929e0901acde3024e3cb
+  Expo: 6580dbf21d94626792b38a95cddb2fb369ec6b0c
   ExpoAsset: 9ba6fbd677fb8e241a3899ac00fa735bc911eadf
   ExpoClipboard: af650d14765f19c60ce2a1eaf9dfe6445eff7365
   ExpoCrypto: c1fbce112d1b6b79652bbe380b4fd4cc91676595
   ExpoDocumentPicker: 2200eefc2817f19315fa18f0147e0b80ece86926
-  ExpoFileSystem: 4fb06865906e781329eb67166bd64fc4749c3019
-  ExpoFont: 86ceec09ffed1c99cfee36ceb79ba149074901b5
+  ExpoFileSystem: b79eadbda7b7f285f378f95f959cc9313a1c9c61
+  ExpoFont: cf9d90ec1d3b97c4f513211905724c8171f82961
   ExpoImagePicker: d251aab45a1b1857e4156fed88511b278b4eee1c
   ExpoKeepAwake: 1a2e820692e933c94a565ec3fbbe38ac31658ffe
   ExpoLinearGradient: a464898cb95153125e3b81894fd479bcb1c7dd27
   ExpoLinking: f051f28e50ea9269ff539317c166adec81d9342d
   ExpoMailComposer: f513efa3833a7dbd64065e54d5d61585b43fd9b2
-  ExpoModulesCore: 2f5ed1b2b1feec38036e1e366faecb362350ef27
+  ExpoModulesCore: 3a6eb12a5f4d67b2f5fc7d0bc4777b18348f2d7a
   ExpoPrint: 3fa0bd322ea8effa81893a099803c914e59ad46f
   ExpoSharing: 032c01bb034319e2374badf082ae935be866d2e9
   ExpoWebBrowser: 533bc2a1b188eec1c10e4926decf658f1687b5e5
@@ -2508,6 +2508,6 @@ SPEC CHECKSUMS:
   RNWorklets: 76fce72926e28e304afb44f0da23b2d24f2c1fa0
   Yoga: 051f086b5ccf465ff2ed38a2cf5a558ae01aaaa1
 
-PODFILE CHECKSUM: df83223876aa3e6ba3ede2e8120ad3fdf663336d
+PODFILE CHECKSUM: e479bc11f80196f535b70c52f633f8f92c3ba744
 
 COCOAPODS: 1.16.2
