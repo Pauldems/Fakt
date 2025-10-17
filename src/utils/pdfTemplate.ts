@@ -391,7 +391,7 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
         <div class="invoice-header">
           <div class="client-section">
             <h3>${translations.billedTo}</h3>
-            <p>${translations.mister} ${data.firstName} ${data.lastName.toUpperCase()}</p>
+            <p>${data.firstName} ${data.lastName.toUpperCase()}</p>
             ${data.hasClientAddress && data.clientAddress ? `
               <p>${data.clientAddress}</p>
               <p>${data.clientPostalCode} ${data.clientCity}</p>

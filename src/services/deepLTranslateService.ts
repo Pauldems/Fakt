@@ -87,7 +87,9 @@ class DeepLTranslateService {
         body: JSON.stringify({
           text: [text],
           source_lang: fromCode,
-          target_lang: toCode
+          target_lang: toCode,
+          preserve_formatting: true,
+          tag_handling: 'xml'
         }),
       });
 
@@ -121,23 +123,34 @@ class DeepLTranslateService {
 
   /**
    * Protège TOUTES les variables entre accolades {} pour éviter qu'elles soient traduites
+   * Et préserve les espaces avant/après les variables
    */
   private protectVariables(text: string): string {
-    // Trouver toutes les variables entre accolades
-    const variablePattern = /\{[^}]+\}/g;
-    const variables = text.match(variablePattern) || [];
+    // Trouver toutes les variables entre accolades avec espaces optionnels avant/après
+    const variablePattern = /(\s*)(\{[^}]+\})(\s*)/g;
+    const matches: Array<{full: string, before: string, variable: string, after: string}> = [];
+
+    let match;
+    while ((match = variablePattern.exec(text)) !== null) {
+      matches.push({
+        full: match[0],
+        before: match[1],
+        variable: match[2],
+        after: match[3]
+      });
+    }
 
     let protectedText = text;
-    variables.forEach((variable, index) => {
-      // Utiliser un placeholder unique et robuste
-      const placeholder = `__VARIABLE_${index}_PLACEHOLDER__`;
+    matches.forEach((m, index) => {
+      // Utiliser un placeholder unique qui préserve les espaces
+      const placeholder = `${m.before}__VAR${index}__${m.after}`;
       // Échapper les caractères spéciaux pour le regex
-      const escapedVariable = variable.replace(/[{}]/g, '\\$&');
-      protectedText = protectedText.replace(new RegExp(escapedVariable, 'g'), placeholder);
+      const escapedFull = m.full.replace(/[{}]/g, '\\$&').replace(/\s/g, '\\s');
+      protectedText = protectedText.replace(new RegExp(escapedFull, 'g'), placeholder);
     });
 
-    // Stocker les variables pour la restauration
-    (this as any)._protectedVariables = variables;
+    // Stocker les variables originales pour la restauration
+    (this as any)._protectedVariables = matches.map(m => m.variable);
 
     return protectedText;
   }
@@ -150,10 +163,10 @@ class DeepLTranslateService {
 
     let restoredText = text;
     variables.forEach((variable: string, index: number) => {
-      const placeholder = `__VARIABLE_${index}_PLACEHOLDER__`;
-      // Gérer les cas où DeepL ajoute des espaces autour du placeholder
-      const placeholderPattern = new RegExp(`\\s*${placeholder}\\s*`, 'g');
-      restoredText = restoredText.replace(placeholderPattern, variable);
+      // Le placeholder avec ses espaces préservés
+      const placeholder = `__VAR${index}__`;
+      // Remplacer en gardant les espaces qui étaient dans le placeholder
+      restoredText = restoredText.replace(new RegExp(placeholder, 'g'), variable);
     });
 
     // Nettoyer les variables stockées

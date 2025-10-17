@@ -243,15 +243,34 @@ export const InvoiceScreen: React.FC = () => {
 
       if (settings?.useCustomEmail && settings.customEmailSubject && settings.customEmailBody) {
         console.log('✅ Utilisation de l\'email personnalisé');
-        // Utiliser l'email personnalisé avec remplacement des variables
-        let customSubject = settings.customEmailSubject
+
+        // ÉTAPE 1 : Traduire D'ABORD (avec les variables {})
+        let customSubject = settings.customEmailSubject;
+        let customMessage = settings.customEmailBody;
+
+        if (emailLanguage !== 'fr' && deepLTranslateService.isLanguageSupported(emailLanguage)) {
+          console.log('🌍 Traduction DeepL activée, traduction vers:', emailLanguage);
+          try {
+            customSubject = await deepLTranslateService.translateEmailText(customSubject, 'fr', emailLanguage);
+            customMessage = await deepLTranslateService.translateEmailText(customMessage, 'fr', emailLanguage);
+            console.log('✅ Email personnalisé traduit avec DeepL');
+          } catch (error) {
+            console.error('❌ Erreur traduction DeepL:', error);
+            // Continuer avec le texte original
+          }
+        } else {
+          console.log('📝 Email personnalisé sans traduction (français ou langue non supportée)');
+        }
+
+        // ÉTAPE 2 : Remplacer les variables APRÈS la traduction
+        subject = customSubject
           .replace('{VILLE}', cityName.toUpperCase())
           .replace('{NOM}', invoiceData.lastName.toUpperCase())
           .replace('{PRENOM}', invoiceData.firstName)
           .replace('{MOIS}', monthName)
           .replace('{ANNEE}', year.toString());
 
-        let customMessage = settings.customEmailBody
+        message = customMessage
           .replace('{VILLE}', cityName)
           .replace('{NOM}', invoiceData.lastName.toUpperCase())
           .replace('{PRENOM}', invoiceData.firstName)
@@ -259,25 +278,6 @@ export const InvoiceScreen: React.FC = () => {
           .replace('{PRENOM-PROPRIETAIRE}', settings.ownerFirstName || '')
           .replace('{MOIS}', monthName)
           .replace('{ANNEE}', year.toString());
-
-        // Traduire automatiquement si langue différente du français
-        if (emailLanguage !== 'fr' && deepLTranslateService.isLanguageSupported(emailLanguage)) {
-          console.log('🌍 Traduction DeepL activée, traduction vers:', emailLanguage);
-          try {
-            subject = await deepLTranslateService.translateEmailText(customSubject, 'fr', emailLanguage);
-            message = await deepLTranslateService.translateEmailText(customMessage, 'fr', emailLanguage);
-            console.log('✅ Email personnalisé traduit avec DeepL');
-          } catch (error) {
-            console.error('❌ Erreur traduction DeepL:', error);
-            // Fallback sur le texte original
-            subject = customSubject;
-            message = customMessage;
-          }
-        } else {
-          console.log('📝 Email personnalisé sans traduction (français ou langue non supportée)');
-          subject = customSubject;
-          message = customMessage;
-        }
       } else {
         console.log('❌ Utilisation du template par défaut');
         // Utiliser le template par défaut dans la langue sélectionnée
