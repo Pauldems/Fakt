@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { InvoiceData } from '../types/invoice';
 import * as FileSystem from 'expo-file-system/legacy';
-import { InvoiceNumberService } from './invoiceNumberService';
 import invoiceCounterService from './invoiceCounterService';
 
 export interface StoredInvoice {
@@ -50,7 +49,7 @@ export class LocalStorageService {
       }
       
       // Formater le numéro de facture complet
-      const invoiceNumber = await InvoiceNumberService.formatInvoiceNumber(sequentialNumber, invoiceDate);
+      const invoiceNumber = await invoiceCounterService.formatInvoiceNumber(sequentialNumber, invoiceDate);
       
       console.log('Numéro de facture formaté:', invoiceNumber);
 

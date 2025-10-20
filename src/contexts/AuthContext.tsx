@@ -31,20 +31,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('📋 Données d\'activation:', data);
         setActivationData(data);
       } else {
-        console.log('❌ Aucune activation trouvée');
-        // Ne réinitialise l'activation que si elle était déjà nulle
-        // Pour éviter de déconnecter l'utilisateur en cas d'erreur temporaire
-        if (activationData === null) {
-          setActivationData(null);
-        }
+        console.log('❌ Aucune activation trouvée - Déconnexion');
+        // Toujours mettre à null si pas d'activation
+        setActivationData(null);
       }
     } catch (error) {
       console.error('💥 Erreur lors de la vérification d\'activation:', error);
-      // En cas d'erreur, ne pas réinitialiser si déjà activé
-      // Garde l'état actuel pour éviter les déconnexions intempestives
-      if (activationData === null) {
-        setActivationData(null);
-      }
+      // En cas d'erreur réseau, on garde l'état actuel pour éviter de déconnecter
+      // l'utilisateur par erreur (ne change rien à activationData)
     } finally {
       setIsLoading(false);
       console.log('✅ Vérification terminée, isLoading = false');

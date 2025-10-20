@@ -166,13 +166,46 @@ class InvoiceCounterService {
     try {
       const sequentialNumber = this.extractSequentialNumber(invoiceNumber);
       const lastNumber = await this.getLastInvoiceNumber();
-      
+
       // Si le numéro utilisé est supérieur au dernier connu, on met à jour
       if (sequentialNumber > lastNumber) {
         await this.saveLastInvoiceNumber(sequentialNumber);
       }
     } catch (error) {
       console.error('Erreur lors de la mise à jour du compteur:', error);
+    }
+  }
+
+  /**
+   * Formate le numéro de facture complet et le sauvegarde
+   * (Anciennement dans invoiceNumberService.ts - fusionné ici)
+   */
+  async formatInvoiceNumber(sequentialNumber: string, invoiceDate: Date): Promise<string> {
+    try {
+      // Utiliser le format personnalisé de l'utilisateur
+      const formattedNumber = await this.generateFullInvoiceNumber(sequentialNumber, invoiceDate);
+
+      // Sauvegarder le numéro pour référence
+      await AsyncStorage.setItem('last_invoice_number', formattedNumber);
+
+      return formattedNumber;
+    } catch (error) {
+      console.error('Erreur lors du formatage du numéro de facture:', error);
+      // En cas d'erreur, utiliser un format par défaut
+      return await this.generateFullInvoiceNumber(sequentialNumber, invoiceDate);
+    }
+  }
+
+  /**
+   * Récupère le dernier numéro de facture formaté sauvegardé
+   * (Anciennement dans invoiceNumberService.ts - fusionné ici)
+   */
+  async getCurrentInvoiceNumber(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem('last_invoice_number');
+    } catch (error) {
+      console.error('Erreur lors de la récupération du numéro de facture:', error);
+      return null;
     }
   }
 }

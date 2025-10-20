@@ -24,6 +24,10 @@ import { SubscriptionSection } from './SubscriptionSection';
 // import { GoogleDriveSection } from './GoogleDriveSection'; // Désactivé temporairement
 import { useTheme } from '../../theme/ThemeContext';
 import { CurrencyDropdown } from '../../components/CurrencyDropdown';
+import { PrivacyPolicyScreen } from '../privacy/PrivacyPolicyScreen';
+import dataExportService from '../../services/dataExportService';
+import dataDeleteService from '../../services/dataDeleteService';
+import { useAuth } from '../../contexts/AuthContext';
 
 export interface CustomProperty {
   id: string;
@@ -140,7 +144,9 @@ export const SettingsScreen: React.FC = () => {
   const [currencyInfoAnimation] = useState(new Animated.Value(0));
   const [showEmailInfo, setShowEmailInfo] = useState(false);
   const [emailInfoAnimation] = useState(new Animated.Value(0));
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const { theme } = useTheme();
+  const { refreshActivation } = useAuth();
 
   // Animation pour l'info TVA
   const toggleVatInfo = () => {
@@ -182,7 +188,7 @@ export const SettingsScreen: React.FC = () => {
   const formatPhoneNumber = (text: string) => {
     // Garder le +, supprimer seulement les espaces en trop
     let cleaned = text.replace(/\s+/g, ' ').trim();
-    
+
     // Si ça commence par +, traiter différemment
     if (cleaned.startsWith('+')) {
       const prefix = cleaned.substring(0, 3); // +33
@@ -193,6 +199,124 @@ export const SettingsScreen: React.FC = () => {
       // Supprimer tout sauf les chiffres et ajouter des espaces
       const onlyNumbers = cleaned.replace(/\D/g, '');
       return onlyNumbers.replace(/(\d{2})(?=\d)/g, '$1 ');
+    }
+  };
+
+  // Fonction pour exporter toutes les données
+  const handleExportData = async () => {
+    try {
+      // Afficher un résumé avant l'export
+      const summary = await dataExportService.getDataSummary();
+
+      Alert.alert(
+        'Exporter vos données',
+        `Vous allez exporter :\n\n` +
+        `• ${summary.invoicesCount} facture(s)\n` +
+        `• ${summary.clientsCount} client(s)\n` +
+        `• Vos paramètres\n` +
+        `• Votre consentement RGPD\n\n` +
+        `Format : Fichier JSON`,
+        [
+          {
+            text: 'Annuler',
+            style: 'cancel'
+          },
+          {
+            text: 'Exporter',
+            onPress: async () => {
+              const result = await dataExportService.exportAllData();
+              if (result.success) {
+                Alert.alert('Succès', result.message);
+              } else {
+                Alert.alert('Erreur', result.message);
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible d\'exporter les données');
+    }
+  };
+
+  // Fonction pour supprimer toutes les données (RGPD - Droit à l'effacement)
+  const handleDeleteAllData = async () => {
+    try {
+      // Récupérer le résumé des données
+      const summary = await dataDeleteService.getDeleteSummary();
+
+      // Première confirmation - Avertissement très clair
+      Alert.alert(
+        '⚠️ ATTENTION - Suppression définitive',
+        `Cette action est IRRÉVERSIBLE et supprimera :\n\n` +
+        `• ${summary.invoicesCount} facture(s) + PDFs\n` +
+        `• ${summary.clientsCount} client(s)\n` +
+        `• Tous vos paramètres\n` +
+        `• Votre activation\n\n` +
+        `🔴 IMPORTANT :\n` +
+        `Vous devrez acheter un NOUVEAU code d'activation pour réutiliser l'application.\n\n` +
+        `💡 Conseil : Exportez vos données avant de supprimer !`,
+        [
+          {
+            text: 'Annuler',
+            style: 'cancel'
+          },
+          {
+            text: 'Continuer',
+            style: 'destructive',
+            onPress: () => {
+              // Deuxième confirmation - Double vérification
+              Alert.alert(
+                '⚠️ DERNIÈRE CONFIRMATION',
+                `Êtes-vous ABSOLUMENT CERTAIN(E) ?\n\n` +
+                `Cette action détruira toutes vos données et votre licence.\n\n` +
+                `Vous ne pourrez PAS récupérer :\n` +
+                `• Vos factures\n` +
+                `• Vos clients\n` +
+                `• Votre code d'activation\n\n` +
+                `Il faudra acheter un nouveau code pour revenir.`,
+                [
+                  {
+                    text: 'Non, annuler',
+                    style: 'cancel'
+                  },
+                  {
+                    text: 'Oui, tout supprimer',
+                    style: 'destructive',
+                    onPress: async () => {
+                      // Effectuer la suppression
+                      const result = await dataDeleteService.deleteAllUserData();
+
+                      if (result.success) {
+                        // Forcer la re-vérification de l'activation
+                        await refreshActivation();
+
+                        Alert.alert(
+                          '✅ Données supprimées',
+                          'Toutes vos données ont été supprimées définitivement.\n\nL\'application va se redémarrer.',
+                          [
+                            {
+                              text: 'OK',
+                              onPress: () => {
+                                // L'app va maintenant afficher l'écran d'activation
+                                // car refreshActivation() a détecté qu'il n'y a plus d'activation locale
+                              }
+                            }
+                          ]
+                        );
+                      } else {
+                        Alert.alert('Erreur', result.message);
+                      }
+                    }
+                  }
+                ]
+              );
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de supprimer les données');
     }
   };
 
@@ -569,7 +693,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
               <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Format de numérotation</Text>
             </View>
 
-            <View style={styles.inputContainer}>
+            <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: theme.text.secondary }]}>Format personnalisé</Text>
               <TextInput
                 style={[
@@ -577,15 +701,15 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
                   {
                     backgroundColor: theme.surface.secondary,
                     color: theme.text.primary,
-                    borderColor: theme.text.disabled
+                    borderColor: theme.colors.gray300
                   }
                 ]}
                 placeholder="Ex: FACT-{ANNEE}-{MOIS}-{N}"
-                placeholderTextColor={theme.text.disabled}
+                placeholderTextColor={theme.colors.gray400}
                 value={settings.invoiceNumberFormat}
                 onChangeText={(text) => updateSettings(prev => ({ ...prev, invoiceNumberFormat: text }))}
               />
-              <Text style={[styles.hint, { color: theme.text.disabled }]}>
+              <Text style={[styles.helpText, { color: theme.colors.gray600 }]}>
                 Variables : {'{ANNEE}'} (2025), {'{MOIS}'} (01-12), {'{JOUR}'} (01-31), {'{N}'} (compteur)
               </Text>
             </View>
@@ -1090,8 +1214,61 @@ En vous souhaitant bonne réception,
           </View>
 
 
-          {/* Section Abonnement - EN DERNIER */}
+          {/* Section Abonnement */}
           <SubscriptionSection />
+
+          {/* Section Légal - EN DERNIER */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="shield-checkmark-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Légal</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.legalButton}
+              onPress={() => setShowPrivacyPolicy(true)}
+            >
+              <View style={styles.legalButtonContent}>
+                <Ionicons name="document-text-outline" size={20} color={theme.primary} />
+                <Text style={[styles.legalButtonText, { color: theme.text.primary }]}>
+                  Politique de confidentialité
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.gray400} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.legalButton, { marginTop: 12 }]}
+              onPress={handleExportData}
+            >
+              <View style={styles.legalButtonContent}>
+                <Ionicons name="download-outline" size={20} color={theme.primary} />
+                <Text style={[styles.legalButtonText, { color: theme.text.primary }]}>
+                  Exporter mes données
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={theme.colors.gray400} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.legalButton, styles.dangerButton, { marginTop: 12 }]}
+              onPress={handleDeleteAllData}
+            >
+              <View style={styles.legalButtonContent}>
+                <Ionicons name="trash-outline" size={20} color="#dc2626" />
+                <Text style={[styles.legalButtonText, styles.dangerButtonText]}>
+                  Supprimer toutes mes données
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#dc2626" />
+            </TouchableOpacity>
+
+            <View style={styles.legalInfo}>
+              <Text style={[styles.legalInfoText, { color: theme.text.secondary }]}>
+                Conformité RGPD • Vos données vous appartiennent
+              </Text>
+            </View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
       
@@ -1220,6 +1397,15 @@ En vous souhaitant bonne réception,
             </View>
           </View>
         </View>
+      </Modal>
+
+      {/* Modal Politique de confidentialité */}
+      <Modal
+        visible={showPrivacyPolicy}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <PrivacyPolicyScreen onClose={() => setShowPrivacyPolicy(false)} />
       </Modal>
     </View>
   );
@@ -1801,5 +1987,44 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#0369a1',
     lineHeight: 18,
+  },
+  // Styles pour la section légale
+  legalButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  legalButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  legalButtonText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#001A40',
+  },
+  legalInfo: {
+    marginTop: 12,
+    paddingHorizontal: 4,
+  },
+  legalInfoText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  dangerButton: {
+    borderColor: '#fecaca',
+    backgroundColor: '#fef2f2',
+  },
+  dangerButtonText: {
+    color: '#dc2626',
   },
 });

@@ -192,7 +192,7 @@ class HybridInvoiceService {
    */
   private async saveInvoiceWithLanguage(invoiceData: InvoiceData, invoiceNumberInput: string, language: 'fr' | 'en' | 'es' | 'de' | 'it'): Promise<StoredInvoice> {
     const { generateInvoiceHTML } = require('../utils/pdfTemplate');
-    const { InvoiceNumberService } = require('./invoiceNumberService');
+    const invoiceCounterService = require('./invoiceCounterService').default;
     const Print = require('expo-print');
     const FileSystem = require('expo-file-system/legacy');
     const AsyncStorage = require('@react-native-async-storage/async-storage').default;
@@ -200,9 +200,9 @@ class HybridInvoiceService {
     // Générer un ID unique
     const id = Date.now().toString();
     const invoiceDate = new Date(invoiceData.invoiceDate);
-    
+
     // Utiliser les services pour formatter le numéro de facture
-    const invoiceNumber = await InvoiceNumberService.formatInvoiceNumber(invoiceNumberInput, invoiceDate);
+    const invoiceNumber = await invoiceCounterService.formatInvoiceNumber(invoiceNumberInput, invoiceDate);
     
     console.log('Numéro de facture formaté:', invoiceNumber);
 

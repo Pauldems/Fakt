@@ -12,9 +12,12 @@ import {
   SafeAreaView,
   ScrollView,
   Linking,
+  Modal,
 } from 'react-native';
 import activationService from '../../services/activationService';
 import { useAuth } from '../../contexts/AuthContext';
+import { PrivacyPolicyScreen } from '../privacy/PrivacyPolicyScreen';
+import consentService from '../../services/consentService';
 
 interface ActivationScreenProps {
   onActivationSuccess: () => void;
@@ -27,6 +30,8 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
 
   // Formater le code automatiquement
   const handleCodeChange = (text: string) => {
@@ -89,18 +94,27 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
       return;
     }
 
+    if (!consentAccepted) {
+      Alert.alert('Consentement requis', 'Vous devez accepter la politique de confidentialité pour continuer');
+      return;
+    }
+
     setIsLoading(true);
-    
+
     try {
       console.log('🚀 Début activation avec:', { code, name, email });
       const result = await activationService.activateApp(code, name, email);
       console.log('📝 Résultat activation:', result);
-      
+
       if (result.success) {
+        // Sauvegarder le consentement RGPD
+        console.log('💾 Sauvegarde du consentement RGPD...');
+        await consentService.saveConsent(name, email);
+
         console.log('✅ Activation réussie, rechargement du contexte...');
         Alert.alert('Succès', result.message, [
-          { 
-            text: 'OK', 
+          {
+            text: 'OK',
             onPress: async () => {
               // Reprendre les vérifications périodiques après activation
               // Forcer le rechargement du contexte Auth
@@ -183,13 +197,36 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
                 />
               </View>
 
+              <View style={styles.consentContainer}>
+                <TouchableOpacity
+                  style={styles.checkboxContainer}
+                  onPress={() => setConsentAccepted(!consentAccepted)}
+                  disabled={isLoading}
+                >
+                  <View style={[styles.checkbox, consentAccepted && styles.checkboxChecked]}>
+                    {consentAccepted && <Text style={styles.checkmark}>✓</Text>}
+                  </View>
+                  <View style={styles.consentTextContainer}>
+                    <Text style={styles.consentText}>
+                      J'accepte la{' '}
+                      <Text
+                        style={styles.privacyLink}
+                        onPress={() => setShowPrivacyPolicy(true)}
+                      >
+                        politique de confidentialité
+                      </Text>
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
               <TouchableOpacity
                 style={[
                   styles.activateButton,
-                  (isLoading || !name.trim() || !email.trim()) && styles.activateButtonDisabled
+                  (isLoading || !name.trim() || !email.trim() || !consentAccepted) && styles.activateButtonDisabled
                 ]}
                 onPress={handleActivation}
-                disabled={isLoading || !name.trim() || !email.trim()}
+                disabled={isLoading || !name.trim() || !email.trim() || !consentAccepted}
               >
                 {isLoading ? (
                   <ActivityIndicator color="#fff" />
@@ -200,6 +237,14 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
             </View>
           </View>
         </KeyboardAvoidingView>
+
+        <Modal
+          visible={showPrivacyPolicy}
+          animationType="slide"
+          presentationStyle="pageSheet"
+        >
+          <PrivacyPolicyScreen onClose={() => setShowPrivacyPolicy(false)} />
+        </Modal>
       </SafeAreaView>
     );
   }
@@ -463,5 +508,47 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     color: '#003580',
     letterSpacing: 1,
+  },
+  consentContainer: {
+    marginVertical: 16,
+    paddingVertical: 12,
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#003580',
+    borderRadius: 6,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  checkboxChecked: {
+    backgroundColor: '#003580',
+    borderColor: '#003580',
+  },
+  checkmark: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  consentTextContainer: {
+    flex: 1,
+    paddingTop: 2,
+  },
+  consentText: {
+    fontSize: 13,
+    color: '#333',
+    lineHeight: 20,
+  },
+  privacyLink: {
+    color: '#003580',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });
