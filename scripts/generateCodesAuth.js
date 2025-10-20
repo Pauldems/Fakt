@@ -39,7 +39,7 @@ const CODE_TYPES = {
   lifetime: {
     type: 'lifetime',
     description: 'Accès à vie',
-    price: 49.99,
+    price: 199.99,
     validUntil: null
   },
   annual: {
@@ -104,8 +104,7 @@ function generateUniqueCode(type) {
 // Vérifier si un code existe déjà
 async function codeExists(code) {
   try {
-    const cleanCode = code.replace(/-/g, '');
-    const docRef = doc(db, 'activationCodes', cleanCode);
+    const docRef = doc(db, 'activationCodes', code); // Garder les tirets
     const docSnapshot = await getDoc(docRef);
     return docSnapshot.exists();
   } catch (error) {
@@ -135,10 +134,9 @@ async function generateUniqueUniqueCode(type) {
 async function createCodeDocument(code, codeInfo) {
   try {
     const now = new Date();
-    const cleanCode = code.replace(/-/g, ''); // Enlever les tirets pour la clé
-    
+
     const codeDoc = {
-      code: cleanCode,
+      code: code, // Garder les tirets !
       type: codeInfo.type,
       status: 'unused',
       createdAt: now,
@@ -149,8 +147,8 @@ async function createCodeDocument(code, codeInfo) {
       price: codeInfo.price,
       description: codeInfo.description
     };
-    
-    const docRef = doc(db, 'activationCodes', cleanCode);
+
+    const docRef = doc(db, 'activationCodes', code); // Utiliser le code avec tirets comme ID
     await setDoc(docRef, codeDoc);
     return codeDoc;
   } catch (error) {
@@ -325,7 +323,7 @@ if (command === 'list') {
   generateCodes(command, count).then(() => process.exit(0));
 } else {
   console.log(`
-🔑 Générateur de codes d'activation BookingFakt (Auth Version)
+🔑 Générateur de codes d'activation Fakt (Auth Version)
 ==============================================================
 
 Configuration requise:

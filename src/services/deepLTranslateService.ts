@@ -34,7 +34,7 @@ class DeepLTranslateService {
 
     console.log(`🌍 Traduction DeepL ${fromLang} → ${toLang}:`, text.substring(0, 50) + '...');
 
-    // Protéger les variables BookingFakt
+    // Protéger les variables Fakt
     const protectedText = this.protectVariables(text);
     
     try {
@@ -156,7 +156,7 @@ class DeepLTranslateService {
   }
 
   /**
-   * Restore les variables BookingFakt après traduction
+   * Restore les variables Fakt après traduction
    */
   private restoreVariables(text: string): string {
     const variables = (this as any)._protectedVariables || [];

@@ -1,7 +1,7 @@
 @echo off
 REM Exemple d'utilisation du générateur de codes avec authentification
 
-echo 🔑 Exemple d'utilisation du générateur de codes BookingFakt
+echo 🔑 Exemple d'utilisation du générateur de codes Fakt
 echo ===========================================================
 echo.
 

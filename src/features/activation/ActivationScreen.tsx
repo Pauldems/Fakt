@@ -220,7 +220,7 @@ export const ActivationScreen: React.FC<ActivationScreenProps> = ({ onActivation
               <View style={styles.logoContainer}>
                 <Text style={{fontSize: 48}}>📄</Text>
               </View>
-              <Text style={styles.title}>BookingFakt</Text>
+              <Text style={styles.title}>Fakt</Text>
               <Text style={styles.subtitle}>
                 Entrez votre code d'activation
               </Text>

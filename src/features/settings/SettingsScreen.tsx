@@ -69,6 +69,7 @@ export interface OwnerSettings {
   customProperties: CustomProperty[];
   propertyTemplates: PropertyTemplate[];
   invoiceTemplate?: 'modern' | 'classic' | 'minimal' | 'original';
+  invoiceNumberFormat: string; // Format personnalisé : ex "FACT-{ANNEE}-{N}"
   vatSettings: {
     isSubjectToVAT: boolean;
     vatRate: number;
@@ -119,6 +120,7 @@ export const DEFAULT_SETTINGS: OwnerSettings = {
   customProperties: [],
   propertyTemplates: [], // Vide par défaut - utilisateur doit créer ses propriétés
   invoiceTemplate: 'original',
+  invoiceNumberFormat: 'FACT-{ANNEE}-{MOIS}-{JOUR}-{N}', // Format par défaut : FACT-YYYY-MM-DD-NNN
   vatSettings: {
     isSubjectToVAT: false,
     vatRate: 10, // TVA 10% pour locations meublées par défaut
@@ -560,7 +562,36 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
             </View>
           </View>
 
-          {/* 2. Gestion des propriétés */}
+          {/* 2. Section Format de numérotation */}
+          <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
+            <View style={styles.headerWithIcon}>
+              <Ionicons name="calculator-outline" size={24} color={theme.primary} />
+              <Text style={[styles.sectionTitleWithIcon, { color: theme.text.primary }]}>Format de numérotation</Text>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={[styles.label, { color: theme.text.secondary }]}>Format personnalisé</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: theme.surface.secondary,
+                    color: theme.text.primary,
+                    borderColor: theme.text.disabled
+                  }
+                ]}
+                placeholder="Ex: FACT-{ANNEE}-{MOIS}-{N}"
+                placeholderTextColor={theme.text.disabled}
+                value={settings.invoiceNumberFormat}
+                onChangeText={(text) => updateSettings(prev => ({ ...prev, invoiceNumberFormat: text }))}
+              />
+              <Text style={[styles.hint, { color: theme.text.disabled }]}>
+                Variables : {'{ANNEE}'} (2025), {'{MOIS}'} (01-12), {'{JOUR}'} (01-31), {'{N}'} (compteur)
+              </Text>
+            </View>
+          </View>
+
+          {/* 3. Gestion des propriétés */}
           <View style={[styles.section, { backgroundColor: theme.surface.primary }]}>
             <View style={styles.headerWithIcon}>
               <Ionicons name="home-outline" size={24} color={theme.primary} />

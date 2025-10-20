@@ -26,7 +26,7 @@ const CODE_TYPES = {
   lifetime: {
     type: 'lifetime',
     description: 'Accès à vie',
-    price: 49.99,
+    price: 199.99,
     validUntil: null
   },
   annual: {
@@ -227,7 +227,7 @@ if (command === 'list') {
   generateCodes(command, count).then(() => process.exit(0));
 } else {
   console.log(`
-🔑 Générateur de codes d'activation BookingFakt
+🔑 Générateur de codes d'activation Fakt
 ===============================================
 
 Usage:

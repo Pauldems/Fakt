@@ -8,7 +8,7 @@
 export FIREBASE_ADMIN_EMAIL=${FIREBASE_ADMIN_EMAIL:-"admin@example.com"}
 export FIREBASE_ADMIN_PASSWORD=${FIREBASE_ADMIN_PASSWORD:-"your-admin-password"}
 
-echo "🔑 Générateur de codes d'activation BookingFakt"
+echo "🔑 Générateur de codes d'activation Fakt"
 echo "==============================================="
 echo ""
 

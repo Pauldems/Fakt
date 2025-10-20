@@ -1,6 +1,6 @@
 # Générateur de Codes d'Activation avec Authentification Firebase
 
-Ce script permet de générer des codes d'activation pour BookingFakt en utilisant l'authentification Firebase avec email/password au lieu du fichier `serviceAccountKey.json`.
+Ce script permet de générer des codes d'activation pour Fakt en utilisant l'authentification Firebase avec email/password au lieu du fichier `serviceAccountKey.json`.
 
 ## 🔧 Installation et Configuration
 

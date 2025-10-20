@@ -1,8 +1,8 @@
-# BookingFakt 📄
+# Fakt 📄
 
 **Application mobile de facturation dédiée aux hébergeurs touristiques**
 
-BookingFakt est une application React Native conçue spécifiquement pour les propriétaires d'hébergements de courte durée (Airbnb, locations saisonnières, chambres d'hôtes) qui simplifie la création et la gestion de factures professionnelles.
+Fakt est une application React Native conçue spécifiquement pour les propriétaires d'hébergements de courte durée (Airbnb, locations saisonnières, chambres d'hôtes) qui simplifie la création et la gestion de factures professionnelles.
 
 ## ✨ Fonctionnalités principales
 
@@ -53,7 +53,7 @@ BookingFakt est une application React Native conçue spécifiquement pour les pr
 ```bash
 # Cloner le projet
 git clone [repository-url]
-cd BookingFakt
+cd Fakt
 
 # Installer les dépendances
 npm install
@@ -175,4 +175,4 @@ Pour toute question ou support :
 
 ---
 
-**BookingFakt** - Simplifiez votre facturation d'hébergement touristique 🏠✨
+**Fakt** - Simplifiez votre facturation d'hébergement touristique 🏠✨

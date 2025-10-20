@@ -7,7 +7,7 @@ REM Modifiez ces valeurs avec vos vrais credentials admin
 set FIREBASE_ADMIN_EMAIL=admin@example.com
 set FIREBASE_ADMIN_PASSWORD=your-admin-password
 
-echo 🔑 Générateur de codes d'activation BookingFakt
+echo 🔑 Générateur de codes d'activation Fakt
 echo ===============================================
 echo.
 

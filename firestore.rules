@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================
+    // CODES D'ACTIVATION (Public en lecture seule)
+    // ==========================================
+    match /activationCodes/{codeId} {
+      // Tout le monde peut lire pour vérifier un code
+      allow read: if true;
+
+      // Seuls les admins peuvent créer/modifier/supprimer
+      // Note: En production, ajoutez une vérification admin
+      allow write: if false; // Désactivé - utilisez Firebase Console ou Admin SDK
+    }
+
+    // ==========================================
+    // DONNÉES UTILISATEURS
+    // ==========================================
+    match /users/{userId} {
+      // Un utilisateur peut lire/écrire ses propres données
+      allow read, write: if true; // Simplifié pour l'instant
+
+      // Sous-collections de l'utilisateur
+      match /settings/{document=**} {
+        allow read, write: if true;
+      }
+
+      match /clients/{document=**} {
+        allow read, write: if true;
+      }
+
+      match /invoices/{document=**} {
+        allow read, write: if true;
+      }
+
+      match /counters/{document=**} {
+        allow read, write: if true;
+      }
+    }
+
+    // ==========================================
+    // BACKUPS (optionnel pour sauvegarde avant suppression)
+    // ==========================================
+    match /backups/{userId} {
+      // Seules les Cloud Functions peuvent écrire
+      allow read: if false;
+      allow write: if false;
+    }
+  }
+}

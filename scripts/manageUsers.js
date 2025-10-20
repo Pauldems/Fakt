@@ -216,7 +216,7 @@ switch (command) {
     
   default:
     console.log(`
-🔧 Script d'administration BookingFakt
+🔧 Script d'administration Fakt
 =====================================
 
 Commandes disponibles:

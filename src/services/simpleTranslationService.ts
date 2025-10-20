@@ -143,7 +143,7 @@ class SimpleTranslationService {
 
     console.log(`🌍 Traduction simple ${fromLang} → ${toLang}:`, text.substring(0, 50) + '...');
 
-    // Protéger les variables BookingFakt
+    // Protéger les variables Fakt
     const protectedText = this.protectVariables(text);
     
     try {
@@ -262,7 +262,7 @@ class SimpleTranslationService {
 
 
   /**
-   * Protège les variables BookingFakt
+   * Protège les variables Fakt
    */
   private protectVariables(text: string): string {
     const variables = [
@@ -281,7 +281,7 @@ class SimpleTranslationService {
   }
 
   /**
-   * Restore les variables BookingFakt après traduction
+   * Restore les variables Fakt après traduction
    */
   private restoreVariables(text: string): string {
     const variables = [

@@ -1,4 +1,4 @@
-# 🔥 Structure Firebase pour BookingFakt
+# 🔥 Structure Firebase pour Fakt
 
 ## 📊 Organisation des données par utilisateur
 

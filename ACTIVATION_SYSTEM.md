@@ -1,4 +1,4 @@
-# 🔐 Système d'activation BookingFakt
+# 🔐 Système d'activation Fakt
 
 ## Vue d'ensemble
 
@@ -178,12 +178,12 @@ L'app vérifie automatiquement :
 
 ### Template email pour codes
 ```
-Merci pour votre achat de BookingFakt !
+Merci pour votre achat de Fakt !
 
 Votre code d'activation : FAKT-LIFE-XXXX-XXXX
 
 Instructions :
-1. Téléchargez l'app BookingFakt
+1. Téléchargez l'app Fakt
 2. Lancez l'app
 3. Saisissez votre code d'activation
 4. Créez votre compte

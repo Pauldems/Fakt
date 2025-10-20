@@ -13,7 +13,7 @@ export const BlueColors = {
   blue800: '#0D47A1',  // Bleu extra foncé
   blue900: '#001A40',  // Bleu maximum foncé
   
-  // Couleurs spécifiques BookingFakt
+  // Couleurs spécifiques Fakt
   primary: '#003580',      // Bleu principal Booking (conservé)
   primaryLight: '#4A7FBF', // Version claire du primary
   primaryDark: '#001A40',  // Version foncée du primary
