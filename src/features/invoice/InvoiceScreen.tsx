@@ -264,37 +264,37 @@ export const InvoiceScreen: React.FC = () => {
 
         // ÉTAPE 2 : Remplacer les variables APRÈS la traduction
         subject = customSubject
-          .replace('{VILLE}', cityName.toUpperCase())
-          .replace('{NOM}', invoiceData.lastName.toUpperCase())
-          .replace('{PRENOM}', invoiceData.firstName)
-          .replace('{MOIS}', monthName)
-          .replace('{ANNEE}', year.toString());
+          .replace(/{VILLE}/g, cityName.toUpperCase())
+          .replace(/{NOM}/g, invoiceData.lastName.toUpperCase())
+          .replace(/{PRENOM}/g, invoiceData.firstName)
+          .replace(/{MOIS}/g, monthName)
+          .replace(/{ANNEE}/g, year.toString());
 
         message = customMessage
-          .replace('{VILLE}', cityName)
-          .replace('{NOM}', invoiceData.lastName.toUpperCase())
-          .replace('{PRENOM}', invoiceData.firstName)
-          .replace('{NOM-PROPRIETAIRE}', settings.ownerLastName || '')
-          .replace('{PRENOM-PROPRIETAIRE}', settings.ownerFirstName || '')
-          .replace('{MOIS}', monthName)
-          .replace('{ANNEE}', year.toString());
+          .replace(/{VILLE}/g, cityName)
+          .replace(/{NOM}/g, invoiceData.lastName.toUpperCase())
+          .replace(/{PRENOM}/g, invoiceData.firstName)
+          .replace(/{NOM-PROPRIETAIRE}/g, settings.ownerLastName || '')
+          .replace(/{PRENOM-PROPRIETAIRE}/g, settings.ownerFirstName || '')
+          .replace(/{MOIS}/g, monthName)
+          .replace(/{ANNEE}/g, year.toString());
       } else {
         console.log('❌ Utilisation du template par défaut');
         // Utiliser le template par défaut dans la langue sélectionnée
         const template = getEmailTemplate(emailLanguage);
         subject = template.subject
-          .replace('{VILLE}', cityName.toUpperCase())
-          .replace('{NOM}', invoiceData.lastName.toUpperCase())
-          .replace('{PRENOM}', invoiceData.firstName);
+          .replace(/{VILLE}/g, cityName.toUpperCase())
+          .replace(/{NOM}/g, invoiceData.lastName.toUpperCase())
+          .replace(/{PRENOM}/g, invoiceData.firstName);
 
         message = template.body
-          .replace('{VILLE}', cityName)
-          .replace('{NOM}', invoiceData.lastName.toUpperCase())
-          .replace('{PRENOM}', invoiceData.firstName)
-          .replace('{NOM-PROPRIETAIRE}', settings?.ownerLastName || '')
-          .replace('{PRENOM-PROPRIETAIRE}', settings?.ownerFirstName || '')
-          .replace('{MOIS}', monthName)
-          .replace('{ANNEE}', year.toString());
+          .replace(/{VILLE}/g, cityName)
+          .replace(/{NOM}/g, invoiceData.lastName.toUpperCase())
+          .replace(/{PRENOM}/g, invoiceData.firstName)
+          .replace(/{NOM-PROPRIETAIRE}/g, settings?.ownerLastName || '')
+          .replace(/{PRENOM-PROPRIETAIRE}/g, settings?.ownerFirstName || '')
+          .replace(/{MOIS}/g, monthName)
+          .replace(/{ANNEE}/g, year.toString());
       }
 
       // Charger les paramètres BCC

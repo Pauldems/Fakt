@@ -20,7 +20,32 @@ export const generateClassicTemplate = (
   const totalNights = numberOfNights * pricePerNight;
   const totalExtras = translatedData.extras ? translatedData.extras.reduce((sum, extra) => sum + (extra.price * extra.quantity), 0) : 0;
   const finalTaxAmount = translatedData.isPlatformCollectingTax ? 0 : taxAmount;
-  const totalWithTax = totalNights + totalExtras + finalTaxAmount;
+
+  // Calculs TVA
+  const isVATSubject = settings.vatSettings?.isSubjectToVAT || false;
+  const vatRate = settings.vatSettings?.useCustomRate
+    ? (settings.vatSettings?.customRate || 0)
+    : (settings.vatSettings?.vatRate || 0);
+
+  let subtotalHT = 0;
+  let vatAmount = 0;
+  let totalTTC = 0;
+
+  if (isVATSubject) {
+    // L'utilisateur entre le prix TTC (location + extras), on calcule le HT et la TVA
+    // La taxe de séjour n'est pas soumise à TVA
+    const subtotalTTC = totalNights + totalExtras;
+    subtotalHT = subtotalTTC / (1 + vatRate / 100);
+    vatAmount = subtotalTTC - subtotalHT;
+    totalTTC = subtotalTTC + finalTaxAmount;
+  } else {
+    // Pas de TVA, le total reste le même
+    subtotalHT = totalNights + totalExtras + finalTaxAmount;
+    vatAmount = 0;
+    totalTTC = subtotalHT;
+  }
+
+  const totalWithTax = totalTTC;
   
   const locale = language === 'en' ? 'en-US' : 
                 language === 'es' ? 'es-ES' :
@@ -338,20 +363,41 @@ export const generateClassicTemplate = (
         
         <!-- Totaux -->
         <div class="totals-section">
-          <div class="total-row">
-            <span class="total-label">Sous-total HT:</span>
-            <span class="total-value">${(totalNights + totalExtras).toFixed(2)} €</span>
-          </div>
-          ${finalTaxAmount > 0 ? `
+          ${isVATSubject ? `
             <div class="total-row">
-              <span class="total-label">Taxe de séjour:</span>
-              <span class="total-value">${finalTaxAmount.toFixed(2)} €</span>
+              <span class="total-label">Sous-total HT:</span>
+              <span class="total-value">${subtotalHT.toFixed(2)} €</span>
             </div>
-          ` : ''}
-          <div class="total-row grand-total">
-            <span class="total-label">TOTAL TTC:</span>
-            <span class="total-value">${totalWithTax.toFixed(2)} €</span>
-          </div>
+            <div class="total-row">
+              <span class="total-label">TVA (${vatRate.toFixed(vatRate % 1 === 0 ? 0 : 1)}%):</span>
+              <span class="total-value">${vatAmount.toFixed(2)} €</span>
+            </div>
+            ${finalTaxAmount > 0 ? `
+              <div class="total-row">
+                <span class="total-label">Taxe de séjour:</span>
+                <span class="total-value">${finalTaxAmount.toFixed(2)} €</span>
+              </div>
+            ` : ''}
+            <div class="total-row grand-total">
+              <span class="total-label">TOTAL TTC:</span>
+              <span class="total-value">${totalWithTax.toFixed(2)} €</span>
+            </div>
+          ` : `
+            <div class="total-row">
+              <span class="total-label">Sous-total:</span>
+              <span class="total-value">${(totalNights + totalExtras).toFixed(2)} €</span>
+            </div>
+            ${finalTaxAmount > 0 ? `
+              <div class="total-row">
+                <span class="total-label">Taxe de séjour:</span>
+                <span class="total-value">${finalTaxAmount.toFixed(2)} €</span>
+              </div>
+            ` : ''}
+            <div class="total-row grand-total">
+              <span class="total-label">TOTAL:</span>
+              <span class="total-value">${totalWithTax.toFixed(2)} €</span>
+            </div>
+          `}
         </div>
         
         <!-- Identifiants -->

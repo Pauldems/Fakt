@@ -6,7 +6,13 @@ const config = getDefaultConfig(__dirname);
 // Solution robuste pour les erreurs expo-modules-core
 config.resolver = {
   ...config.resolver,
-  
+
+  // Exclure les fichiers Electron du bundle
+  blockList: [
+    /electron\.js$/,
+    /preload\.js$/
+  ],
+
   // Résolution personnalisée pour gérer les imports manquants
   resolveRequest: (context, moduleName, platform) => {
     // Si c'est un module problématique d'expo-modules-core

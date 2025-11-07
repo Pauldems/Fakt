@@ -24,20 +24,21 @@ export const generateModernTemplate = (
   
   // Calculs TVA
   const isVATSubject = settings.vatSettings?.isSubjectToVAT || false;
-  const vatRate = settings.vatSettings?.useCustomRate 
+  const vatRate = settings.vatSettings?.useCustomRate
     ? (settings.vatSettings?.customRate || 0)
     : (settings.vatSettings?.vatRate || 0);
-  
+
   let subtotalHT = 0;
   let vatAmount = 0;
   let totalTTC = 0;
-  
+
   if (isVATSubject) {
-    // L'utilisateur entre le prix TTC, on calcule le HT
-    const totalBeforeVAT = totalNights + totalExtras;
-    totalTTC = totalBeforeVAT + finalTaxAmount;
-    subtotalHT = totalTTC / (1 + vatRate / 100);
-    vatAmount = totalTTC - subtotalHT;
+    // L'utilisateur entre le prix TTC (location + extras), on calcule le HT et la TVA
+    // La taxe de séjour n'est pas soumise à TVA
+    const subtotalTTC = totalNights + totalExtras;
+    subtotalHT = subtotalTTC / (1 + vatRate / 100);
+    vatAmount = subtotalTTC - subtotalHT;
+    totalTTC = subtotalTTC + finalTaxAmount;
   } else {
     // Pas de TVA, le total reste le même
     subtotalHT = totalNights + totalExtras + finalTaxAmount;
