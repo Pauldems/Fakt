@@ -11,11 +11,9 @@ interface InvoiceTranslations {
   accommodation: string;
   from: string;
   to: string;
-  geniusRate: string;
   stayTax: string;
   stayDuration: string;
   nights: string;
-  bookingReservation: string;
   clientInvoice: string;
   paymentMade: string;
   total: string;
@@ -77,11 +75,9 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     accommodation: 'Hébergement du',
     from: 'du',
     to: 'AU',
-    geniusRate: '- tarif génius',
     stayTax: 'Taxe de séjour',
     stayDuration: 'Durée du séjour :',
     nights: 'nuits',
-    bookingReservation: 'Réservation tarif via Booking –',
     clientInvoice: 'Facture client N°',
     paymentMade: 'Règlement effectué directement sur ce site',
     total: 'TOTAL',
@@ -140,11 +136,9 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     accommodation: 'Accommodation from',
     from: 'from',
     to: 'TO',
-    geniusRate: '- genius rate',
     stayTax: 'Tourist tax',
     stayDuration: 'Stay duration:',
     nights: 'nights',
-    bookingReservation: 'Booking reservation –',
     clientInvoice: 'Client invoice N°',
     paymentMade: 'Payment made directly on this site',
     total: 'TOTAL',
@@ -203,11 +197,9 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     accommodation: 'Alojamiento del',
     from: 'del',
     to: 'AL',
-    geniusRate: '- tarifa genius',
     stayTax: 'Tasa turística',
     stayDuration: 'Duración de la estancia:',
     nights: 'noches',
-    bookingReservation: 'Reserva vía Booking –',
     clientInvoice: 'Factura cliente N°',
     paymentMade: 'Pago realizado directamente en este sitio',
     total: 'TOTAL',
@@ -266,11 +258,9 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     accommodation: 'Unterkunft vom',
     from: 'vom',
     to: 'BIS',
-    geniusRate: '- Genius-Tarif',
     stayTax: 'Kurtaxe',
     stayDuration: 'Aufenthaltsdauer:',
     nights: 'Nächte',
-    bookingReservation: 'Buchung über Booking –',
     clientInvoice: 'Kundenrechnung Nr.',
     paymentMade: 'Zahlung direkt über diese Website',
     total: 'GESAMT',
@@ -329,11 +319,9 @@ export const invoiceTranslations: Record<Language, InvoiceTranslations> = {
     accommodation: 'Alloggio dal',
     from: 'dal',
     to: 'AL',
-    geniusRate: '- tariffa genius',
     stayTax: 'Tassa di soggiorno',
     stayDuration: 'Durata soggiorno:',
     nights: 'notti',
-    bookingReservation: 'Prenotazione via Booking –',
     clientInvoice: 'Fattura cliente N°',
     paymentMade: 'Pagamento effettuato direttamente su questo sito',
     total: 'TOTALE',

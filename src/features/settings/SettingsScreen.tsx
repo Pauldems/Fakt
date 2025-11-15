@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import hybridSettingsService from '../../services/hybridSettingsService';
 import * as ImagePicker from 'expo-image-picker';
@@ -147,6 +148,7 @@ export const SettingsScreen: React.FC = () => {
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const { theme } = useTheme();
   const { refreshActivation } = useAuth();
+  const insets = useSafeAreaInsets();
 
   // Animation pour l'info TVA
   const toggleVatInfo = () => {
@@ -208,21 +210,33 @@ export const SettingsScreen: React.FC = () => {
       // Afficher un résumé avant l'export
       const summary = await dataExportService.getDataSummary();
 
+      // Premier choix : format d'export
       Alert.alert(
-        'Exporter vos données',
+        'Choisir le format d\'export',
         `Vous allez exporter :\n\n` +
         `• ${summary.invoicesCount} facture(s)\n` +
         `• ${summary.clientsCount} client(s)\n` +
         `• Vos paramètres\n` +
         `• Votre consentement RGPD\n\n` +
-        `Format : Fichier JSON`,
+        `Choisissez le format d'export :`,
         [
           {
             text: 'Annuler',
             style: 'cancel'
           },
           {
-            text: 'Exporter',
+            text: 'PDF (lisible)',
+            onPress: async () => {
+              const result = await dataExportService.exportAllDataAsPDF();
+              if (result.success) {
+                Alert.alert('Succès', result.message);
+              } else {
+                Alert.alert('Erreur', result.message);
+              }
+            }
+          },
+          {
+            text: 'JSON (technique)',
             onPress: async () => {
               const result = await dataExportService.exportAllData();
               if (result.success) {
@@ -619,7 +633,7 @@ Les variables seront automatiquement remplacées par les vraies valeurs lors de 
         colors={theme.gradients.header}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + 10 }]}
       >
         <View style={styles.headerContent}>
           <Ionicons name="settings" size={30} color={theme.text.inverse} />
@@ -1347,9 +1361,12 @@ En vous souhaitant bonne réception,
                   style={styles.input}
                   value={editingTemplate?.properties.find(p => p.label === 'Identifiant établissement')?.value || ''}
                   onChangeText={(text) => editingTemplate && updatePropertyField('Identifiant établissement', text)}
-                  placeholder="Identifiant établissement"
+                  placeholder="Ex: 7501234567890"
                   keyboardType="numeric"
                 />
+                <Text style={styles.helpText}>
+                  Numéro de déclaration en mairie pour meublé de tourisme (13 chiffres)
+                </Text>
               </View>
 
               <View style={styles.inputGroup}>
@@ -1358,9 +1375,12 @@ En vous souhaitant bonne réception,
                   style={styles.input}
                   value={editingTemplate?.properties.find(p => p.label === 'Entité juridique')?.value || ''}
                   onChangeText={(text) => editingTemplate && updatePropertyField('Entité juridique', text)}
-                  placeholder="Entité juridique"
+                  placeholder="Ex: 12345678901234"
                   keyboardType="numeric"
                 />
+                <Text style={styles.helpText}>
+                  Numéro SIRET de votre entreprise (14 chiffres) ou numéro d'identification fiscale
+                </Text>
               </View>
 
               <View style={styles.inputGroup}>
@@ -1417,7 +1437,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f7fa',
   },
   header: {
-    paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },

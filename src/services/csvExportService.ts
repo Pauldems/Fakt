@@ -83,8 +83,7 @@ export class CSVExportService {
       'Total_HT',
       'Taxe_Sejour',
       'Total_TTC',
-      'Plateforme',
-      'Numero_Reservation'
+      'Tarif_Specifique'
     ];
 
     // Construire les lignes
@@ -112,10 +111,7 @@ export class CSVExportService {
       const totalHT = numberOfNights * pricePerNight;
       const taxeEffective = data.isPlatformCollectingTax ? 0 : taxAmount;
       const totalTTC = totalHT + taxeEffective;
-      
-      // Déterminer la plateforme
-      const plateforme = data.isBookingReservation ? 'Booking' : 'Direct';
-      
+
       // Créer la ligne CSV
       const row = [
         this.formatDate(invoice.createdAt),
@@ -131,8 +127,7 @@ export class CSVExportService {
         this.formatNumber(totalHT),
         this.formatNumber(taxeEffective),
         this.formatNumber(totalTTC),
-        plateforme,
-        this.formatCSVValue(data.bookingNumber || '')
+        this.formatCSVValue(data.specialRateType || '')
       ];
 
       rows.push(row.join(';'));

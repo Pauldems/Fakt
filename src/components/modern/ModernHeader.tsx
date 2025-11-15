@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeContext';
 
 interface ModernHeaderProps {
@@ -28,6 +29,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
   style,
 }) => {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const getGradientColors = () => {
     switch (variant) {
@@ -42,7 +44,7 @@ export const ModernHeader: React.FC<ModernHeaderProps> = ({
 
   const styles = StyleSheet.create({
     container: {
-      paddingTop: 50, // Safe area
+      paddingTop: insets.top + 10, // Dynamic Island compatible
       paddingBottom: 20,
       paddingHorizontal: 20,
     },

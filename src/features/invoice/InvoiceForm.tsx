@@ -55,9 +55,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
       isPlatformCollectingTax: false,
       invoiceDate: '',
       invoiceNumber: '',
-      isGeniusRate: false,
-      isBookingReservation: false,
-      bookingNumber: '',
+      specialRateType: '',
       isClientInvoice: false,
       clientInvoiceNumber: '',
       hasClientAddress: false,
@@ -78,7 +76,6 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
   const [emailLanguage, setEmailLanguage] = useState<'fr' | 'en' | 'es' | 'de' | 'it'>('fr');
   const [currency, setCurrency] = useState<string>('EUR');
   const navigation = useNavigation<any>();
-  const isBookingReservation = watch('isBookingReservation');
   const isClientInvoice = watch('isClientInvoice');
   const hasClientAddress = watch('hasClientAddress');
   const isPlatformCollectingTax = watch('isPlatformCollectingTax');
@@ -333,9 +330,6 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
           errorMessage += '• Numéro de facture invalide (seuls les chiffres)\n';
         }
       }
-      if (fieldErrors.bookingNumber && isBookingReservation) {
-        errorMessage += '• Numéro de réservation manquant\n';
-      }
       if (fieldErrors.clientInvoiceNumber && isClientInvoice) {
         errorMessage += '• Numéro de facture client manquant\n';
       }
@@ -382,9 +376,7 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
     setValue('taxAmount', '');
     setValue('isPlatformCollectingTax', false);
     setValue('invoiceDate', '');
-    setValue('isGeniusRate', false);
-    setValue('isBookingReservation', false);
-    setValue('bookingNumber', '');
+    setValue('specialRateType', '');
     setValue('isClientInvoice', false);
     setValue('clientInvoiceNumber', '');
     setValue('hasClientAddress', false);
@@ -998,68 +990,26 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
             </Text>
           </View>
 
-          <View style={styles.switchGroup}>
-            <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Tarif Genius</Text>
-              <Controller
-                control={control}
-                name="isGeniusRate"
-                render={({ field: { onChange, value } }) => (
-                  <Switch
-                    value={value}
-                    onValueChange={onChange}
-                    trackColor={{ false: '#e7e7e7', true: '#003580' }}
-                    thumbColor={value ? '#fff' : '#f4f3f4'}
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-          <View style={styles.switchGroup}>
-            <View style={styles.switchRow}>
-              <Text style={styles.switchLabel}>Réservation Booking</Text>
-              <Controller
-                control={control}
-                name="isBookingReservation"
-                render={({ field: { onChange, value } }) => (
-                  <Switch
-                    value={value}
-                    onValueChange={onChange}
-                    trackColor={{ false: '#e7e7e7', true: '#003580' }}
-                    thumbColor={value ? '#fff' : '#f4f3f4'}
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-          {isBookingReservation && (
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Numéro de réservation</Text>
-              <Controller
-                control={control}
-                name="bookingNumber"
-                rules={{ required: isBookingReservation ? 'Champ obligatoire' : false }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <TextInput
-                    style={[
-                      styles.input,
-                      showErrors && errors.bookingNumber && styles.inputError
-                    ]}
-                    onBlur={onBlur}
-                    onChangeText={onChange}
-                    value={value}
-                    placeholder=""
-                    placeholderTextColor="#999"
-                  />
-                )}
-              />
-              {showErrors && errors.bookingNumber && (
-                <Text style={styles.error}>{errors.bookingNumber.message}</Text>
+          <View style={styles.formGroup}>
+            <Text style={styles.label}>Tarif spécifique (optionnel)</Text>
+            <Controller
+              control={control}
+              name="specialRateType"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={styles.input}
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  placeholder="Ex : Tarif Genius, Réservation Booking"
+                  placeholderTextColor="#999"
+                />
               )}
-            </View>
-          )}
+            />
+            <Text style={styles.helperText}>
+              Indiquez un tarif spécifique si nécessaire (ex: Tarif Genius, Réservation Booking)
+            </Text>
+          </View>
 
           <View style={styles.switchGroup}>
             <View style={styles.switchRow}>
@@ -1077,6 +1027,9 @@ export const InvoiceForm = forwardRef<any, InvoiceFormProps>(({ onSubmit, isGene
                 )}
               />
             </View>
+            <Text style={styles.helperText}>
+              Activez si le client fournit son propre numéro de facture (pour remboursement entreprise, etc.)
+            </Text>
           </View>
 
           {isClientInvoice && (

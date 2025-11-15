@@ -417,7 +417,7 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
           <tbody>
             <tr>
               <td style="vertical-align: top;">
-                ${translations.accommodation} ${arrivalDate} ${translations.to} ${departureDate}${data.isGeniusRate ? ` ${translations.geniusRate}` : ''}
+                ${translations.accommodation} ${arrivalDate} ${translations.to} ${departureDate}${data.specialRateType ? ` (${data.specialRateType})` : ''}
               </td>
               <td style="vertical-align: top;">${numberOfNights.toFixed(2)}</td>
               <td style="vertical-align: top;">${formatPrice(pricePerNight, currencyCode)}</td>
@@ -450,7 +450,6 @@ export const generateInvoiceHTML = async (data: InvoiceData, invoiceNumber: stri
             <tr>
               <td style="border-bottom: none; padding-top: 30px;">
                 ${translations.stayDuration} ${numberOfNights} ${translations.nights}
-                ${data.isBookingReservation && data.bookingNumber ? `<br><br>${translations.bookingReservation}${data.bookingNumber}` : ''}
                 ${data.isClientInvoice && data.clientInvoiceNumber ? `<br><br>${translations.clientInvoice} ${data.clientInvoiceNumber}` : ''}
                 <br><br>
                 ${(() => {

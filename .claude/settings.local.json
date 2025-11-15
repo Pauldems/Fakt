@@ -27,7 +27,11 @@
       "Bash(open:*)",
       "Bash(killall:*)",
       "Bash(npx eas build:list:*)",
-      "Read(//Users/tometpaul/Documents/FindMyCourt1.1/**)"
+      "Read(//Users/tometpaul/Documents/FindMyCourt1.1/**)",
+      "Bash(eas build:*)",
+      "Bash(eas whoami:*)",
+      "Bash(python3:*)",
+      "Bash(npx react-native start:*)"
     ],
     "deny": []
   }

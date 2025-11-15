@@ -332,8 +332,7 @@ export const generateClassicTemplate = (
               <td>
                 ${translations.accommodation}<br>
                 Du ${arrivalDate} au ${departureDate}
-                ${translatedData.isGeniusRate ? `<br><small>✓ ${translations.geniusRate}</small>` : ''}
-                ${translatedData.isBookingReservation ? `<br><small>${translations.bookingReservation} ${translatedData.bookingNumber || ''}</small>` : ''}
+                ${translatedData.specialRateType ? `<br><small>✓ ${translatedData.specialRateType}</small>` : ''}
               </td>
               <td class="text-center">${numberOfNights}</td>
               <td class="text-right">${pricePerNight.toFixed(2)} €</td>

@@ -16,9 +16,7 @@ export interface InvoiceData {
   taxAmount: number;
   isPlatformCollectingTax: boolean;
   invoiceDate: Date;
-  isGeniusRate: boolean;
-  isBookingReservation: boolean;
-  bookingNumber?: string;
+  specialRateType?: string; // Ex: "Tarif Genius", "Réservation Booking", etc.
   isClientInvoice: boolean;
   clientInvoiceNumber?: string;
   hasClientAddress: boolean;
@@ -42,9 +40,7 @@ export interface InvoiceFormData {
   isPlatformCollectingTax: boolean;
   invoiceDate: string;
   invoiceNumber: string;
-  isGeniusRate: boolean;
-  isBookingReservation: boolean;
-  bookingNumber?: string;
+  specialRateType?: string; // Ex: "Tarif Genius", "Réservation Booking", etc.
   isClientInvoice: boolean;
   clientInvoiceNumber?: string;
   hasClientAddress: boolean;

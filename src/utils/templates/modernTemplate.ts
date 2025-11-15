@@ -424,8 +424,7 @@ export const generateModernTemplate = (
               <tr>
                 <td class="description-cell">
                   ${translations.accommodation} ${arrivalDate} ${translations.to} ${departureDate}
-                  ${translatedData.isGeniusRate ? `<br><small style="color: #6c757d;">✓ ${translations.geniusRate}</small>` : ''}
-                  ${translatedData.isBookingReservation ? `<br><small style="color: #6c757d;">${translations.bookingReservation} ${translatedData.bookingNumber || ''}</small>` : ''}
+                  ${translatedData.specialRateType ? `<br><small style="color: #6c757d;">✓ ${translatedData.specialRateType}</small>` : ''}
                 </td>
                 <td class="qty-cell">${numberOfNights}</td>
                 <td class="price-cell">${formatPrice(pricePerNight, currencyCode)}</td>

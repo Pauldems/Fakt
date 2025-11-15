@@ -296,8 +296,7 @@ export const generateMinimalTemplate = (
               ${translations.accommodation}
               <div class="item-subtitle">
                 ${arrivalDate} → ${departureDate} • ${numberOfNights} ${translations.nights}
-                ${translatedData.isGeniusRate ? ` • ${translations.geniusRate}` : ''}
-                ${translatedData.isBookingReservation ? ` • Booking ${translatedData.bookingNumber || ''}` : ''}
+                ${translatedData.specialRateType ? ` • ${translatedData.specialRateType}` : ''}
               </div>
             </div>
             <div class="item-details">
