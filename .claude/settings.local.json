@@ -31,7 +31,9 @@
       "Bash(eas build:*)",
       "Bash(eas whoami:*)",
       "Bash(python3:*)",
-      "Bash(npx react-native start:*)"
+      "Bash(npx react-native start:*)",
+      "Bash(npm ls:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
