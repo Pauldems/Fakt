@@ -1,14 +1,21 @@
 import { db } from '../config/firebaseConfig';
-import { 
-  doc, 
-  getDoc, 
+import {
+  doc,
+  getDoc,
   setDoc,
   updateDoc,
-  serverTimestamp 
+  serverTimestamp
 } from 'firebase/firestore';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import userDataService from './userDataService';
 import { LocalDataCleanup } from '../utils/cleanupLocalData';
+import logger from '../utils/logger';
+
+// Initialiser les Cloud Functions
+const functions = getFunctions();
+const activateAppFunction = httpsCallable(functions, 'activateApp');
+const validateCodeFunction = httpsCallable(functions, 'validateCode');
 
 const ACTIVATION_KEY = 'app_activation_code';
 const ACTIVATION_DATA_KEY = 'app_activation_data';
@@ -25,12 +32,13 @@ export interface ActivationData {
 }
 
 class ActivationService {
+  /**
+   * Valide un code via Cloud Function (sécurisé côté serveur)
+   */
   async validateCodeOnly(code: string): Promise<{ success: boolean; message: string }> {
     try {
-      // Le code arrive déjà nettoyé (sans tirets), on le reformate avec tirets
+      // Formater le code avec tirets
       const cleanCode = code.replace(/-/g, '').toUpperCase();
-      
-      // Reformater le code avec les tirets pour chercher dans Firebase
       let codeToSearch = '';
       for (let i = 0; i < cleanCode.length && i < 16; i++) {
         if (i > 0 && i % 4 === 0) {
@@ -38,92 +46,81 @@ class ActivationService {
         }
         codeToSearch += cleanCode[i];
       }
-      
-      console.log('🔍 Code recherché dans Firebase:', codeToSearch);
-      
-      // Vérifier si le code existe et est valide
-      const codeDoc = await getDoc(doc(db, 'activationCodes', codeToSearch));
-      
-      if (!codeDoc.exists()) {
-        return { success: false, message: 'Code d\'activation invalide' };
-      }
 
-      const codeData = codeDoc.data();
-      
-      if (codeData.status !== 'unused') {
-        return { success: false, message: 'Ce code a déjà été utilisé sur un autre appareil' };
-      }
+      console.log('🔍 Validation du code via Cloud Function:', codeToSearch);
 
-      return { success: true, message: 'Code valide' };
-    } catch (error: any) {
+      // Appeler la Cloud Function pour valider
+      const result = await validateCodeFunction({ code: codeToSearch });
+      const data = result.data as { valid: boolean; message: string; type?: string };
+
+      if (data.valid) {
+        return { success: true, message: data.message };
+      } else {
+        return { success: false, message: data.message };
+      }
+    } catch (error: unknown) {
       console.error('Erreur lors de la validation du code:', error);
-      return { success: false, message: 'Erreur de connexion. Vérifiez votre internet.' };
+      const message = error instanceof Error ? error.message : 'Erreur de connexion. Vérifiez votre internet.';
+      return { success: false, message };
     }
   }
 
+  /**
+   * Active l'application via Cloud Function (sécurisé côté serveur)
+   * La validation et le marquage du code sont faits de manière atomique sur le serveur
+   */
   async activateApp(code: string, name: string, email: string): Promise<{ success: boolean; message: string }> {
     try {
-      console.log('🔍 Début activateApp:', { code, name, email });
-      
-      // 1. Le code arrive avec tirets depuis l'écran d'activation
-      // On s'assure qu'il est bien formaté pour la recherche Firebase
-      const codeToSearch = code.toUpperCase();
-      console.log('📝 Code recherché:', codeToSearch);
-      
-      // 2. Vérifier si le code existe et est valide
-      const codeDoc = await getDoc(doc(db, 'activationCodes', codeToSearch));
-      console.log('📄 Document trouvé:', codeDoc.exists());
-      
-      if (!codeDoc.exists()) {
-        return { success: false, message: 'Code d\'activation invalide' };
-      }
+      console.log('🔐 Début activateApp via Cloud Function:', { code, name, email });
 
-      const codeData = codeDoc.data();
-      
-      if (codeData.status !== 'unused') {
-        return { success: false, message: 'Ce code a déjà été utilisé sur un autre appareil' };
-      }
-
-      // 3. Générer un ID unique pour cet appareil
+      // 1. Générer/récupérer le deviceId
       const deviceId = await this.getOrCreateDeviceId();
+      const codeToSearch = code.toUpperCase();
 
-      // 4. Calculer la date d'expiration selon le type
-      let expiresAt = null;
-      const now = new Date();
-      
-      switch (codeData.type) {
-        case 'trial':
-          expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 jours
-          break;
-        case 'monthly':
-          expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 jours
-          break;
-        case 'quarterly':
-          expiresAt = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000); // 90 jours
-          break;
-        case 'annual':
-          expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 365 jours
-          break;
-        case 'lifetime':
-          expiresAt = null; // Pas d'expiration
-          break;
-      }
+      console.log('📱 Device ID:', deviceId);
 
-      // 5. Préparer les données d'activation
-      const activationData: ActivationData = {
+      // 2. Appeler la Cloud Function pour activer (atomique et sécurisé)
+      console.log('☁️ Appel de la Cloud Function activateApp...');
+      const result = await activateAppFunction({
         code: codeToSearch,
-        type: codeData.type,
-        activatedAt: now,
-        expiresAt: expiresAt,
-        deviceId: deviceId,
-        isActive: true,
         name: name,
-        email: email
+        email: email,
+        deviceId: deviceId
+      });
+
+      const data = result.data as {
+        success: boolean;
+        message: string;
+        activationData?: {
+          code: string;
+          type: string;
+          activatedAt: string;
+          expiresAt: string | null;
+          deviceId: string;
+          isActive: boolean;
+          name: string;
+          email: string;
+        };
       };
 
-      // 6. Sauvegarder localement AVANT de marquer le code comme utilisé
-      console.log('💾 Sauvegarde locale...');
-      await AsyncStorage.setItem(ACTIVATION_KEY, codeToSearch);
+      if (!data.success || !data.activationData) {
+        return { success: false, message: data.message || 'Erreur d\'activation' };
+      }
+
+      // 3. Sauvegarder localement les données d'activation retournées par le serveur
+      console.log('💾 Sauvegarde locale des données d\'activation...');
+      const activationData: ActivationData = {
+        code: data.activationData.code,
+        type: data.activationData.type as ActivationData['type'],
+        activatedAt: new Date(data.activationData.activatedAt),
+        expiresAt: data.activationData.expiresAt ? new Date(data.activationData.expiresAt) : null,
+        deviceId: data.activationData.deviceId,
+        isActive: data.activationData.isActive,
+        name: data.activationData.name,
+        email: data.activationData.email
+      };
+
+      await AsyncStorage.setItem(ACTIVATION_KEY, activationData.code);
       await AsyncStorage.setItem(ACTIVATION_DATA_KEY, JSON.stringify({
         ...activationData,
         activatedAt: activationData.activatedAt.toISOString(),
@@ -131,32 +128,7 @@ class ActivationService {
       }));
       console.log('✅ Sauvegarde locale terminée');
 
-      // 7. Sauvegarder les infos utilisateur dans Firebase
-      console.log('☁️ Sauvegarde utilisateur Firebase...');
-      await setDoc(doc(db, 'users', deviceId), {
-        name: name,
-        email: email,
-        deviceId: deviceId,
-        activationCode: codeToSearch,
-        activationType: codeData.type,
-        activatedAt: serverTimestamp(),
-        expiresAt: expiresAt
-      });
-      console.log('✅ Sauvegarde utilisateur terminée');
-
-      // 8. Marquer le code comme utilisé dans Firebase (une seule fois, pour toujours)
-      console.log('🔒 Marquage du code comme utilisé...');
-      await updateDoc(doc(db, 'activationCodes', codeToSearch), {
-        status: 'used',
-        usedAt: serverTimestamp(),
-        deviceId: deviceId,
-        activationType: codeData.type,
-        userEmail: email,
-        userName: name
-      });
-      console.log('✅ Code marqué comme utilisé');
-
-      // 9. Nettoyer les données de test pour nouveau compte
+      // 4. Nettoyer les données de test pour nouveau compte
       console.log('🧹 Nettoyage pour nouveau compte...');
       try {
         await LocalDataCleanup.fullCleanupForNewAccount();
@@ -165,21 +137,35 @@ class ActivationService {
         console.error('⚠️ Erreur nettoyage (non bloquante):', cleanupError);
       }
 
-      // 10. Migrer les données locales vers Firebase (après nettoyage)
+      // 5. Migrer les données locales vers Firebase (après nettoyage)
       console.log('📦 Migration des données locales...');
       try {
         await userDataService.migrateLocalDataToFirebase();
         console.log('✅ Migration des données terminée');
       } catch (migrationError) {
         console.error('⚠️ Erreur migration (non bloquante):', migrationError);
-        // La migration échoue, mais l'activation reste valide
       }
 
       console.log('🎉 Activation complète avec succès !');
-      return { success: true, message: 'Application activée avec succès !' };
-    } catch (error: any) {
-      console.error('Erreur lors de l\'activation:', error);
-      return { success: false, message: 'Erreur lors de l\'activation. Vérifiez votre connexion internet.' };
+      return { success: true, message: data.message };
+
+    } catch (error: unknown) {
+      console.error('❌ Erreur lors de l\'activation:', error);
+
+      // Gérer les erreurs de la Cloud Function
+      let message = 'Erreur lors de l\'activation. Vérifiez votre connexion internet.';
+      const firebaseError = error as { code?: string; message?: string };
+      if (firebaseError.code === 'functions/not-found') {
+        message = 'Code d\'activation invalide';
+      } else if (firebaseError.code === 'functions/already-exists') {
+        message = 'Ce code a déjà été utilisé sur un autre appareil';
+      } else if (firebaseError.code === 'functions/permission-denied') {
+        message = 'Ce code a été désactivé';
+      } else if (firebaseError.message) {
+        message = firebaseError.message;
+      }
+
+      return { success: false, message };
     }
   }
 
@@ -342,7 +328,7 @@ class ActivationService {
       });
 
       return { success: true, message: 'Code ajouté avec succès ! Votre abonnement a été étendu.' };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Erreur lors de l\'ajout du code:', error);
       return { success: false, message: 'Erreur lors de l\'ajout du code. Veuillez réessayer.' };
     }

@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Modal,
+  ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
@@ -15,7 +16,7 @@ interface DatePickerProps {
   placeholder?: string;
   label?: string;
   error?: string;
-  style?: any;
+  style?: ViewStyle;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({

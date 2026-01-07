@@ -2,9 +2,10 @@ import * as AuthSession from 'expo-auth-session';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Linking } from 'react-native';
+import { ENV } from '../config/env';
 
-// Configuration Google OAuth
-const CLIENT_ID = '380676393487-c8n03g68r6cbj48g0e83iiddrs3jd9l0.apps.googleusercontent.com';
+// Configuration Google OAuth (chargée depuis les variables d'environnement)
+const CLIENT_ID = ENV.GOOGLE_DRIVE_CLIENT_ID;
 const REDIRECT_URI = AuthSession.makeRedirectUri({
   scheme: 'com.tomburger.fakt',
   path: 'redirect'
@@ -16,6 +17,9 @@ const SCOPES = ['https://www.googleapis.com/auth/drive.file'];
 // Clés de stockage
 const TOKEN_KEY = '@google_drive_token';
 const USER_INFO_KEY = '@google_drive_user';
+
+// Marge de sécurité pour l'expiration (5 minutes avant)
+const TOKEN_EXPIRY_MARGIN_MS = 5 * 60 * 1000;
 
 interface GoogleDriveFile {
   id: string;
@@ -29,9 +33,22 @@ interface GoogleUser {
   picture?: string;
 }
 
+interface TokenData {
+  accessToken: string;
+  refreshToken?: string | null;
+  expiresIn?: string | null;
+  tokenType?: string | null;
+  acquiredAt: number; // Timestamp de l'acquisition du token
+}
+
+// Callback pour notifier l'UI de l'expiration du token
+type TokenExpiredCallback = () => void;
+
 class GoogleDriveService {
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
+  private tokenExpiresAt: number | null = null;
+  private onTokenExpired: TokenExpiredCallback | null = null;
 
   /**
    * Initialise le service en chargeant le token existant
@@ -40,10 +57,28 @@ class GoogleDriveService {
     try {
       const tokenData = await AsyncStorage.getItem(TOKEN_KEY);
       if (tokenData) {
-        const { accessToken, refreshToken } = JSON.parse(tokenData);
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        console.log('✅ Token Google Drive chargé');
+        const parsed: TokenData = JSON.parse(tokenData);
+        this.accessToken = parsed.accessToken;
+        this.refreshToken = parsed.refreshToken || null;
+
+        // Calculer l'expiration du token
+        if (parsed.expiresIn && parsed.acquiredAt) {
+          const expiresInMs = parseInt(parsed.expiresIn) * 1000;
+          this.tokenExpiresAt = parsed.acquiredAt + expiresInMs;
+
+          // Vérifier si le token est déjà expiré
+          if (this.isTokenExpired()) {
+            console.log('⚠️ Token Google Drive expiré, déconnexion...');
+            await this.disconnect();
+            return;
+          }
+
+          const remainingMs = this.tokenExpiresAt - Date.now();
+          const remainingMin = Math.round(remainingMs / 60000);
+          console.log(`✅ Token Google Drive chargé (expire dans ${remainingMin} min)`);
+        } else {
+          console.log('✅ Token Google Drive chargé (sans info expiration)');
+        }
       }
     } catch (error) {
       console.error('❌ Erreur chargement token:', error);
@@ -51,10 +86,112 @@ class GoogleDriveService {
   }
 
   /**
+   * Définit un callback à appeler quand le token expire
+   */
+  setTokenExpiredCallback(callback: TokenExpiredCallback | null) {
+    this.onTokenExpired = callback;
+  }
+
+  /**
+   * Vérifie si le token est expiré ou proche de l'expiration
+   */
+  isTokenExpired(): boolean {
+    if (!this.tokenExpiresAt) return false;
+    return Date.now() >= this.tokenExpiresAt - TOKEN_EXPIRY_MARGIN_MS;
+  }
+
+  /**
+   * Retourne le temps restant avant expiration (en minutes)
+   */
+  getTokenRemainingTime(): number | null {
+    if (!this.tokenExpiresAt) return null;
+    const remainingMs = this.tokenExpiresAt - Date.now();
+    return Math.max(0, Math.round(remainingMs / 60000));
+  }
+
+  /**
    * Vérifie si l'utilisateur est connecté à Google Drive
    */
   isConnected(): boolean {
-    return this.accessToken !== null;
+    return this.accessToken !== null && !this.isTokenExpired();
+  }
+
+  /**
+   * Vérifie la validité du token avant une opération
+   * Retourne false si le token est expiré (nécessite ré-authentification)
+   */
+  async ensureValidToken(): Promise<boolean> {
+    if (!this.accessToken) {
+      return false;
+    }
+
+    if (this.isTokenExpired()) {
+      console.log('⚠️ Token expiré, notification de l\'UI...');
+      this.onTokenExpired?.();
+      await this.disconnect();
+      return false;
+    }
+
+    // Vérifier que le token est toujours valide côté Google
+    try {
+      const response = await fetch('https://www.googleapis.com/oauth2/v1/tokeninfo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `access_token=${this.accessToken}`,
+      });
+
+      if (!response.ok) {
+        console.log('⚠️ Token invalide côté Google, déconnexion...');
+        this.onTokenExpired?.();
+        await this.disconnect();
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur vérification token:', error);
+      return true; // En cas d'erreur réseau, on essaie quand même
+    }
+  }
+
+  /**
+   * Effectue une requête API avec gestion automatique des erreurs d'authentification
+   */
+  private async authenticatedFetch(
+    url: string,
+    options: RequestInit = {}
+  ): Promise<Response> {
+    // Vérifier d'abord que le token est valide
+    if (!this.accessToken) {
+      throw new Error('Non connecté à Google Drive');
+    }
+
+    if (this.isTokenExpired()) {
+      console.log('⚠️ Token expiré avant requête');
+      this.onTokenExpired?.();
+      await this.disconnect();
+      throw new Error('Token expiré - Veuillez vous reconnecter');
+    }
+
+    // Ajouter le header d'autorisation
+    const headers = {
+      ...options.headers,
+      Authorization: `Bearer ${this.accessToken}`,
+    };
+
+    const response = await fetch(url, { ...options, headers });
+
+    // Gérer les erreurs 401 (token invalide/expiré)
+    if (response.status === 401) {
+      console.log('⚠️ Erreur 401 - Token rejeté par Google');
+      this.onTokenExpired?.();
+      await this.disconnect();
+      throw new Error('Session expirée - Veuillez vous reconnecter');
+    }
+
+    return response;
   }
 
   /**
@@ -148,16 +285,27 @@ class GoogleDriveService {
                 
                 if (accessToken) {
                   this.accessToken = accessToken;
-                  
+                  this.refreshToken = urlParams.get('refresh_token') || null;
+
+                  // Calculer et stocker l'expiration
+                  const expiresIn = urlParams.get('expires_in');
+                  const acquiredAt = Date.now();
+                  if (expiresIn) {
+                    this.tokenExpiresAt = acquiredAt + parseInt(expiresIn) * 1000;
+                  }
+
                   console.log('🎯 Token extrait, longueur:', this.accessToken.length);
-                  
-                  // Sauvegarder le token
-                  AsyncStorage.setItem(TOKEN_KEY, JSON.stringify({
+
+                  // Sauvegarder le token avec timestamp d'acquisition
+                  const tokenData: TokenData = {
                     accessToken: this.accessToken,
-                    refreshToken: urlParams.get('refresh_token'),
-                    expiresIn: urlParams.get('expires_in'),
+                    refreshToken: this.refreshToken,
+                    expiresIn,
                     tokenType: urlParams.get('token_type'),
-                  })).then(async () => {
+                    acquiredAt,
+                  };
+
+                  AsyncStorage.setItem(TOKEN_KEY, JSON.stringify(tokenData)).then(async () => {
                     // Récupérer les infos utilisateur
                     const userInfo = await this.getUserInfo();
                     if (userInfo) {
@@ -208,6 +356,7 @@ class GoogleDriveService {
   async disconnect() {
     this.accessToken = null;
     this.refreshToken = null;
+    this.tokenExpiresAt = null;
     await AsyncStorage.removeItem(TOKEN_KEY);
     await AsyncStorage.removeItem(USER_INFO_KEY);
     console.log('✅ Déconnexion Google Drive');
@@ -220,11 +369,9 @@ class GoogleDriveService {
     if (!this.accessToken) return null;
 
     try {
-      const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
+      const response = await this.authenticatedFetch(
+        'https://www.googleapis.com/oauth2/v2/userinfo'
+      );
 
       if (response.ok) {
         const userInfo = await response.json();
@@ -243,7 +390,7 @@ class GoogleDriveService {
    * Crée un dossier dans Google Drive
    */
   async createFolder(folderName: string, parentId?: string): Promise<string | null> {
-    if (!this.accessToken) {
+    if (!this.isConnected()) {
       console.error('❌ Non connecté à Google Drive');
       return null;
     }
@@ -263,14 +410,16 @@ class GoogleDriveService {
         ...(parentId && { parents: [parentId] }),
       };
 
-      const response = await fetch('https://www.googleapis.com/drive/v3/files', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(metadata),
-      });
+      const response = await this.authenticatedFetch(
+        'https://www.googleapis.com/drive/v3/files',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(metadata),
+        }
+      );
 
       if (response.ok) {
         const folder = await response.json();
@@ -289,7 +438,7 @@ class GoogleDriveService {
    * Recherche un dossier par nom
    */
   async findFolder(folderName: string, parentId?: string): Promise<GoogleDriveFile | null> {
-    if (!this.accessToken) return null;
+    if (!this.isConnected()) return null;
 
     try {
       let query = `name='${folderName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
@@ -297,11 +446,9 @@ class GoogleDriveService {
         query += ` and '${parentId}' in parents`;
       }
 
-      const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`, {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
+      const response = await this.authenticatedFetch(
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -321,7 +468,7 @@ class GoogleDriveService {
    * Upload un fichier PDF vers Google Drive
    */
   async uploadPDF(pdfPath: string, fileName: string, folderId: string): Promise<boolean> {
-    if (!this.accessToken) {
+    if (!this.isConnected()) {
       console.error('❌ Non connecté à Google Drive');
       return false;
     }
@@ -348,13 +495,13 @@ class GoogleDriveService {
       form.append('file', pdfBlob);
 
       // Upload le fichier
-      const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-        body: form,
-      });
+      const response = await this.authenticatedFetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+        {
+          method: 'POST',
+          body: form,
+        }
+      );
 
       if (response.ok) {
         const file = await response.json();
@@ -374,16 +521,14 @@ class GoogleDriveService {
    * Vérifie si un fichier existe déjà dans un dossier
    */
   async fileExists(fileName: string, folderId: string): Promise<boolean> {
-    if (!this.accessToken) return false;
+    if (!this.isConnected()) return false;
 
     try {
       const query = `name='${fileName}' and '${folderId}' in parents and trashed=false`;
-      
-      const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`, {
-        headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      });
+
+      const response = await this.authenticatedFetch(
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`
+      );
 
       if (response.ok) {
         const data = await response.json();

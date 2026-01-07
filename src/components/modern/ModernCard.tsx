@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../theme/ThemeContext';
+import { Theme } from '../../theme/colors';
 
 export type CardVariant = 'default' | 'elevated' | 'outlined' | 'gradient' | 'accent';
 export type CardSize = 'small' | 'medium' | 'large';
@@ -31,7 +32,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
 }) => {
   const { theme } = useTheme();
 
-  const styles = StyleSheet.create({
+  const styles = useMemo(() => StyleSheet.create({
     container: {
       borderRadius: 16,
       overflow: 'hidden',
@@ -50,7 +51,7 @@ export const ModernCard: React.FC<ModernCardProps> = ({
       borderRadius: 16,
       ...getSizeStyles(size),
     },
-  });
+  }), [theme, size, variant, disabled]);
 
   const renderCard = () => {
     if (variant === 'gradient') {
@@ -109,7 +110,7 @@ const getSizeStyles = (size: CardSize): ViewStyle => {
   }
 };
 
-const getVariantStyles = (variant: CardVariant, theme: any): ViewStyle => {
+const getVariantStyles = (variant: CardVariant, theme: Theme): ViewStyle => {
   switch (variant) {
     case 'elevated':
       return {

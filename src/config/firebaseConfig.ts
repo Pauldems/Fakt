@@ -2,16 +2,17 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
+import { ENV } from './env';
 
-// Configuration Firebase
+// Configuration Firebase (chargée depuis les variables d'environnement)
 const firebaseConfig = {
-  apiKey: "AIzaSyBjW5k615PsMeBT4uskn9JFliju04YoZ1I",
-  authDomain: "fakt-33da2.firebaseapp.com",
-  projectId: "fakt-33da2",
-  storageBucket: "fakt-33da2.firebasestorage.app",
-  messagingSenderId: "811992642333",
-  appId: "1:811992642333:web:93d1636a1619859f0b67f4",
-  measurementId: "G-XM8CKQLJHS"
+  apiKey: ENV.FIREBASE_API_KEY,
+  authDomain: ENV.FIREBASE_AUTH_DOMAIN,
+  projectId: ENV.FIREBASE_PROJECT_ID,
+  storageBucket: ENV.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: ENV.FIREBASE_MESSAGING_SENDER_ID,
+  appId: ENV.FIREBASE_APP_ID,
+  measurementId: ENV.FIREBASE_MEASUREMENT_ID
 };
 
 // Initialiser Firebase

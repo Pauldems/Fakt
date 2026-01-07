@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,13 +20,13 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import InvoiceFilters, { FilterOptions } from '../../components/InvoiceFilters';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, PropertyTemplate } from '../settings/SettingsScreen';
-import { generateInvoiceHTML } from '../../utils/pdfTemplate';
-import * as Print from 'expo-print';
 import { CSVExportService } from '../../services/csvExportService';
+import pdfCacheService from '../../services/pdfCacheService';
 import { useTheme } from '../../theme/ThemeContext';
 import { ModernHeader } from '../../components/modern/ModernHeader';
 import { ModernCard } from '../../components/modern/ModernCard';
 import { ModernButton } from '../../components/modern/ModernButton';
+import cacheService, { CACHE_KEYS, CACHE_TTL } from '../../services/cacheService';
 
 const { width } = Dimensions.get('window');
 
@@ -58,10 +58,14 @@ export const InvoiceListScreen: React.FC = () => {
     applyFilters();
   }, [filters, allInvoices]);
 
-  const loadInvoices = async () => {
+  const loadInvoices = async (forceRefresh = false) => {
     try {
       console.log('Chargement des factures...');
-      const loadedInvoices = await hybridInvoiceService.getInvoices();
+      const loadedInvoices = await cacheService.getOrFetch(
+        CACHE_KEYS.INVOICES,
+        () => hybridInvoiceService.getInvoices(),
+        { ttl: CACHE_TTL.MEDIUM, forceRefresh }
+      );
       console.log('Factures chargées:', loadedInvoices.length);
       setAllInvoices(loadedInvoices);
     } catch (error) {
@@ -69,15 +73,21 @@ export const InvoiceListScreen: React.FC = () => {
     }
   };
 
-  const loadProperties = async () => {
+  const loadProperties = async (forceRefresh = false) => {
     try {
-      const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
-      if (savedSettings) {
-        const settings = JSON.parse(savedSettings);
-        if (settings.propertyTemplates) {
-          setProperties(settings.propertyTemplates);
-        }
-      }
+      const properties = await cacheService.getOrFetch(
+        CACHE_KEYS.PROPERTIES,
+        async () => {
+          const savedSettings = await AsyncStorage.getItem(SETTINGS_KEY);
+          if (savedSettings) {
+            const settings = JSON.parse(savedSettings);
+            return settings.propertyTemplates || [];
+          }
+          return [];
+        },
+        { ttl: CACHE_TTL.LONG, forceRefresh }
+      );
+      setProperties(properties);
     } catch (error) {
       console.error('Erreur lors du chargement des propriétés:', error);
     }
@@ -133,7 +143,9 @@ export const InvoiceListScreen: React.FC = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadInvoices();
+    // Force le rafraîchissement en ignorant le cache
+    await loadInvoices(true);
+    await loadProperties(true);
     setRefreshing(false);
   };
 
@@ -144,55 +156,23 @@ export const InvoiceListScreen: React.FC = () => {
   const handleShare = async (invoice: StoredInvoice) => {
     try {
       console.log('Tentative de partage pour la facture:', invoice.invoiceNumber);
-      console.log('URI du PDF:', invoice.pdfUri);
-      
-      if (!invoice.pdfUri) {
-        throw new Error('URI du PDF manquant');
+
+      // Utiliser le service de cache PDF pour obtenir/régénérer le PDF
+      const { pdfUri, wasRegenerated } = await pdfCacheService.getPDF(invoice);
+
+      if (wasRegenerated) {
+        console.log('PDF régénéré et mis en cache:', pdfUri);
+        // Mettre à jour l'objet local pour les prochains partages
+        invoice.pdfUri = pdfUri;
       }
 
-      // Vérifier si le fichier existe
-      const fileInfo = await FileSystem.getInfoAsync(invoice.pdfUri);
-      console.log('Info du fichier:', fileInfo);
-      
-      if (!fileInfo.exists) {
-        console.log('Le fichier PDF n\'existe pas, régénération en cours...');
-        
-        // Régénérer le PDF
-        const html = await generateInvoiceHTML(invoice.data, invoice.invoiceNumber);
-        const { uri: tempPdfUri } = await Print.printToFileAsync({
-          html,
-          base64: false,
-        });
-        
-        console.log('PDF régénéré temporairement:', tempPdfUri);
-        
-        // Partager le PDF temporaire
-        await Sharing.shareAsync(tempPdfUri);
-        
-        // Nettoyer le fichier temporaire après partage
-        setTimeout(async () => {
-          try {
-            await FileSystem.deleteAsync(tempPdfUri, { idempotent: true });
-          } catch (e) {
-            console.log('Erreur lors du nettoyage du fichier temporaire:', e);
-          }
-        }, 5000);
-        
-        console.log('Partage réussi avec PDF régénéré');
-        return;
-      }
-
-      // Vérifier si le fichier est lisible
-      if (!fileInfo.isDirectory && fileInfo.size === 0) {
-        throw new Error('Le fichier PDF est vide.');
-      }
-      
-      await Sharing.shareAsync(invoice.pdfUri);
+      // Partager le PDF
+      await Sharing.shareAsync(pdfUri);
       console.log('Partage réussi');
     } catch (error) {
       console.error('Erreur lors du partage:', error);
       Alert.alert(
-        'Erreur de partage', 
+        'Erreur de partage',
         `Impossible de partager la facture: ${error instanceof Error ? error.message : 'Erreur inconnue'}\n\nEssayez de régénérer la facture si le problème persiste.`
       );
     }
@@ -210,7 +190,9 @@ export const InvoiceListScreen: React.FC = () => {
           onPress: async () => {
             try {
               await StorageService.deleteInvoice(invoice.id);
-              await loadInvoices();
+              // Invalider le cache après suppression
+              cacheService.invalidate(CACHE_KEYS.INVOICES);
+              await loadInvoices(true);
               Alert.alert('Succès', 'La facture a été supprimée');
             } catch (error) {
               Alert.alert('Erreur', 'Impossible de supprimer la facture');
@@ -338,7 +320,8 @@ export const InvoiceListScreen: React.FC = () => {
     </View>
   );
 
-  const styles = StyleSheet.create({
+  // Styles memoized pour éviter la recréation à chaque render
+  const styles = useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.background.primary,
@@ -430,7 +413,7 @@ export const InvoiceListScreen: React.FC = () => {
       textAlign: 'center',
       lineHeight: 20,
     },
-  });
+  }), [theme]);
 
   return (
     <View style={styles.container}>

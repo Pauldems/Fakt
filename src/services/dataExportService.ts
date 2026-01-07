@@ -1,20 +1,27 @@
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import * as Print from 'expo-print';
-import { LocalStorageService } from './localStorageService';
+import { LocalStorageService, StoredInvoice } from './localStorageService';
 import hybridSettingsService from './hybridSettingsService';
-import consentService from './consentService';
+import consentService, { GDPRConsent } from './consentService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { OwnerSettings, PropertyTemplate } from '../features/settings/SettingsScreen';
+import { Client } from '../types/common';
+
+interface InvoiceCounterData {
+  lastNumber: number;
+  year: number;
+}
 
 interface ExportData {
   exportDate: string;
   appVersion: string;
   userData: {
-    consent: any;
-    settings: any;
-    clients: any[];
-    invoices: any[];
-    invoiceCounter: any;
+    consent: GDPRConsent | null;
+    settings: OwnerSettings | null;
+    clients: Client[];
+    invoices: StoredInvoice[];
+    invoiceCounter: InvoiceCounterData | null;
   };
 }
 
@@ -202,7 +209,12 @@ class DataExportService {
   /**
    * Génère le HTML pour l'export PDF
    */
-  private generateExportHTML(settings: any, clients: any[], invoices: any[], consent: any): string {
+  private generateExportHTML(
+    settings: OwnerSettings | null,
+    clients: Client[],
+    invoices: StoredInvoice[],
+    consent: GDPRConsent | null
+  ): string {
     const exportDate = new Date().toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
@@ -354,10 +366,10 @@ class DataExportService {
   <div class="section">
     <h2>🏠 Vos propriétés</h2>
     ${settings?.propertyTemplates?.length > 0
-      ? settings.propertyTemplates.map((prop: any) => `
+      ? settings.propertyTemplates.map((prop: PropertyTemplate) => `
         <div class="client-item">
           <h3>${prop.name || 'Propriété sans nom'}</h3>
-          ${prop.properties?.map((p: any) => `
+          ${prop.properties?.map((p: { label: string; value: string }) => `
             <div class="info-row">
               <div class="info-label">${p.label}</div>
               <div class="info-value">${p.value || 'Non renseigné'}</div>
@@ -373,7 +385,7 @@ class DataExportService {
   <div class="section">
     <h2>👥 Vos clients (${clients.length})</h2>
     ${clients.length > 0
-      ? clients.map((client: any) => `
+      ? clients.map((client: Client) => `
         <div class="client-item">
           <h3>${client.firstName} ${client.lastName}</h3>
           <div class="info-row">
@@ -398,7 +410,7 @@ class DataExportService {
   <div class="section">
     <h2>🧾 Vos factures (${invoices.length})</h2>
     ${invoices.length > 0
-      ? invoices.map((invoice: any) => {
+      ? invoices.map((invoice: StoredInvoice) => {
           const inv = invoice.data;
           const arrivalDate = new Date(inv.arrivalDate).toLocaleDateString('fr-FR');
           const departureDate = new Date(inv.departureDate).toLocaleDateString('fr-FR');

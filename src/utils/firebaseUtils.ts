@@ -2,68 +2,71 @@
  * Utilitaires pour Firebase
  */
 
+// Type pour les objets génériques avec clés string
+type GenericObject = Record<string, unknown>;
+
 /**
  * Nettoie un objet en remplaçant les valeurs undefined par null ou une valeur par défaut
  * Firebase n'accepte pas les valeurs undefined
  */
-export function cleanForFirebase<T extends Record<string, any>>(obj: T): T {
-  const cleaned = {} as T;
-  
+export function cleanForFirebase<T extends GenericObject>(obj: T): T {
+  const cleaned: GenericObject = {};
+
   for (const [key, value] of Object.entries(obj)) {
     if (value === undefined) {
       // Remplacer undefined par null (accepté par Firebase)
-      (cleaned as any)[key] = null;
+      cleaned[key] = null;
     } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
       // Récursivement nettoyer les objets imbriqués
-      (cleaned as any)[key] = cleanForFirebase(value);
+      cleaned[key] = cleanForFirebase(value as GenericObject);
     } else {
       // Garder la valeur telle quelle
-      (cleaned as any)[key] = value;
+      cleaned[key] = value;
     }
   }
-  
-  return cleaned;
+
+  return cleaned as T;
 }
 
 /**
  * Nettoie un objet en supprimant complètement les clés avec valeurs undefined
  */
-export function removeUndefined<T extends Record<string, any>>(obj: T): Partial<T> {
-  const cleaned = {} as Partial<T>;
-  
+export function removeUndefined<T extends GenericObject>(obj: T): Partial<T> {
+  const cleaned: GenericObject = {};
+
   for (const [key, value] of Object.entries(obj)) {
     if (value !== undefined) {
       if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
         // Récursivement nettoyer les objets imbriqués
-        (cleaned as any)[key] = removeUndefined(value);
+        cleaned[key] = removeUndefined(value as GenericObject);
       } else {
         // Garder la valeur telle quelle
-        (cleaned as any)[key] = value;
+        cleaned[key] = value;
       }
     }
   }
-  
-  return cleaned;
+
+  return cleaned as Partial<T>;
 }
 
 /**
  * Convertit les valeurs null de Firebase en undefined pour TypeScript
  */
-export function convertNullToUndefined<T extends Record<string, any>>(obj: T): T {
-  const converted = {} as T;
-  
+export function convertNullToUndefined<T extends GenericObject>(obj: T): T {
+  const converted: GenericObject = {};
+
   for (const [key, value] of Object.entries(obj)) {
     if (value === null) {
       // Convertir null en undefined
-      (converted as any)[key] = undefined;
+      converted[key] = undefined;
     } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
       // Récursivement convertir les objets imbriqués
-      (converted as any)[key] = convertNullToUndefined(value);
+      converted[key] = convertNullToUndefined(value as GenericObject);
     } else {
       // Garder la valeur telle quelle
-      (converted as any)[key] = value;
+      converted[key] = value;
     }
   }
-  
-  return converted;
+
+  return converted as T;
 }

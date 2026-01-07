@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ENV } from '../config/env';
 
 export type SupportedLanguage = 'fr' | 'en' | 'es' | 'de' | 'it';
 
@@ -19,7 +20,7 @@ class DeepLTranslateService {
   private cache: TranslationCache = {};
   private cacheKey = '@deepl_translation_cache';
   private cacheExpiry = 30 * 24 * 60 * 60 * 1000; // 30 jours
-  private apiKey = 'd6fd65fc-6d40-4e45-b1b6-d02b716b0d52:fx'; // DeepL API key partagée
+  private apiKey = ENV.DEEPL_API_KEY; // Chargée depuis les variables d'environnement
   private endpoint = 'https://api-free.deepl.com/v2/translate';
 
   constructor() {

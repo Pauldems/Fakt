@@ -1,4 +1,5 @@
 import hybridClientService from './hybridClientService';
+import { InvoiceFormData } from '../types/invoice';
 
 export interface Client {
   id: string;
@@ -19,7 +20,7 @@ class ClientService {
     return await hybridClientService.saveClient(clientData);
   }
 
-  async saveClientFromInvoice(invoiceData: any): Promise<void> {
+  async saveClientFromInvoice(invoiceData: InvoiceFormData): Promise<void> {
     return await hybridClientService.saveClientFromInvoice(invoiceData);
   }
 

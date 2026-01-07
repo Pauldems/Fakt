@@ -8,6 +8,19 @@ import { useEffect } from 'react';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ActivationScreen } from './src/features/activation/ActivationScreen';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
+import errorService from './src/services/errorService';
+import pdfCacheService from './src/services/pdfCacheService';
+import { serviceRegistry } from './src/services/serviceRegistry';
+
+// Initialiser les services au démarrage
+errorService.init();
+pdfCacheService.init();
+
+// Initialiser le registre de services (async, en arrière-plan)
+serviceRegistry.initialize().catch(err => {
+  console.error('Erreur initialisation service registry:', err);
+});
 
 function AppContent() {
   const { isLoading, isActivated } = useAuth();
@@ -44,13 +57,15 @@ function AppContent() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 

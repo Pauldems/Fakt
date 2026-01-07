@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../theme/ThemeContext';
+import { Theme } from '../../theme/colors';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
 export type ButtonSize = 'small' | 'medium' | 'large';
@@ -42,7 +43,7 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
 }) => {
   const { theme } = useTheme();
 
-  const styles = StyleSheet.create({
+  const styles = useMemo(() => StyleSheet.create({
     container: {
       borderRadius: 12,
       overflow: 'hidden',
@@ -71,7 +72,7 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
     gradientButton: {
       flex: 1,
     },
-  });
+  }), [theme, size, variant, disabled]);
 
   const renderContent = () => (
     <View style={styles.button}>
@@ -181,7 +182,7 @@ const getIconSize = (size: ButtonSize): number => {
   }
 };
 
-const getVariantStyles = (variant: ButtonVariant, theme: any): ViewStyle => {
+const getVariantStyles = (variant: ButtonVariant, theme: Theme): ViewStyle => {
   switch (variant) {
     case 'secondary':
       return {
@@ -206,7 +207,7 @@ const getVariantStyles = (variant: ButtonVariant, theme: any): ViewStyle => {
   }
 };
 
-const getTextVariantStyles = (variant: ButtonVariant, theme: any): TextStyle => {
+const getTextVariantStyles = (variant: ButtonVariant, theme: Theme): TextStyle => {
   switch (variant) {
     case 'secondary':
       return { color: theme.text.primary };

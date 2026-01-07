@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -203,7 +203,8 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
     setCurrentMonth(newMonth);
   };
 
-  const styles = StyleSheet.create({
+  // Styles memoized pour éviter la recréation à chaque render
+  const styles = useMemo(() => StyleSheet.create({
     container: {
       paddingHorizontal: 20,
       paddingVertical: 16,
@@ -330,7 +331,7 @@ export default function InvoiceFilters({ onFiltersChange, invoiceCount }: Invoic
       borderTopColor: theme.border.light,
       gap: 12,
     },
-  });
+  }), [theme]);
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { InvoiceData } from '../../types/invoice';
-import { OwnerSettings } from '../../features/settings/SettingsScreen';
+import { OwnerSettings, PropertyTemplate } from '../../features/settings/SettingsScreen';
 import { getInvoiceTranslation } from '../invoiceTranslations';
 import { translateExtras } from '../extrasTranslator';
 
@@ -7,7 +7,7 @@ export const generateClassicTemplate = (
   data: InvoiceData,
   invoiceNumber: string,
   settings: OwnerSettings,
-  selectedPropertyTemplate: any,
+  selectedPropertyTemplate: PropertyTemplate | null,
   language: 'fr' | 'en' | 'es' | 'de' | 'it' = 'fr'
 ): string => {
   const translations = getInvoiceTranslation(language);

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PropertyTemplate } from '../features/settings/SettingsScreen';
 
 /**
  * Utilitaire pour nettoyer les données locales de test/anciennes
@@ -11,16 +12,16 @@ export class LocalDataCleanup {
   static async cleanTestData(): Promise<void> {
     try {
       console.log('🧹 Nettoyage des données de test...');
-      
+
       // Récupérer les paramètres actuels
       const currentSettings = await AsyncStorage.getItem('@fakt_settings');
-      
+
       if (currentSettings) {
         const settings = JSON.parse(currentSettings);
-        
+
         // Supprimer les propriétés de test
         if (settings.propertyTemplates) {
-          const cleanTemplates = settings.propertyTemplates.filter((prop: any) => 
+          const cleanTemplates = settings.propertyTemplates.filter((prop: PropertyTemplate) =>
             !prop.name?.includes('Test') && !prop.name?.includes('test')
           );
           

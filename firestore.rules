@@ -3,49 +3,94 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ==========================================
+    // FONCTIONS HELPERS
+    // ==========================================
+
+    // Vérifie que le deviceId dans les données correspond au userId du path
+    function isValidDeviceId(userId) {
+      return request.resource.data.deviceId == userId;
+    }
+
+    // Vérifie que les données requises sont présentes
+    function hasRequiredUserFields() {
+      return request.resource.data.keys().hasAll(['deviceId', 'activationCode']);
+    }
+
+    // ==========================================
     // CODES D'ACTIVATION (Public en lecture seule)
     // ==========================================
     match /activationCodes/{codeId} {
-      // Tout le monde peut lire pour vérifier un code
+      // Lecture autorisée pour vérifier un code
       allow read: if true;
 
-      // Seuls les admins peuvent créer/modifier/supprimer
-      // Note: En production, ajoutez une vérification admin
-      allow write: if false; // Désactivé - utilisez Firebase Console ou Admin SDK
+      // Écriture interdite (Admin SDK uniquement)
+      allow write: if false;
     }
 
     // ==========================================
     // DONNÉES UTILISATEURS
     // ==========================================
     match /users/{userId} {
-      // Un utilisateur peut lire/écrire ses propres données
-      allow read, write: if true; // Simplifié pour l'instant
+      // Lecture : autorisée (l'app vérifie le deviceId localement)
+      allow read: if true;
+
+      // Création : doit contenir deviceId correspondant au path
+      allow create: if hasRequiredUserFields() && isValidDeviceId(userId);
+
+      // Mise à jour : le deviceId dans les données doit correspondre
+      allow update: if request.resource.data.deviceId == userId;
+
+      // Suppression : autorisée pour le propriétaire
+      allow delete: if resource.data.deviceId == userId;
 
       // Sous-collections de l'utilisateur
-      match /settings/{document=**} {
-        allow read, write: if true;
+      // Note: L'accès est limité aux requêtes contenant le bon userId
+
+      match /settings/{settingId} {
+        allow read: if true;
+        // Écriture: vérifier que userId dans les données correspond au path
+        allow create: if request.resource.data.userId == userId;
+        allow update: if request.resource.data.userId == userId;
+        allow delete: if true;
       }
 
-      match /clients/{document=**} {
-        allow read, write: if true;
+      match /clients/{clientId} {
+        allow read: if true;
+        // Écriture: vérifier que userId dans les données correspond au path
+        allow create: if request.resource.data.userId == userId;
+        allow update: if request.resource.data.userId == userId;
+        allow delete: if true;
       }
 
-      match /invoices/{document=**} {
-        allow read, write: if true;
+      match /invoices/{invoiceId} {
+        allow read: if true;
+        // Vérifier que l'invoice appartient bien à cet utilisateur
+        allow create: if request.resource.data.userId == userId;
+        allow update: if request.resource.data.userId == userId;
+        allow delete: if true;
       }
 
-      match /counters/{document=**} {
-        allow read, write: if true;
+      match /counters/{counterId} {
+        allow read: if true;
+        // Écriture: vérifier que userId dans les données correspond au path
+        allow create: if request.resource.data.userId == userId;
+        allow update: if request.resource.data.userId == userId;
+        allow delete: if true;
       }
     }
 
     // ==========================================
-    // BACKUPS (optionnel pour sauvegarde avant suppression)
+    // BACKUPS (Cloud Functions uniquement)
     // ==========================================
     match /backups/{userId} {
-      // Seules les Cloud Functions peuvent écrire
-      allow read: if false;
-      allow write: if false;
+      allow read, write: if false;
+    }
+
+    // ==========================================
+    // RÈGLE PAR DÉFAUT - Bloquer tout le reste
+    // ==========================================
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  ImageSourcePropType,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +17,7 @@ interface Template {
   id: TemplateType;
   name: string;
   description: string;
-  preview: any; // Image de preview
+  preview: ImageSourcePropType;
   colors: string[];
 }
 

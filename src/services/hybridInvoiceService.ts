@@ -4,6 +4,7 @@ import { InvoiceData } from '../types/invoice';
 import googleDriveService from './googleDriveService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SETTINGS_KEY, PropertyTemplate, OwnerSettings } from '../features/settings/SettingsScreen';
+import cacheService, { CACHE_KEYS } from './cacheService';
 
 /**
  * Service hybride pour les factures :
@@ -70,9 +71,12 @@ class HybridInvoiceService {
       
       // Synchroniser avec Google Drive si connecté (désactivé temporairement)
       // await this.syncToGoogleDrive(storedInvoice, invoiceData);
-      
+
+      // Invalider le cache des factures
+      cacheService.invalidate(CACHE_KEYS.INVOICES);
+
       return storedInvoice;
-      
+
     } catch (error) {
       console.error('❌ Erreur sauvegarde facture:', error);
       throw error;
@@ -87,14 +91,17 @@ class HybridInvoiceService {
       // Supprimer localement
       console.log('💾 Suppression locale de la facture:', invoiceId);
       await LocalStorageService.deleteInvoice(invoiceId);
-      
+
       // Supprimer dans Firebase si connecté
       const isConnected = await userDataService.isUserConnected();
       if (isConnected) {
         console.log('📡 Suppression de la facture dans Firebase...');
         console.log('✅ Facture supprimée de Firebase');
       }
-      
+
+      // Invalider le cache des factures
+      cacheService.invalidate(CACHE_KEYS.INVOICES);
+
     } catch (error) {
       console.error('❌ Erreur suppression facture:', error);
       throw error;
@@ -305,7 +312,7 @@ class HybridInvoiceService {
   /**
    * Convertit les factures Firebase vers le format StoredInvoice
    */
-  private convertFirebaseToStoredInvoices(firebaseInvoices: any[]): StoredInvoice[] {
+  private convertFirebaseToStoredInvoices(firebaseInvoices: Array<Record<string, unknown>>): StoredInvoice[] {
     return firebaseInvoices.map(invoice => ({
       id: invoice.id,
       data: {
@@ -324,7 +331,7 @@ class HybridInvoiceService {
   /**
    * Convertit une StoredInvoice vers le format Firebase
    */
-  private convertStoredInvoiceToFirebase(storedInvoice: StoredInvoice): any {
+  private convertStoredInvoiceToFirebase(storedInvoice: StoredInvoice): Record<string, unknown> {
     return {
       ...storedInvoice.data,
       id: storedInvoice.id,

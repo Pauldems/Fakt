@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import userDataService from './userDataService';
 import { Client } from './clientService';
+import { InvoiceFormData } from '../types/invoice';
 
 const CLIENTS_STORAGE_KEY = '@fakt_clients';
 
@@ -111,7 +112,7 @@ class HybridClientService {
   /**
    * Sauvegarde automatique d'un client depuis une facture
    */
-  async saveClientFromInvoice(invoiceData: any): Promise<void> {
+  async saveClientFromInvoice(invoiceData: InvoiceFormData): Promise<void> {
     const clientData = {
       name: invoiceData.lastName,
       firstName: invoiceData.firstName,
@@ -170,10 +171,10 @@ class HybridClientService {
         const clients = JSON.parse(clientsJson);
         
         // Convertir les dates string en objets Date
-        return clients.map((client: any) => ({
+        return (clients as Array<Record<string, unknown>>).map((client) => ({
           ...client,
-          lastUsed: new Date(client.lastUsed)
-        }));
+          lastUsed: new Date(client.lastUsed as string)
+        })) as Client[];
       }
       
       return [];

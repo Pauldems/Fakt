@@ -68,6 +68,7 @@ class UserDataService {
       // Nettoyer les valeurs undefined pour Firebase
       const settingsDoc = cleanForFirebase({
         ...settings,
+        userId: userId, // Requis par les règles Firestore
         updatedAt: serverTimestamp(),
         createdAt: settings.createdAt || new Date().toISOString()
       });
@@ -117,6 +118,7 @@ class UserDataService {
       // Nettoyer les valeurs undefined pour Firebase
       const clientDoc = cleanForFirebase({
         ...client,
+        userId: userId, // Requis par les règles Firestore
         lastUsed: client.lastUsed.toISOString(),
         updatedAt: serverTimestamp()
       });
@@ -188,7 +190,7 @@ class UserDataService {
   /**
    * Sauvegarde une facture
    */
-  async saveInvoice(invoiceData: any): Promise<string> {
+  async saveInvoice(invoiceData: Record<string, unknown>): Promise<string> {
     const userId = await this.getUserId();
     if (!userId) throw new Error('Utilisateur non connecté');
 
@@ -212,7 +214,7 @@ class UserDataService {
   /**
    * Récupère toutes les factures de l'utilisateur
    */
-  async getInvoices(): Promise<any[]> {
+  async getInvoices(): Promise<Array<Record<string, unknown>>> {
     const userId = await this.getUserId();
     if (!userId) return [];
 
@@ -221,9 +223,9 @@ class UserDataService {
         collection(db, 'users', userId, 'invoices'),
         orderBy('createdAt', 'desc')
       );
-      
+
       const querySnapshot = await getDocs(invoicesQuery);
-      const invoices: any[] = [];
+      const invoices: Array<Record<string, unknown>> = [];
 
       querySnapshot.forEach((doc) => {
         invoices.push({
@@ -260,6 +262,7 @@ class UserDataService {
 
       // Mettre à jour le compteur
       await setDoc(doc(db, 'users', userId, 'counters', 'main'), {
+        userId: userId, // Requis par les règles Firestore
         lastInvoiceNumber: nextNumber,
         updatedAt: serverTimestamp()
       });
@@ -313,7 +316,7 @@ class UserDataService {
         const settings = JSON.parse(localSettings);
         
         // Ne pas migrer si ce sont des données de test
-        const hasTestData = settings.propertyTemplates?.some((prop: any) => 
+        const hasTestData = settings.propertyTemplates?.some((prop: PropertyTemplate) =>
           prop.name?.includes('Test') || prop.name?.includes('test')
         );
         

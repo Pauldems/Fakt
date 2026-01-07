@@ -84,18 +84,40 @@ npm run web      # Version web (si supportée)
 ### Structure du projet
 ```
 src/
-├── components/          # Composants réutilisables
+├── __tests__/          # Tests unitaires (Jest)
+│   ├── services/       # Tests des services
+│   └── __mocks__/      # Mocks pour les tests
+├── components/         # Composants réutilisables
 ├── contexts/           # Contextes React (Auth, Theme)
 ├── features/           # Fonctionnalités par écran
 │   ├── activation/     # Système d'activation
 │   ├── invoice/        # Création de factures
 │   ├── invoiceList/    # Liste et gestion
 │   └── settings/       # Paramètres
+├── interfaces/         # Interfaces TypeScript pour les services
 ├── services/           # Services métier
-├── theme/             # Thèmes et styles
-├── types/             # Types TypeScript
-└── utils/             # Utilitaires
+├── stores/             # State management (Zustand)
+├── theme/              # Thèmes et styles
+├── types/              # Types TypeScript partagés
+└── utils/              # Utilitaires (logger, helpers)
 ```
+
+### Services principaux
+| Service | Description |
+|---------|-------------|
+| `cacheService` | Cache en mémoire avec TTL |
+| `hybridInvoiceService` | Factures (local + Firebase) |
+| `hybridClientService` | Clients (local + Firebase) |
+| `pdfCacheService` | Cache permanent des PDFs |
+| `errorService` | Reporting d'erreurs (Sentry) |
+| `googleDriveService` | Sync Google Drive |
+
+### Stores Zustand
+| Store | Gère |
+|-------|------|
+| `useInvoicesStore` | État des factures, filtres |
+| `useSettingsStore` | Paramètres, propriétés |
+| `useAppStore` | Activation, connexions |
 
 ## 🔑 Système d'activation
 

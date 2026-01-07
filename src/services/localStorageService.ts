@@ -147,9 +147,9 @@ export class LocalStorageService {
       const invoicesJson = await AsyncStorage.getItem(STORAGE_KEY);
       if (!invoicesJson) return [];
       
-      const invoices = JSON.parse(invoicesJson);
+      const invoices = JSON.parse(invoicesJson) as Array<Record<string, unknown>>;
       // Convertir les dates string en objets Date et recalculer totalAmount si nécessaire
-      return invoices.map((inv: any) => {
+      return invoices.map((inv) => {
         // Recalculer totalAmount si null
         let totalAmount = inv.totalAmount;
         if (totalAmount == null && inv.data) {
